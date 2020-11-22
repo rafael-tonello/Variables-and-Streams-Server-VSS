@@ -22,6 +22,7 @@
     #include <netdb.h>
     #include <netinet/in.h>
     #include <sys/socket.h>
+    #include <sys/ioctl.h>
 #pragma endregion
 
 namespace TCPServerLib
@@ -58,30 +59,45 @@ namespace TCPServerLib
 
     class ClientInfo: public SocketHelper{
         public:
+            int socket;
             mutex writeMutex;
             ClientInfo();
             TCPServer *server;
             ClientInfo(TCPServer *server);
-            void send(char* data, size_t size);
-            void send(string data);
+            void sendData(char* data, size_t size);
+            void sendString(string data);
             bool isConnected();
+            void disconnect(ClientInfo *client);
+
+            atomic<bool> __reading;
+
+            ClientInfo(){
+                __reading = false;
+            }
     };
 
     
 
     class TCPServer: SocketHelper{
         private:
+            const int _CONF_MAX_READ_IN_A_TASK = 5242800;
+            const int _CONF_DEFAULT_LOOP_WAIT = 1000;
+            const int _CONF_READ_BUFFER_SIZE = 10240;
+
+            std::atomic<bool> running;
+            std::atomic<int> nextLoopWait;
+
             ThreadPool *__tasks = NULL;
             map<int, ClientInfo> connectedClients;
             vector<thread*> listenThreads;
             void notifyListeners_dataReceived(ClientInfo *client, char* data, size_t size);
             void notifyListeners_connEvent(ClientInfo *client, CONN_EVENT action);
             void initialize(vector<int> ports, ThreadPool *tasker = NULL);
-            void listenClients(int port);
+            void waitClients(int port);
             void debug(string msg){cout << "Debug: " << msg << endl;}
-            void ChatWithClient(ClientInfo *client);
+            void chatWithClient(ClientInfo *client);
             bool __SocketIsConnected( int socket);
-            void talkWithClients();
+            void clientsCheckLoop();
         public:
             map<string, void*> tags;
             
@@ -89,8 +105,11 @@ namespace TCPServerLib
             TCPServer(vector<int> ports, ThreadPool *tasker = NULL);
             ~TCPServer();
 
-            void send(ClientInfo *client, char* data, size_t size);
-            void send(ClientInfo *client, string data);
+            void disconnect(ClientInfo *client);
+            void disconnectAll(vector<ClientInfo*> *clientList = NULL);
+
+            void sendData(ClientInfo *client, char* data, size_t size);
+            void sendString(ClientInfo *client, string data);
             void sendBroadcast(char* data, size_t size, vector<ClientInfo*> *clientList = NULL);
             void sendBroadcast(string data, vector<ClientInfo*> *clientList = NULL);
 

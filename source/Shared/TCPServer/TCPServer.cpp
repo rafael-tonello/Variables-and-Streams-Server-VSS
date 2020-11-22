@@ -1,3 +1,5 @@
+
+
 #include "TCPServer.h"
 
 #pragma region TCPServer class
@@ -10,18 +12,26 @@
 		void TCPServerLib::TCPServer::notifyListeners_connEvent(ClientInfo *client, CONN_EVENT action)
 		{
 			//IMPORTANT: if disconnected, the 'client' must be destroyed here (or in the function that calls this function);
+			if (action == CONN_EVENT::DISCONNECTED)
+			{
+				
+			}
 		}
 
 		void TCPServerLib::TCPServer::initialize(vector<int> ports, ThreadPool* tasker)
 		{
+			this->running = true;
+			this->nextLoopWait = _CONF_DEFAULT_LOOP_WAIT;
+
 			if (tasker == NULL)
 				tasker = new ThreadPool();
+
 			this->__tasks = tasker;
 
 			for (auto &p: ports)
 			{
 				thread *th = new thread([this,p](){
-					this->listenClients(p);
+					this->waitClients(p);
 				});
 
 				
@@ -32,13 +42,13 @@
 			}
 
 			thread *th2 = new thread([this](){
-				this->talkWithClients();
+				this->clientsCheckLoop();
 			});
 
 			th2->detach();
 		}
 
-		void TCPServerLib::TCPServer::listenClients(int port)
+		void TCPServerLib::TCPServer::waitClients(int port)
 		{
 			//create an socket to await for connections
 
@@ -76,7 +86,6 @@
 
 						clientSize = sizeof(cli_addr);
 
-						this->debug("The server is listening and waiting for news connections");
 						while (true)
 						{
 							int theSocket = accept(listener, (struct sockaddr *) cli_addr, &clientSize);
@@ -89,8 +98,10 @@
 								ClientInfo client;
 								client.socketHandle = theSocket;
 								client.server = this;
+								client.socket = theSocket;
 
-								this->connectedClients[theSocket](client);
+								this->connectedClients[theSocket] = client;
+								this->notifyListeners_connEvent(&client, CONN_EVENT::CONNECTED);
 							}
 							else{
 								usleep(5000);
@@ -111,12 +122,87 @@
 				//n = write(newsockfd,"I got your message",18);
 		}
 
-		void TCPServerLib::TCPServer::talkWithClients()
+		void TCPServerLib::TCPServer::clientsCheckLoop()
 		{
-			//scrolls the list of clients and checks if exists data to be read
+			while (this->running)
+			{
+				//scrolls the list of clients and checks if there is data to be read
+				for (auto &currClient: this->connectedClients)
+				{
+					//checks if a reading process is already in progress
+					if (!currClient.second.__reading)
+					{
+						//checks if client is connected
+						if (this->__SocketIsConnected(currClient.second.socket))
+						{
 
-				//when some data is read, send it to the server observer and respective client observers
+							int availableBytes = 0;
+							ioctl(currClient.second.socket, FIONREAD, &availableBytes);
 
+							if (availableBytes > 0)
+							{
+								//create a new task in the thread pool (this->__tasks) to read the socket
+								currClient.second.__reading = true;
+
+								this->__tasks->enqueue([this](ClientInfo* __currClient){
+									this->chatWithClient(__currClient);
+									__currClient->__reading = false;
+								}, &currClient.second);
+							}
+						}
+						else
+						{
+							//send disconnected notifications
+							this->__tasks->enqueue([this](ClientInfo* __currClient){
+								this->notifyListeners_connEvent(__currClient, CONN_EVENT::DISCONNECTED);
+							}, &currClient.second);
+						}
+					}
+				}
+
+				//checks if the current loop must waits.. this block allow to prevent waiting, if needed, outside here
+				if (nextLoopWait > 0)
+					usleep(nextLoopWait);
+
+				nextLoopWait = _CONF_DEFAULT_LOOP_WAIT;
+			}
+		}
+
+		void TCPServerLib::TCPServer::chatWithClient(ClientInfo *client)
+		{
+			int bufferSize = _CONF_READ_BUFFER_SIZE;
+			char readBuffer[bufferSize]; //10k buffer
+			int totalRead = 0;
+
+			while(true)
+			{
+				auto readCount = recv(client->socket,readBuffer, bufferSize, 0);
+				if (readCount > 0)
+				{
+					this->notifyListeners_dataReceived(client, readBuffer, readCount);
+					totalRead += readCount;
+					//limits the reading in a a maximum of 5MB (to prevent thread monopolization in possible - or not? - very long input streams)
+					if (totalRead > _CONF_MAX_READ_IN_A_TASK)
+					{
+						//thre remaing data will be read in another task
+						break;	
+					}
+				}
+				else
+					break;
+			}
+		}
+
+		bool TCPServerLib::TCPServer::__SocketIsConnected(int socket)
+		{
+			char data;
+			int readed = recv(socket,&data,1, MSG_PEEK | MSG_DONTWAIT);//read one byte (but not consume this)
+
+			int error_code;
+			socklen_t error_code_size = sizeof(error_code);
+			getsockopt(socket, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size);
+			//string desc(strerror(error_code));
+			return error_code == 0;
 		}
 
 	#pragma endregion
@@ -137,12 +223,12 @@
 
 	TCPServerLib::TCPServer::~TCPServer()
 	{
-
+		this->running = false;
 	}
 
 	void TCPServerLib::SocketHelper::addReceiveListener(function<void(ClientInfo *client, char* data,  size_t size)> onReceive)
 	{
-		this->receiveListeners.push_back(onReceive)
+		this->receiveListeners.push_back(onReceive);
 	}
 
 	void TCPServerLib::SocketHelper::addReceiveListener_s(function<void(ClientInfo *client, string data)> onReceive)
@@ -155,37 +241,45 @@
 		this->connEventsListeners.push_back(onConEvent);
 	}
 
-	void TCPServerLib::TCPServer::send(ClientInfo *client, char* data, size_t size)
+
+	void TCPServerLib::TCPServer::sendData(ClientInfo *client, char* data, size_t size)
 	{ 
 		client->writeMutex.lock();
-
-
-
+		
+		auto bytesWrite = send(client->socket, data, size, 0);
+		
 		client->writeMutex.unlock();
 	}
 
-	void TCPServerLib::TCPServer::send(ClientInfo *client, string data)
+	void TCPServerLib::TCPServer::sendString(ClientInfo *client, string data)
 	{
-		client->writeMutex.lock();
-
-		client->writeMutex.unlock();
+		this->sendData(client, (char*)data.c_str(), data.size());
 	}
 
 	void TCPServerLib::TCPServer::sendBroadcast(char* data, size_t size, vector<ClientInfo*> *clientList)
 	{
+		bool clearList = false;
 		if (clientList == NULL)
 		{
 			vector<ClientInfo*> temp;
 			for (auto &c: this->connectedClients)   
 				temp.push_back(&(c.second));
 			clientList = &temp;
+			clearList = true;
 		}
-		for (int c = 0; c < clientList->size(), c++)
+
+		for (int c = 0; c < clientList->size(); c++)
 		{
 			this->__tasks->enqueue([data, size](ClientInfo* p){
-				p->send(data, size);
+				p->sendData(data, size);
 			
 			}, (*clientList)[c]);
+		}
+
+		if (clearList)
+		{
+			(*clientList).clear();
+			delete clientList;
 		}
 
 	}
@@ -193,6 +287,35 @@
 	void TCPServerLib::TCPServer::sendBroadcast(string data, vector<ClientInfo*> *clientList)
 	{
 		this->sendBroadcast((char*)(data.c_str()), data.size(), clientList);
+	}
+
+	void TCPServerLib::TCPServer::disconnect(ClientInfo *client)
+	{
+		close(client->socket);
+	}
+
+	void TCPServerLib::TCPServer::disconnectAll(vector<ClientInfo*> *clientList)
+	{
+		bool clearList = false;
+		if (clientList == NULL)
+		{
+			vector<ClientInfo*> temp;
+			for (auto &c: this->connectedClients)   
+				temp.push_back(&(c.second));
+			clientList = &temp;
+			clearList = true;
+		}
+
+		for (int c = 0; c < clientList->size(); c++)
+		{
+			this->disconnect((*clientList)[c]);
+		}
+
+		if (clearList)
+		{
+			(*clientList).clear();
+			delete clientList;
+		}
 	}
 
 
