@@ -39,7 +39,7 @@ class Promise{
         bool stopped = false;
         void run();
         void debug(string msg);
-    };
+};
 
 /*
 

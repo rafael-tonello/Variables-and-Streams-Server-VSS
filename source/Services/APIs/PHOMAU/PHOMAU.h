@@ -29,6 +29,7 @@
 #include <time.h>
 #include "../ApiMediatorInterface.h"
 #include "SocketInfo.h"
+#include <thread>
 
 //#define MSG_DONTWAIT 0x40
 
@@ -40,7 +41,7 @@ namespace API {
         private:
             ApiMediatorInterface *ctrl;
 
-            string __resolveVarName(string key);
+            //string __resolveVarName(string key);
         public:
             int __port;
             map<long, SocketInfo> __sockets;
@@ -50,19 +51,19 @@ namespace API {
 
             void USleep(long MicroSeconds);
 
-            void __PROTOCOL_PHOMAU(char* data, unsigned int size, SocketInfo clientSocket);
+            void __PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket);
             void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size);
-            void __PROTOCOL_PHOMAU_NOTIFY_OBSERVERS(string varName, string varValue);
+            //void __PROTOCOL_PHOMAU_NOTIFY_OBSERVERS(string varName, string varValue);
             bool __SocketIsConnected(SocketInfo socket);
 
         protected:
 
         private:
             pthread_t ThreadAwaitClients;
+            void ThreadAwaitClientsFunction();
+            void ThreadTalkWithClientFunction(int socketClient);
     };
 
-    void *ThreadAwaitClientsFunction(void *thisPointer);
-    void *ThreadTalkWithClientFunction(void *arguments);
     bool SetSocketBlockingEnabled(int fd, bool blocking);
     void addStringToCharList(vector<char> *destination, string *source, char*source2, int source2Length = -1);
 

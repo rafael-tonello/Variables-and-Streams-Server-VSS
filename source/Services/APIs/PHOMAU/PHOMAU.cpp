@@ -12,7 +12,14 @@ namespace API {
            WSAStartup(versionWanted, &wsaData);
         #endif*/
 
-        pthread_create(&(this->ThreadAwaitClients), NULL, ThreadAwaitClientsFunction, this);
+        //pthread_create(&(this->ThreadAwaitClients), NULL, ThreadAwaitClientsFunction, this);
+
+        thread th((){
+            this->ThreadAwaitClientsFunction();
+        });
+        th.detach();
+
+        
     }
 
     PHOMAU::~PHOMAU()
@@ -20,7 +27,7 @@ namespace API {
         //dtor
     }
 
-	void PHOMAU::__PROTOCOL_PHOMAU(char* data, unsigned int size, SocketInfo clientSocket)
+	void PHOMAU::__PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket)
 	{
         string strData;
         long separatorPosition;
@@ -51,31 +58,28 @@ namespace API {
                     if (separatorPosition > -1)
                     {
                         string key = strData.substr(0, separatorPosition);
-
-                        key = this->__resolveVarName(key);
-
                         string value = strData.substr(separatorPosition+1, string::npos);
-                        this->ctrl->SetVar(key + ".value", value);
-                        //this->ctrl->SetVar(key + ".type", "var");
-                        
-                        key.clear();
-                        value.clear();
+                        this->ctrl->setVar(key, value);
+
+                        //key.clear();
+                        //value.clear();
                     }
 				break;
 				case GET_VAR:
                     //store a clientSocket id in a variable
-                    tempStr = strData;
-                    strData = this->__resolveVarName(strData);
-                    value = this->ctrl->GetVar(strData + ".value", "");
-                    strData = tempStr + "="+value;
+                    future<tuple<string, DynamicVar>> fut = this->ctrl->getVar(strData, DynamicVar(""));
+                    auto value = fut.get();
 
-                    buffer = new char[strData.size()];
+                    strData = std::get<0>(value) + "="+(std::get<1>(value)).getString();
+
+
+                    /*buffer = new char[strData.size()];
                     for (int cont  =0; cont < strData.size(); cont++)
-                        buffer[cont] = strData[cont];
-                    this->__PROTOCOL_PHOMAU_WRITE(clientSocket, 0x16 , buffer, strData.size());
-                    delete[] buffer;
-                    value.clear();
-                    tempStr.clear();
+                        buffer[cont] = strData[cont];*/
+                    this->__PROTOCOL_PHOMAU_WRITE(clientSocket, 0x16 , &strData[0], strData.size());
+                    //delete[] buffer;
+                    //value.clear();
+                    //tempStr.clear();
 
 				break;
 				case OBSERVE_VAR:
@@ -181,7 +185,7 @@ namespace API {
         strData.clear();
 	}
 
-    //scrolls throught the alias until find the desired varname
+    /*//scrolls throught the alias until find the desired varname
     string PHOMAU::__resolveVarName(string key)
     {
         string type = this->ctrl->GetVar(key + ".type", "var");
@@ -281,7 +285,7 @@ namespace API {
             delete[] buffer;
 
         }
-    }
+    }*/
 
     void PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size)
     {
@@ -304,12 +308,6 @@ namespace API {
         writeBuffer[writeBufferIndex++]=((char*)(&size))[2];
         writeBuffer[writeBufferIndex++]=((char*)(&size))[1];
         writeBuffer[writeBufferIndex++]=((char*)(&size))[0];
-
-
-        /*writeBuffer[writeBufferIndex++]=((char*)(&size))[3];
-        writeBuffer[writeBufferIndex++]=((char*)(&size))[2];
-        writeBuffer[writeBufferIndex++]=((char*)(&size))[1];
-        writeBuffer[writeBufferIndex++]=((char*)(&size))[0];*/
 
         //the command
         writeBuffer[writeBufferIndex++] = command;
@@ -335,9 +333,8 @@ namespace API {
 
     }
 
-    void *ThreadAwaitClientsFunction(void *thisPointer)
+    void PHOMAU::ThreadAwaitClientsFunction()
     {
-        PHOMAU *self = (PHOMAU*)thisPointer;
 
         //create an socket to await for connections
 
@@ -353,16 +350,16 @@ namespace API {
 
         listener = socket(AF_INET, SOCK_STREAM, 0);
 
-        void ** tmp;
+        //void ** tmp;
 
         if (listener >= 0)
         {
             //fill(std::begin(serv_addr), std::end(serv_addr), T{});
             //bzero((char *) &serv_addr, sizeof(serv_addr));
-            //setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (char *) &iOptVal, &iOptLen);
+            setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (char *) &iOptVal, &iOptLen);
             serv_addr->sin_family = AF_INET;
             serv_addr->sin_addr.s_addr = INADDR_ANY;
-            serv_addr->sin_port = htons(self->__port);
+            serv_addr->sin_port = htons(this->__port);
 
             status = bind(listener, (struct sockaddr *) serv_addr, sizeof(*serv_addr));
             if (status >= 0)
@@ -371,19 +368,26 @@ namespace API {
                 if (status >= 0)
                 {
                     clientSize = sizeof(cli_addr);
-                    cout << "Server is waiting for incoming connections on port "<< self->__port << endl << flush;
+                    cout << "Server is waiting for incoming connections on port "<< this->__port << endl << flush;
                     while (true)
                     {
                         int client = accept(listener, (struct sockaddr *) cli_addr, &clientSize);
                         if (client >= 0)
                         {
-                            thTalkWithClient = new pthread_t;
-                            tmp = new void*[3];
-                            tmp[0] = self;
-                            tmp[1] = &client;
-                            tmp[2] = thTalkWithClient;
-                            pthread_create(thTalkWithClient, NULL, ThreadTalkWithClientFunction, tmp);
+                            //thTalkWithClient = new pthread_t;
+                            //tmp = new void*[3];
+                            //tmp[0] = self;
+                            //tmp[1] = &client;
+                            //tmp[2] = thTalkWithClient;
+                            //pthread_create(thTalkWithClient, NULL, ThreadTalkWithClientFunction, tmp);
+                            thread th(() = {
+                                thTalkWithClient(client);
+                            });
+                            th.detach();
+                            usleep(1000);
                         }
+                        else
+                            usleep(10000);
                     }
                 }
                 else
@@ -399,17 +403,13 @@ namespace API {
          //n = write(newsockfd,"I got your message",18);
     }
 
-    void *ThreadTalkWithClientFunction(void *arguments)
+    void PHOMAU::ThreadTalkWithClientFunction(int socketClient)
     {
 
-        void** params = (void**)arguments;
-        PHOMAU *self = (PHOMAU*)params[0];
-        int socketP = *((int*)(params[1]));
-        pthread_t *thTalkWithClient = (pthread_t*)(params[2]);
 
         SocketInfo *client = new SocketInfo();
-        client->socket = socketP;
-        self->__sockets[client->getId()] = *client;
+        client->socket = socketClient;
+        this->__sockets[client->getId()] = *client;
 
         SetSocketBlockingEnabled(client->socket, true);
 
@@ -448,8 +448,8 @@ namespace API {
             ioctl(client->socket,FIONREAD,&ToRead);
             // #endif
 
-            self->USleep(50000);
-            if (self->__SocketIsConnected(*client))
+            this->usleep(50000);
+            if (this->__SocketIsConnected(*client))
             {
                 if (ToRead > 0)
                 {
@@ -514,7 +514,7 @@ namespace API {
     							case IDENTIFYING_PROTOCOL:
     								if (protocolType == P_PHOMAU)
     								{
-    									self->__PROTOCOL_PHOMAU(data, dataSize, *client);
+    									this->__PROTOCOL_PHOMAU(data, dataSize, *client);
     								}
 
                                     //clear all
@@ -540,7 +540,7 @@ namespace API {
                     }
     				else
     				{
-    					self->USleep(50000);
+    					usleep(50000);
     				}
                 }
                 else if (ToRead < 0)
@@ -550,7 +550,7 @@ namespace API {
                 }
     			else
     				//usleep(10000);
-    				self->USleep(50000);
+    				usleep(50000);
             }
             else
             {
@@ -561,9 +561,9 @@ namespace API {
         cout << "Saiu do While, state = " << state <<endl  << flush;
 
 		close(client->socket);
-        if (self->__sockets.find(client->getId()) != self->__sockets.end())
+        if (this->__sockets.find(client->getId()) != this->__sockets.end())
         {
-            self->__sockets.erase(client->getId());
+            this->__sockets.erase(client->getId());
         }
 
         //headerLines.clear();
@@ -576,8 +576,7 @@ namespace API {
          tempBuffer = NULL;
 
 
-        //pthread_join(*thTalkWithClient, NULL);
-        pthread_detach(*thTalkWithClient);
+        //pthread_detach(*thTalkWithClient);
         pthread_exit(0);
     }
 
@@ -596,7 +595,7 @@ namespace API {
         #endif
     }
 
-    void PHOMAU::USleep(long MicroSeconds)
+    /*void PHOMAU::USleep(long MicroSeconds)
     {
         timespec tim;
         timespec remainOnEnd;
@@ -605,7 +604,7 @@ namespace API {
 
         nanosleep(&tim, &remainOnEnd);
 
-    }
+    }*/
 
     bool PHOMAU::__SocketIsConnected(SocketInfo socket)
     {
