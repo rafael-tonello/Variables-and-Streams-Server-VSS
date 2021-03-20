@@ -2,22 +2,28 @@
 namespace API {
     SocketInfo::SocketInfo()
     {
-        this->upadateKeepAlive();
-        this->id = (int)lastKeepAlive;
-        this->id += rand();
+        this->upadateAlive();
+        this->id = 0; //not defined yet
     }
 
     long SocketInfo::getId()
     {
+        if (this->id == 0)
+        {
+            (int)lastKeepAlive;
+            this->id += rand();
+            this->id += this->socket;
+        }
+
         return this->id;
     }
 
-    void SocketInfo::upadateKeepAlive()
+    void SocketInfo::upadateAlive()
     {
         time(&(this->lastKeepAlive));
     }
 
-    int SocketInfo::getKeepAliveSeconds()
+    int SocketInfo::getAliveSeconds()
     {
         time_t currTime;
         time(&currTime);

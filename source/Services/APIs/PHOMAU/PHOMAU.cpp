@@ -14,7 +14,7 @@ namespace API {
 
         //pthread_create(&(this->ThreadAwaitClients), NULL, ThreadAwaitClientsFunction, this);
 
-        thread th((){
+        thread th([this](){
             this->ThreadAwaitClientsFunction();
         });
         th.detach();
@@ -38,10 +38,14 @@ namespace API {
         char* buffer;
         bool founded;
 
+        future<tuple<string, DynamicVar>> get_var_fut;
+        tuple<string, DynamicVar> get_var_value;
+
 		if (size > 1)
 		{
             for (unsigned int cont = 1; cont< size; cont++)
                 strData += data[cont];
+
 			switch (data[0])
 			{
 				//case ACKNOWNLEDGE:
@@ -67,10 +71,10 @@ namespace API {
 				break;
 				case GET_VAR:
                     //store a clientSocket id in a variable
-                    future<tuple<string, DynamicVar>> fut = this->ctrl->getVar(strData, DynamicVar(""));
-                    auto value = fut.get();
+                    this->ctrl->getVar(strData, DynamicVar(""));
+                    get_var_value = get_var_fut.get();
 
-                    strData = std::get<0>(value) + "="+(std::get<1>(value)).getString();
+                    strData = std::get<0>(get_var_value) + "="+(std::get<1>(get_var_value)).getString();
 
 
                     /*buffer = new char[strData.size()];
@@ -85,8 +89,8 @@ namespace API {
 				case OBSERVE_VAR:
                     //store a clientSocket id in a variable
                     key = strData;
-                    cout << "Recebeu um pedido de observação da variável " << key << endl << flush;
-                    key = this->__resolveVarName(key);
+                    this->ctrl->observateVar(key, this, std::to_string(clientSocket.getId()));
+                    /*key = this->__resolveVarName(key);
                     tempStr = strData;
                     strData = key + ".observers";
                     observersCount = this->ctrl->GetVar_Int(strData + ".count", 0);
@@ -122,7 +126,7 @@ namespace API {
                     delete[] buffer;
                     key.clear();
                     value.clear();
-                    tempStr.clear();
+                    tempStr.clear();*/
 				break;
 				case STOP_OBSERVER_VAR:
 

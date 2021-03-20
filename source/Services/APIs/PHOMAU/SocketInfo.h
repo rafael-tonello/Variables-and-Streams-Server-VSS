@@ -14,7 +14,7 @@ namespace API {
             time_t lastKeepAlive;
             SocketInfo();
             long getId();
-            void upadateKeepAlive();
-            int getKeepAliveSeconds();
+            void upadateAlive();
+            int getAliveSeconds();
     };
 }

@@ -12,7 +12,6 @@ ThreadPool::ThreadPool(
         this->schedul_policy = SCHED_IDLE;
     if (priority_orNegativeToBackgorundPool_orZeroToDefault > 0)
         this->schedul_policy = SCHED_FIFO;*/
-
     if (niceValue < -20)
     {
         this->schedul_policy = SCHED_IDLE;
