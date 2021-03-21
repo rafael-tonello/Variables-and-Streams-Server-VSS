@@ -24,32 +24,58 @@ namespace HomeAut { namespace Controller {
         function<void(string name, DynamicVar value, void* args)> fun;
     };
 
+    struct VarNode{
+        VarNode* parent = NULL;
+        string name = "";
+        DynamicVar value;
+        map<string, VarNode> childs;
+        vector<VarObserverInfo> observers;
+    };
+
     class Controller: public Observable
     {
     private:
         ThreadPool tasker;
 
-        FileVars sVarSystem("vars", true);
+        VarNode rootNode;
+
+        //FileVars sVarSystem("vars", true);
         
         mutex varsObserversMutex;
         map<string, vector<VarObserverInfo>> varsObservers;
 
         string resolveVarName(string aliasOrVarName);
+
+        VarNode* _findNode(string name, VarNode* curr);
+
     public:
         Controller();
-        //creates or change a variable
-        void setVar(string name, DynamicVar variable);
-        
-        //create an alias (a shortcut) to a variable (or to another alias)
-        void setAlias(string aliasName, string varName);
 
         //returned the literal value (a variable name) of an alias
         string getAliasValue(string aliasName);
 
-        //start to observate a variable
-        void observeVar(string varName, function<void(string name, string value, void* args)> callback, void* args = NULL, string id = "");
-        //stop observate variable
-        void stopObserve(string id);
+        future<void> createAlias(string name, string dest);
+
+        void observeVar(string varName, function<void(string name, string value, void* args)> callback, void* args = NULL, string observerId = "");
+        void stopObserve(string observerId);
+
+        //the JsPromise (from ThreadPool) will no be used yet because it must be tested
+        /*
+        virtual JsPromise* GetVar
+         (string name, DynamicVar defaultValue) = 0;
+        a = provider.getVar("test");
+        a.then((void* r){
+            DynamicVar value = (DynamicVar)r;
+            
+        })
+        */
+
+
+        //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
+        future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
+        future<void> setVar(string name, DynamicVar value);
+        future<void> delVar(string varname);
+        future<vector<string>> getChildsOfVar(string parentName);
 
     };
 }}

@@ -18,6 +18,22 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "buildTests",
+            "type": "shell",
+            "command": "make all",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/tests"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
