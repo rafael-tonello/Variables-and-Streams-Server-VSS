@@ -28,6 +28,6 @@ namespace Shared{
 
             bool getBool(function<void()> onError = [](){});
             void setBool(bool value);
-    }
+    };
 }
 #endif

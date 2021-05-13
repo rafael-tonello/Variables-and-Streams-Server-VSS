@@ -26,10 +26,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "(gdb) Launch tests",
+            "name": "(gdb) Tests",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/build/VarServerTests",
+            "program": "${workspaceFolder}/tests/build/tests",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/tests/build",

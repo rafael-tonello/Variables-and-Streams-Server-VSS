@@ -30,18 +30,59 @@
 #include "../ApiMediatorInterface.h"
 #include "SocketInfo.h"
 #include <thread>
-
+ 
 //#define MSG_DONTWAIT 0x40
+
+#ifdef __TESTING__
+    #include <tester.h>
+#endif
 
 namespace API {
     using namespace std;
 
     class PHOMAU
-    {
+    {    
         private:
+            #ifdef __TESTING__
+                public:
+            #endif
+
             ApiMediatorInterface *ctrl;
 
             //string __resolveVarName(string key);
+            void debug(string msg){cout << msg << endl;}
+
+            /**
+             * @brief this function is called when a fclient is connected to the server
+             * @param client a pointer to an SocketInfo object with the connectd client info
+             */
+            void clientConnected(SocketInfo* client);
+
+            /**
+             * @brief This function is called when a client is disconnected from the server
+             * @param cliente is a pointer to an ScoketInfo object with the connected client info
+            */
+            void clientDisconnected(SocketInfo* client);
+            
+            /** 
+             * @brief this function is called majority by the function ThreadTalkWithClientFunction when a pack is receitved
+             * @param data the received data
+             * @param the amount of data (number of bytes) received
+             * @param clientSocket a SocketInfo object eith information about the socket client
+             */
+            void __PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket);
+
+            /**
+             * @brief Mounts a PHOMAU protocol pack and send it to a client socket
+             * @param clientSocket A SocketInfo with the scoket client ifnormation who will recieve the data
+             * @param command The PHOMAU command. Take a look in the protocol documentation
+             * @param data The arguments of the 'command'. Again: See the protocol documentation
+             * @param size The size of 'data'
+             * 
+            */
+            void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size);
+            void ThreadAwaitClientsFunction();
+            void ThreadTalkWithClientFunction(int socketClient);
         public:
             int __port;
             map<long, SocketInfo> __sockets;
@@ -49,23 +90,11 @@ namespace API {
             PHOMAU(int port, ApiMediatorInterface *ctr);
             virtual ~PHOMAU();
 
-            void USleep(long MicroSeconds);
-
-            void __PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket);
-            void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size);
-            //void __PROTOCOL_PHOMAU_NOTIFY_OBSERVERS(string varName, string varValue);
             bool __SocketIsConnected(SocketInfo socket);
-
-        protected:
-
-        private:
-            pthread_t ThreadAwaitClients;
-            void ThreadAwaitClientsFunction();
-            void ThreadTalkWithClientFunction(int socketClient);
     };
 
     bool SetSocketBlockingEnabled(int fd, bool blocking);
-    void addStringToCharList(vector<char> *destination, string *source, char*source2, int source2Length = -1);
+    //void addStringToCharList(vector<char> *destination, string *source, char*source2, int source2Length = -1);
 
 	enum States {AWAIT_HEADER, READING_PROTOCOL_TYPE, READING_DATA_SIZE, READING_DATA, IDENTIFYING_PROTOCOL, FINISHED};
 

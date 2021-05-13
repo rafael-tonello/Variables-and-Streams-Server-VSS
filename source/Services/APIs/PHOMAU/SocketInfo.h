@@ -1,10 +1,13 @@
+#ifndef _SOCKET_INFO_H
+#define _SOCKET_INFO_H
 #include <time.h>
 #include <stdlib.h>
+#include "../../../Shared/Misc/TaggedObject.h"
 
-namespace API {
+namespace API{
     using namespace std;
 
-    class SocketInfo
+    class SocketInfo: public TaggedObject 
     {
         private:
             long id;
@@ -18,3 +21,5 @@ namespace API {
             int getAliveSeconds();
     };
 }
+
+#endif

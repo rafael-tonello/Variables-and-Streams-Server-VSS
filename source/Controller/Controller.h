@@ -11,28 +11,39 @@
 #include "../Services/VarSystem/FileVars.h"
 #include "../Shared/ThreadPool/ThreadPool.h"
 #include "../Shared/ThreadPool/JsPromise.h"
+#include "../Services/APIs/ApiMediatorInterface.h"
 
 using namespace Shared;
-using namespace std;
+using namespace std;    
+
+typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
+
+
 namespace HomeAut { namespace Controller {
+    
     string MESSAGE_VAR_SET = "setVar";
-    string MESSAGE_VAR_SET = "setAlias";
+    string MESSAGE_ALIAS_SET = "setAlias";
+
 
     struct VarObserverInfo{
         string id = "";
         void* args;
-        function<void(string name, DynamicVar value, void* args)> fun;
+        observerCallback fun;
     };
 
+    enum VarType {NormalVar, Alias};
     struct VarNode{
         VarNode* parent = NULL;
         string name = "";
+        string fullName = "";
         DynamicVar value;
+        VarType type = VarType::NormalVar;
         map<string, VarNode> childs;
         vector<VarObserverInfo> observers;
+        bool valueSetted = false;
     };
 
-    class Controller: public Observable
+    class Controller: public Observable, public API::ApiMediatorInterface
     {
     private:
         ThreadPool tasker;
@@ -44,9 +55,14 @@ namespace HomeAut { namespace Controller {
         mutex varsObserversMutex;
         map<string, vector<VarObserverInfo>> varsObservers;
 
-        string resolveVarName(string aliasOrVarName);
+        VarNode* _findNode(string name, VarNode* curr, bool createNewNodes = true);
 
-        VarNode* _findNode(string name, VarNode* curr);
+        string _resolveVarName(string aliasOrVarName);
+
+        string _createId();
+
+        //a list of observers and their respective VarNode. This map is used to facilidate the work of function 'stopObservingVar'
+        map<string, VarNode*> observersShorcut;
 
     public:
         Controller();
@@ -55,9 +71,8 @@ namespace HomeAut { namespace Controller {
         string getAliasValue(string aliasName);
 
         future<void> createAlias(string name, string dest);
-
-        void observeVar(string varName, function<void(string name, string value, void* args)> callback, void* args = NULL, string observerId = "");
-        void stopObserve(string observerId);
+        string observeVar(string varName, observerCallback callback, void* args = NULL, string observerId = "");
+        void stopObservingVar(string observerId);
 
         //the JsPromise (from ThreadPool) will no be used yet because it must be tested
         /*

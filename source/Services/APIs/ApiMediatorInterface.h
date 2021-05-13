@@ -5,11 +5,13 @@
 #include <vector>
 #include <future>
 #include "../../Shared/Misc/DynamicVar.h"
+
+using namespace Shared;
 using namespace std;
-
-
 namespace API
 {
+    typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
+
     using namespace Shared;
     
     class ApiMediatorInterface
@@ -17,8 +19,8 @@ namespace API
     public:
         virtual future<void> createAlias(string name, string dest) = 0;
 
-        void observeVar(string varName, function<void(string name, string value, void* args)> callback, void* args = NULL, string observerId = "");
-        void stopObserve(string observerId);
+        virtual string observeVar(string varName, observerCallback callback, void* args = NULL, string observerId = "") = 0;
+        virtual void stopObserve(string observerId) = 0;
 
         //the JsPromise (from ThreadPool) will no be used yet because it must be tested
         /*
@@ -32,13 +34,11 @@ namespace API
         */
 
 
-        //return the var name (if a alias is send, returns the correct var name) and the value.
+        //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         virtual future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue) = 0;
         virtual future<void> setVar(string name, DynamicVar value) = 0;
         virtual future<void> delVar(string varname) = 0;
         virtual future<vector<string>> getChildsOfVar(string parentName) = 0;
-
-            
 
     };
 };
