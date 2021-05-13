@@ -1,5 +1,17 @@
 #include "PHOMAU.h"
 
+string API::PHOMAU_ACTIONS::SET_VAR = "sv";
+string API::PHOMAU_ACTIONS::GET_VAR = "gv";
+string API::PHOMAU_ACTIONS::GET_VAR_RESPONSE = "gvr";
+string API::PHOMAU_ACTIONS::OBSERVE_VAR = "ov";
+string API::PHOMAU_ACTIONS::STOP_OBSERVER_VAR = "sov";
+string API::PHOMAU_ACTIONS::VAR_CHANGED = "vc";
+string API::PHOMAU_ACTIONS::CREATE_ALIAS = "ca";
+string API::PHOMAU_ACTIONS::GET_ALIAS_DESTNAME = "gad";
+string API::PHOMAU_ACTIONS::REMOVE_ALIAS = "ra";
+string API::PHOMAU_ACTIONS::GET_CHILDS = "gc";
+string API::PHOMAU_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
+
 
 API::PHOMAU::PHOMAU(int port, ApiMediatorInterface *ctr)
 {
@@ -27,7 +39,7 @@ API::PHOMAU::~PHOMAU()
     //dtor
 }
 
-void API::PHOMAU::__PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket)
+void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, size_t dataSize, SocketInfo clientSocket)
 {
     string strData;
     long separatorPosition;
@@ -41,178 +53,98 @@ void API::PHOMAU::__PROCESS_PACK(char* data, unsigned int size, SocketInfo clien
     future<vector<tuple<string, DynamicVar>>> get_var_fut;
     vector<tuple<string, DynamicVar>> get_var_values;
 
-    if (size > 1)
+    if (command ==PHOMAU_ACTIONS::SET_VAR)
     {
-        for (unsigned int cont = 1; cont< size; cont++)
-            strData += data[cont];
+        string value = string(data, dataSize);
+        this->ctrl->setVar(varName, value);
+    }
+    else if (command == PHOMAU_ACTIONS::GET_VAR)
+    {
+        //store a clientSocket id in a variable
+        get_var_fut = this->ctrl->getVar(varName, DynamicVar(string("")));
+        get_var_values = get_var_fut.get();
+        
 
-        switch (data[0])
+        for (auto &c : get_var_values)
         {
-            //case ACKNOWNLEDGE:
-
-            //break;
-            case KEEP_ALIVE:
-            case KEEP_ALIVE_2:
-                //send back to client the same KEEP_ALIVE pack
-                //this->__PROTOCOL_PHOMAU_WRITE(clientSocket, data[0], new char[0], 0);
-
-            break;
-            case SET_VAR:
-                separatorPosition = strData.find("=");
-                if (separatorPosition > -1)
-                {
-                    string key = strData.substr(0, separatorPosition);
-                    string value = strData.substr(separatorPosition+1, string::npos);
-                    this->ctrl->setVar(key, value);
-
-                    //key.clear();
-                    //value.clear();
-                }
-            break;
-            case GET_VAR:
-                //store a clientSocket id in a variable
-                get_var_fut = this->ctrl->getVar(strData, DynamicVar(string("")));
-                get_var_values = get_var_fut.get();
-                
-
-                for (auto &c : get_var_values)
-                {
-                    strData = std::get<0>(c) + "="+(std::get<1>(c)).getString();
-
-                    this->__PROTOCOL_PHOMAU_WRITE(clientSocket, 0x16 , &strData[0], strData.size());
-                }
-                //delete[] buffer;
-                //value.clear();
-                //tempStr.clear();
-
-            break;
-            case OBSERVE_VAR:
-                //store a clientSocket id in a variable
-                key = strData;
-
-                this->ctrl->observeVar(key, [&](string name, DynamicVar value, void* args, string id)
-                {
-                    return;
-                    //TODO: nofity client
-                    
-
-                }, (void*)NULL, std::to_string(clientSocket.getId()));
-                
-            break;
-            case STOP_OBSERVER_VAR:
-
-            break;
-            //case VAR_CHANGED:
-            //
-            //break;
-            case CREATE_ALIAS:
-                separatorPosition = strData.find("=");
-                if (separatorPosition > -1)
-                {
-                    string key = strData.substr(0, separatorPosition);
-                    string value = strData.substr(separatorPosition+1, string::npos);
-
-                    this->ctrl->setVar(key + ".value", DynamicVar(string(value)));
-                    this->ctrl->setVar(key + ".type", DynamicVar(string("alias")));
-                }
-            break;
-            case GET_ALIAS_DESTNAME:
-
-            break;
-            case REMOVE_ALIAS:
-
-            break;
-            case GET_CHILDS:
-                //string parentName = this->__resolveVarName(strData);
-                string parentName = strData;
-                vector<string> result = this->ctrl->getChildsOfVar(parentName).get();
-
-                //preprare response csv
-                string response = "";
-                for (int cont = 0; cont < result.size(); cont++)
-                {
-                    response += result[cont];
-                    if (cont < result.size()-1)
-                        response += ",";
-                    
-                }
-
-                //prepara buffer with response and send this
-                buffer = new char[response.size()];
-                for (int cont  =0; cont < response.size(); cont++)
-                    buffer[cont] = response[cont];
-
-                this->__PROTOCOL_PHOMAU_WRITE(clientSocket, GET_CHILDS_RESPONSE, buffer, response.size());
-
-                //clear used data
-                delete[] buffer;
-                parentName.clear();
-                result.clear();
-                response.clear();
-
-            break;
+            //strin as buffer. I know, this is is not a good praticy.. May be i change this sometime
+            string buffer = std::get<0>(c) + "="+(std::get<1>(c)).getString();
+            this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_VAR_RESPONSE , &buffer[0], buffer.size());
         }
     }
+    else if (command == PHOMAU_ACTIONS::OBSERVE_VAR)
+    {
 
-    strData.clear();
+            this->ctrl->observeVar(varName, [&](string name, DynamicVar value, void* args, string id)
+            {
+                return;
+                //TODO: nofity client
+                
+
+            }, (void*)NULL, std::to_string(clientSocket.getId()));
+    }
+    else if (command == PHOMAU_ACTIONS::STOP_OBSERVER_VAR)
+    {
+
+    }
+    else if (command == PHOMAU_ACTIONS::CREATE_ALIAS)
+    {
+        string destination = string(data, dataSize);
+        this->ctrl->createAlias(varName, destination);
+    }
+    else if (command ==  PHOMAU_ACTIONS::GET_ALIAS_DESTNAME)
+    {
+
+    }
+    else if (command == PHOMAU_ACTIONS::REMOVE_ALIAS)
+    {
+
+    }
+    else if (command == PHOMAU_ACTIONS::GET_CHILDS)
+    {
+        vector<string> result = this->ctrl->getChildsOfVar(varName).get();
+        string response = "";
+        for (int cont = 0; cont < result.size(); cont++)
+        {
+            response += result[cont];
+            if (cont < result.size()-1)
+                response += ",";
+            
+        }
+
+        //prepara buffer with response and send this
+        buffer = new char[response.size()];
+        for (int cont  =0; cont < response.size(); cont++)
+            buffer[cont] = response[cont];
+
+        this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_CHILDS_RESPONSE, buffer, response.size());
+
+        //clear used data
+        delete[] buffer;
+        result.clear();
+        response.clear();
+    }
 }
 
 
 
-void API::PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size)
+void API::PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, string command, char* data, unsigned int size)
 {
-    size = size + 1; //size of command need to be sented in "size" field
-    int bufSize = size+12;
-    char* writeBuffer = new char[bufSize];
-    unsigned int writeBufferIndex = 0;
-    writeBuffer[writeBufferIndex++]=0x02; //stx
-    writeBuffer[writeBufferIndex++]=0x02; ;//PHOMAU protocol
-    //the size (unsigned long)
+    string sendBuffer = command + ":";
+    for (size_t c = 0; c < size; c++)
+        sendBuffer += data[c];
 
 
-    //data size format 1 (most significant byte at left)
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[0];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[1];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[2];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[3];
-
-    //datasize format2 (most significant byte at right)
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[3];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[2];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[1];
-    writeBuffer[writeBufferIndex++]=((char*)(&size))[0];
-
-    //the command
-    writeBuffer[writeBufferIndex++] = command;
-
-    //the data
-    for (unsigned int cont = 0; cont < size-1; cont++){ //-1 is because that command is sented separated (before the data field), but his size is increased in size
-        writeBuffer[writeBufferIndex++]=data[cont];
-    }
-
-    //the crc (not used)
-    writeBuffer[writeBufferIndex++]=0x00;
-    writeBuffer[writeBufferIndex++]=0x00;
-    //writes the pack to socket client
-
-    int sented = send(clientSocket.socket, writeBuffer, bufSize, MSG_NOSIGNAL);
-
-
+    int sented = send(clientSocket.socket, &sendBuffer[0], sendBuffer.size(), MSG_NOSIGNAL);
         
     #ifdef __TESTING__
-        Tester::global_test_result.resize(bufSize);
-        for (size_t c = 0; c < bufSize; c++)
-            Tester::global_test_result[c] = writeBuffer[c];
+        Tester::global_test_result = sendBuffer;
     #endif
 
     if (sented < 0)
     {
         //disconnect the client
     }
-
-    //clear the data
-    delete[] writeBuffer;
-
 }
 
 void API::PHOMAU::ThreadAwaitClientsFunction()
@@ -260,12 +192,6 @@ void API::PHOMAU::ThreadAwaitClientsFunction()
                     int client = accept(listener, (struct sockaddr *) cli_addr, &clientSize);
                     if (client >= 0)
                     {
-                        //thTalkWithClient = new pthread_t;
-                        //tmp = new void*[3];
-                        //tmp[0] = self;
-                        //tmp[1] = &client;
-                        //tmp[2] = thTalkWithClient;
-                        //pthread_create(thTalkWithClient, NULL, ThreadTalkWithClientFunction, tmp);
                         thread th([client, this](){
                             ThreadTalkWithClientFunction(client);
                         });
@@ -294,37 +220,23 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
     SocketInfo *client = new SocketInfo();
     client->socket = socketClient;
     this->__sockets[client->getId()] = *client;
-
     SetSocketBlockingEnabled(client->socket, true);
 
+
     char *tempBuffer = NULL ;// = new char[2048];
-    //vector<char> rawBuffer;
     int readed = 1;
-
-    char *data = NULL;
-
     char curr;
-    unsigned int currentPackageIndex = 0;
-    unsigned int tempCount;
-
-
-
-    //the data of package
-    char protocolType;
-    unsigned long dataSize;
-    char* dataSizeAsBuffer = (char*)&dataSize;
-
-    States state = States::AWAIT_HEADER;
+    States state = States::READING_COMMAND;
     int ToRead;
+    string command = "";
+    string name = "";
+    vector<char> value;
+    bool scape = false;
+    
 
     unsigned int currCharIndex = 0;
-
-    int val;
     //setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
-
-    this->clientConnected(client);
-
-    States oldState = States::FINISHED;
+    //this->clientConnected(client);
     while (state != States::FINISHED)
     {
 
@@ -351,64 +263,63 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
                     {
 
                         curr = tempBuffer[cont];
-                        currentPackageIndex++;
-
-                        // cout << (int)curr << " ("<< (char)curr <<")" << endl << flush;
-                        //
-                        //
-                        // if (oldState != state)
-                        // {
-                        //     cout << "The current state is " << state << endl << flush;
-                        // }
-
-                        oldState = state;
 
                         switch(state)
                         {
-                            case AWAIT_HEADER:
-                                    if (curr == 0x02)
+                            case READING_COMMAND:
+                                    if (curr == '\n')
                                     {
-                                        state = READING_PROTOCOL_TYPE;
-                                        currentPackageIndex = 0;
+                                        command = "";
+                                        name = "";
+                                        value.clear();
                                     }
+                                    else if (curr == ':')
+                                        state = READING_NAME;
+                                    else
+                                        command += curr;
                             break;
-                            case READING_PROTOCOL_TYPE:
-                                protocolType = curr;
-
-                                tempCount = 0;
-                                state = READING_DATA_SIZE;
-                                break;
-                            case READING_DATA_SIZE:
-                                if (tempCount < 4)
-                                    dataSizeAsBuffer[tempCount] = curr;
-                                tempCount++;
-                                if (tempCount == 8)
+                            case READING_NAME:
+                                if (curr == '\n')
                                 {
-                                    state = READING_DATA;
-                                    tempCount = 0;
-                                    data = new char[dataSize];
+                                    __PROCESS_PACK(command, name, "", 0, *client);
+                                    command = "";
+                                    name = "";
+                                    value.clear();
+                                    state = READING_COMMAND;
                                 }
-                                break;
-                            case READING_DATA:
-                                data[tempCount++] = curr;
-                                if (tempCount == dataSize)
+                                else if (curr == '=')
+                                    state = READING_VALUE;
+                                else
+                                    name += curr;
+                            break;
+                            case READING_VALUE:
+                                if (curr == '\n')
                                 {
-                                    state = IDENTIFYING_PROTOCOL;
-                                    tempCount = 0;
+                                    __PROCESS_PACK(command, name, value.data(), value.size(), *client);
+                                    command = "";
+                                    name = "";
+                                    value.clear();
+                                    state = READING_COMMAND;
                                 }
-                                break;
-                            case IDENTIFYING_PROTOCOL:
-                                if (protocolType == P_PHOMAU)
+                                else
                                 {
-                                    this->__PROCESS_PACK(data, dataSize, *client);
+                                    //lead with some scaep chars
+                                    if (scape)
+                                    {
+                                        if (curr == '\\')
+                                            value.push_back('\\');
+                                        else if (curr == 'n')
+                                            value.push_back('\n');
+                                        else 
+                                            value.push_back(curr);
+
+                                        scape = false;
+                                    }
+                                    else if (curr == '\\')
+                                        scape = true;
+                                    else
+                                        value.push_back(curr);
                                 }
-
-                                //clear all
-                                delete[] data;
-                                data = NULL;
-
-                                state = AWAIT_HEADER;
-                                break;
                             break;
                         }
                     }

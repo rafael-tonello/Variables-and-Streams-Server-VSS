@@ -27,15 +27,14 @@ void PhomauTester::testeProcessPackFunction()
 {
     this->yellowMessage("PROCESS_PACK function tests");
     //process pack function tests
-    this->test("PROCESS_PACK_(SET_VAR var=value) should result in a var set in the controller", [&](){
-        //prepare the pack
-        char bytes[] = {SET_VAR, 'v', 'a', 'r', '=', 'v', 'a', 'l', 'u', 'e'};
+    this->test("PROCESS_PACK_(SET_VAR, 'var', 'value', 5) should result in a var set in the controller", [&](){
+        
         this->setTag("setVar.lastCall.name", "");
         this->setTag("setVar.lastCall.value", "");
         
         SocketInfo s;
         s.socket = 0;
-        this->ph->__PROCESS_PACK(bytes, sizeof(bytes), s);
+        this->ph->__PROCESS_PACK(PHOMAU_ACTIONS::SET_VAR, "var", "value", 5, s);
 
         string received = this->getTag("setVar.lastCall.name") + "=" + this->getTag("setVar.lastCall.value");
 
@@ -46,10 +45,8 @@ void PhomauTester::testeProcessPackFunction()
         };
     });
 
-    this->test("PROCESS_PACK_(GET_VAR var) should result in a var set in the controller", [&](){
+    this->test("PROCESS_PACK_(GET_VAR var) should result in a var get in the controller", [&](){
         //prepare the pack
-        char bytes[] = {GET_VAR, 'v', 'a', 'r'};
-        
         this->setVar("getVar.lastCall.name", "");
         this->setVar("getVar.lastCall.value", "");
 
@@ -57,11 +54,11 @@ void PhomauTester::testeProcessPackFunction()
         
         SocketInfo s;
         s.socket = 0;
-        string expected = "vName:'var', defValue:'', result: '2 2 10 0 0 0 0 0 0 10 22 118 97 114 61 118 97 108 117 101 0 0 '";
-        this->ph->__PROCESS_PACK(bytes, sizeof(bytes), s);
+        string expected = "vName:'var', defValue:'', result: 'gvr:var=value'";
+        this->ph->__PROCESS_PACK(PHOMAU_ACTIONS::GET_VAR, "var", "", 0, s);
 
         //"2 2 17 0 0 0 0 0 0 17 22 v a r = s a m p l e  v a l u e 0 0"
-        string received = "vName:'"+this->getTag("getVar.lastCall.name") + "', defValue:'" + getTag("getVar.lastCall.value") + "', result: '"+convertStringToByteList(Tester::global_test_result)+"'";
+        string received = "vName:'"+this->getTag("getVar.lastCall.name") + "', defValue:'" + getTag("getVar.lastCall.value") + "', result: '"+Tester::global_test_result+"'";
 
         return TestResult{
             received == expected,
@@ -90,14 +87,40 @@ void PhomauTester::testTCPEndPoint()
         this->setTag("setVar.lastCall.name", "");
         this->setTag("setVar.lastCall.value", "");
         //prepare the buffer to be sent
-        char bytes[] = {2,2,40,0,0,0,0,0,0,40,SET_VAR, 't', 'c', 'p', 'E', 'n', 'd', 'p', 'o', 'i', 'n', 't', 'T', 'e', 's', 't', 'V', 'a', 'r', '=', 't', 'c', 'p', 'E', 'n', 'd', 'p', 'o', 'i', 'n', 't', 'T', 'e', 's', 't', 'V', 'a', 'l', 'u', 'e', 0,0};
+
+        string bytes = PHOMAU_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpointTestValue\n";
         //write the buffer to the socket
-        send(clientSocket, bytes, sizeof(bytes), 0);
+        send(clientSocket, bytes.c_str(), bytes.size(), 0);
         //wait the response
         usleep(1000000);
 
         //analyse the results
         string expected = "tcpEndpointTestVar=tcpEndpointTestValue";
+        string received = this->getTag("setVar.lastCall.name") + "=" + this->getTag("setVar.lastCall.value");
+
+        return TestResult{
+            expected == received,
+            expected,
+            received
+        };
+    
+
+    });
+
+    this->test("Send a setVar to server with 'tcpEndpointTestVar=tcpEndpoint\\nTestValue", [&](){
+        //parpare the data to be analyzed
+        this->setTag("setVar.lastCall.name", "");
+        this->setTag("setVar.lastCall.value", "");
+        //prepare the buffer to be sent
+
+        string bytes = PHOMAU_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpoint\\nTestValue\n";
+        //write the buffer to the socket
+        send(clientSocket, bytes.c_str(), bytes.size(), 0);
+        //wait the response
+        usleep(1000000);
+
+        //analyse the results
+        string expected = "tcpEndpointTestVar=tcpEndpoint\nTestValue";
         string received = this->getTag("setVar.lastCall.name") + "=" + this->getTag("setVar.lastCall.value");
 
         return TestResult{
@@ -125,13 +148,13 @@ void PhomauTester::testeWriteFunction()
         //interactc with function __PROTOCOL_PHOMAU_WRIET
         SocketInfo si;
         si.socket = 0;
-        this->ph->__PROTOCOL_PHOMAU_WRITE(si, 0X0E, "var=value", 9);
+        this->ph->__PROTOCOL_PHOMAU_WRITE(si, PHOMAU_ACTIONS::VAR_CHANGED, "var=value", 9);
 
 
         return TestResult{
-            convertStringToByteList(Tester::global_test_result, 0) == "2 2 10 0 0 0 0 0 0 10 14 118 97 114 61 118 97 108 117 101 0 0 ",
-            "2 2 10 0 0 0 0 0 0 10 14 118 97 114 61 118 97 108 117 101 0 0 ",
-            convertStringToByteList(Tester::global_test_result, 0)
+            Tester::global_test_result == "vc:var=value",
+            "vc:var=value",
+            Tester::global_test_result
         };
 
 

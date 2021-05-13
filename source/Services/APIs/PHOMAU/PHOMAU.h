@@ -1,5 +1,5 @@
-//#ifndef PHOMAU_H
-//#define PHOMAU_H
+#ifndef PHOMAU_H
+#define PHOMAU_H
 
 
 #include <pthread.h>
@@ -10,17 +10,9 @@
 #include <list>
 #include <vector>
 #include <map>
-//#include "StringUtils.h"
 #include <fcntl.h>
 #include <iostream>
 #include <stdio.h>
-
-#ifdef __WIN32__
-#include <winsock2.h>
-#include <windows.h>
-#else
-#include <sys/socket.h>
-#endif
 
 #include <netdb.h>
 #include <sys/ioctl.h>
@@ -39,6 +31,21 @@
 
 namespace API {
     using namespace std;
+
+    class PHOMAU_ACTIONS{
+    public:
+        static string SET_VAR;
+        static string GET_VAR;
+        static string GET_VAR_RESPONSE;
+        static string OBSERVE_VAR;
+        static string STOP_OBSERVER_VAR;
+        static string VAR_CHANGED;
+        static string CREATE_ALIAS;
+        static string GET_ALIAS_DESTNAME;
+        static string REMOVE_ALIAS;
+        static string GET_CHILDS;
+        static string GET_CHILDS_RESPONSE;
+    };
 
     class PHOMAU
     {    
@@ -70,7 +77,7 @@ namespace API {
              * @param the amount of data (number of bytes) received
              * @param clientSocket a SocketInfo object eith information about the socket client
              */
-            void __PROCESS_PACK(char* data, unsigned int size, SocketInfo clientSocket);
+            void __PROCESS_PACK(string command, string varName, char* data, size_t dataSsize, SocketInfo clientSocket);
 
             /**
              * @brief Mounts a PHOMAU protocol pack and send it to a client socket
@@ -80,7 +87,7 @@ namespace API {
              * @param size The size of 'data'
              * 
             */
-            void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, char command, char* data, unsigned int size);
+            void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, string command, char* data, unsigned int size);
             void ThreadAwaitClientsFunction();
             void ThreadTalkWithClientFunction(int socketClient);
         public:
@@ -96,33 +103,14 @@ namespace API {
     bool SetSocketBlockingEnabled(int fd, bool blocking);
     //void addStringToCharList(vector<char> *destination, string *source, char*source2, int source2Length = -1);
 
-	enum States {AWAIT_HEADER, READING_PROTOCOL_TYPE, READING_DATA_SIZE, READING_DATA, IDENTIFYING_PROTOCOL, FINISHED};
+	enum States {READING_COMMAND, READING_NAME, READING_VALUE, FINISHED};
 
 	enum Protocols{
 		P_PHOMAU = 0x02
 	};
 
-	enum PhomauCommands{
-		ACKNOWNLEDGE = 0x01,
-        KEEP_ALIVE = 0x02,
-		SET_VAR = 0x0A,
-		GET_VAR = 0x0B,
-		OBSERVE_VAR = 0x0C,
-		STOP_OBSERVER_VAR = 0x0D,
-		VAR_CHANGED = 0x0E,
-		CREATE_ALIAS = 0x0F,
-		GET_ALIAS_DESTNAME = 0x10,
-		REMOVE_ALIAS = 0x11,
-        KEEP_ALIVE_2 = 0x12,
-        GET_CHILDS = 0x17,
-        GET_CHILDS_RESPONSE = 0x18,
-        APPEND_VAR = 0x15,
-        //GET_VAR_RESPONSE = 0x16,
-        GET_VAR_SIZE = 0x19,
-        GET_VAR_SIZE_RESPONSE = 0x1A,
-        GET_VAR_SIZE_BIN = 0x1B,
-        GET_VAR_SIZE_BIN_RESPONSE = 0x1C,
-        ATTACHED_ON_VAR = 0x1D //APPENDED TO VAR
-	};
+
+   
+    
 }
-//#endif
+#endif
