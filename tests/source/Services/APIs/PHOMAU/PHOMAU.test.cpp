@@ -76,7 +76,7 @@ void PhomauTester::testTCPEndPoint()
     this->test("Connection to PHOMAU Server should result in a valid socket (>0)",[&](){
         clientSocket = this->connectToPHOMAU().get();
         return TestResult {
-            socket > 0,
+            clientSocket > 0,
             ">0",
             to_string(clientSocket)
         };
@@ -209,12 +209,22 @@ future<void> PhomauTester::createAlias(string name, string dest)
 
 }
 
+
+future<string> PhomauTester::getAliasValue(string aliasName)
+{
+    
+}
+future<void> PhomauTester::deleteAlias(string aliasName)
+{
+    
+}
+
 string PhomauTester::observeVar(string varName, observerCallback callback, void* args, string observerId)
 {
 
 }
 
-void PhomauTester::stopObserve(string observerId)
+void PhomauTester::stopObservingVar(string observerId)
 {
 
 }

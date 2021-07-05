@@ -39,7 +39,7 @@ API::PHOMAU::~PHOMAU()
     //dtor
 }
 
-void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, size_t dataSize, SocketInfo clientSocket)
+void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, size_t dataSize, SocketInfo &clientSocket)
 {
     string strData;
     long separatorPosition;
@@ -69,19 +69,38 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
         {
             //strin as buffer. I know, this is is not a good praticy.. May be i change this sometime
             string buffer = std::get<0>(c) + "="+(std::get<1>(c)).getString();
-            this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_VAR_RESPONSE , &buffer[0], buffer.size());
+            this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_VAR_RESPONSE , buffer);
         }
     }
     else if (command == PHOMAU_ACTIONS::OBSERVE_VAR)
     {
-
+        string observerTagName = "observingIds."+varName;
+        //save the observer id to the tags of socket
+        clientSocket.setTag(observerTagName, 
             this->ctrl->observeVar(varName, [&](string name, DynamicVar value, void* args, string id)
             {
-                return;
-                //TODO: nofity client
-                
+                //Todo: teste
+                //checks if client is already connected
+                if (__SocketIsConnected(clientSocket))
+                {
+                    //Note: The client could not be deleted
+                    SocketInfo* cli = (SocketInfo*)args;
+                    string response =  name + "=" + value.getString();
+                    this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::VAR_CHANGED, response);
+                }
+                else
+                {
+                    //this is only a security call. The stopObservating will be called when ThreadTalkWithClientFunction detects the client disconnection.
+                    //when the ThreadTalkWithClientFunction detects the disconnection, it will call the function clientDisconnected that by its time will call
+                    //stopObservating.
+                    stopObservating(clientSocket);
+                }
 
-            }, (void*)NULL, std::to_string(clientSocket.getId()));
+                return;
+
+            }, 
+            (void*)&clientSocket, std::to_string(clientSocket.getId()))
+        );
     }
     else if (command == PHOMAU_ACTIONS::STOP_OBSERVER_VAR)
     {
@@ -94,6 +113,7 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
     }
     else if (command ==  PHOMAU_ACTIONS::GET_ALIAS_DESTNAME)
     {
+        this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_ALIAS_DESTNAME, "");
 
     }
     else if (command == PHOMAU_ACTIONS::REMOVE_ALIAS)
@@ -127,21 +147,26 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
 }
 
 
+void API::PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo& clientSocket, string command, string data)
+{
+    this->__PROTOCOL_PHOMAU_WRITE(clientSocket, command, (char*)data.c_str(), data.size());
 
-void API::PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, string command, char* data, unsigned int size)
+}
+
+void API::PHOMAU::__PROTOCOL_PHOMAU_WRITE(SocketInfo& clientSocket, string command, char* data, unsigned int size)
 {
     string sendBuffer = command + ":";
     for (size_t c = 0; c < size; c++)
         sendBuffer += data[c];
 
 
-    int sented = send(clientSocket.socket, &sendBuffer[0], sendBuffer.size(), MSG_NOSIGNAL);
+    int sent = send(clientSocket.socket, &sendBuffer[0], sendBuffer.size(), MSG_NOSIGNAL);
         
     #ifdef __TESTING__
         Tester::global_test_result = sendBuffer;
     #endif
 
-    if (sented < 0)
+    if (sent < 0)
     {
         //disconnect the client
     }
@@ -173,7 +198,7 @@ void API::PHOMAU::ThreadAwaitClientsFunction()
         int reuse = 1;
         
         if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(int)) < 0)
-            debug("Cant't set socket option REUSEADDR");
+            debug("Cant't set socket option REUSEADDR. So, you will have to wait about 1 minute to reopen the server if you close it");
 
         serv_addr->sin_family = AF_INET;
         serv_addr->sin_addr.s_addr = INADDR_ANY;
@@ -219,7 +244,11 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
 {
     SocketInfo *client = new SocketInfo();
     client->socket = socketClient;
-    this->__sockets[client->getId()] = *client;
+    
+    __socketsMutex.lock();
+    this->__sockets[client->getId()] = client;
+    __socketsMutex.unlock();
+
     SetSocketBlockingEnabled(client->socket, true);
 
 
@@ -246,7 +275,7 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
         ioctl(client->socket,FIONREAD,&ToRead);
         // #endif
 
-        usleep(50000);
+        //usleep(50000);
         if (this->__SocketIsConnected(*client))
         {
             if (ToRead > 0)
@@ -360,11 +389,13 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
     this->clientDisconnected(client);
 
     close(client->socket);
-    //warning: concurrent problem in this if (two or more thread can try to erase elements from this->__sockets)
+    
+    __socketsMutex.lock();
     if (this->__sockets.find(client->getId()) != this->__sockets.end())
     {
         this->__sockets.erase(client->getId());
     }
+    __socketsMutex.unlock();
 
     if (tempBuffer)
         delete[] tempBuffer;
@@ -432,4 +463,18 @@ void API::PHOMAU::clientDisconnected(SocketInfo* client)
         Tester::msgBusNotify("API::PHOMAU::clientDisconnected called", "", (void*)client);
     #endif
 
+    //stop observers for this client
+    stopObservating(*client);
+
+}
+
+void API::PHOMAU::stopObservating(SocketInfo& client)
+{
+    for (auto curTag: client.tags)
+    { 
+        if (curTag.first.find("observingIds.") == 0)
+        {
+            this->ctrl->stopObservingVar(curTag.second);
+        }
+    }
 }

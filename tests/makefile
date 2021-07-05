@@ -6,36 +6,44 @@ PROJ_NAME=tests
 #test app files
 C_SOURCE=$(wildcard ./source/*.cpp)
 C_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.cpp)
+C_SOURCE+=$(wildcard ./source/Controller/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.cpp)
 
 #main app files
 C_SOURCE+=$(wildcard ../source/Controller/*.cpp)
 C_SOURCE+=$(wildcard ../source/Services/APIs/PHOMAU/*.cpp)
 C_SOURCE+=$(wildcard ../source/Services/VarSystem/*.cpp)
 C_SOURCE+=$(wildcard ../source/Shared/Misc/*.cpp)
-#C_SOURCE+=$(wildcard ../source/TCPServer/*.cpp)
 C_SOURCE+=$(wildcard ../source/Shared/ThreadPool/*.cpp)
+C_SOURCE+=$(wildcard ../source/Shared/DependencyInjectionManager/*.cpp)
  
 # .h files
 #test app files
 H_SOURCE=$(wildcard ./source/*.h)
 H_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.h)
+H_SOURCE+=$(wildcard ./source/Controller/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.h)
 
 #main app files
 H_SOURCE+=$(wildcard ../source/Controller/*.h)
 H_SOURCE+=$(wildcard ../source/Services/APIs/PHOMAU/*.h)
 H_SOURCE+=$(wildcard ../source/Services/VarSystem/*.h)
 H_SOURCE+=$(wildcard ../source/Shared/Misc/*.h)
-#H_SOURCE+=$(wildcard ../source/TCPServer/*.h)
 H_SOURCE+=$(wildcard ../source/Shared/ThreadPool/*.h)
+H_SOURCE+=$(wildcard ../source/Shared/DependencyInjectionManager/*.h)
+
 objFolder:
 	@ mkdir -p objects/tests/
 	@ mkdir -p objects/tests/Services/APIs/PHOMAU
+	@ mkdir -p objects/tests/Controller
+	@ mkdir -p objects/tests/Shared/DependencyInjectionManager
 #	the main app directories
 	@ mkdir -p objects/main/Controller
 	@ mkdir -p objects/main/Services/APIs/PHOMAU
 	@ mkdir -p objects/main/Services/VarSystem
 	@ mkdir -p objects/main/Shared/Misc
 	@ mkdir -p objects/main/Shared/ThreadPool
+	@ mkdir -p objects/main/Shared/DependencyInjectionManager
 	
 	
 

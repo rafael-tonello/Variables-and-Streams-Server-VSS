@@ -70,6 +70,11 @@ namespace API {
              * @param cliente is a pointer to an ScoketInfo object with the connected client info
             */
             void clientDisconnected(SocketInfo* client);
+
+            /** 
+             * @brief this function will remove all observating requests in the main controller
+            */
+           void stopObservating(SocketInfo& client);
             
             /** 
              * @brief this function is called majority by the function ThreadTalkWithClientFunction when a pack is receitved
@@ -77,9 +82,11 @@ namespace API {
              * @param the amount of data (number of bytes) received
              * @param clientSocket a SocketInfo object eith information about the socket client
              */
-            void __PROCESS_PACK(string command, string varName, char* data, size_t dataSsize, SocketInfo clientSocket);
+            void __PROCESS_PACK(string command, string varName, char* data, size_t dataSsize, SocketInfo& clientSocket);
+            //a helper function to __protocol_phomau_write
+            void __PROTOCOL_PHOMAU_WRITE(SocketInfo& clientSocket, string command, string data);
 
-            /**
+            /** 
              * @brief Mounts a PHOMAU protocol pack and send it to a client socket
              * @param clientSocket A SocketInfo with the scoket client ifnormation who will recieve the data
              * @param command The PHOMAU command. Take a look in the protocol documentation
@@ -87,12 +94,15 @@ namespace API {
              * @param size The size of 'data'
              * 
             */
-            void __PROTOCOL_PHOMAU_WRITE(SocketInfo clientSocket, string command, char* data, unsigned int size);
+            void __PROTOCOL_PHOMAU_WRITE(SocketInfo& clientSocket, string command, char* data, unsigned int size);
             void ThreadAwaitClientsFunction();
             void ThreadTalkWithClientFunction(int socketClient);
+
+
         public:
             int __port;
-            map<long, SocketInfo> __sockets;
+            mutex __socketsMutex;
+            map<long, SocketInfo*> __sockets;
 
             PHOMAU(int port, ApiMediatorInterface *ctr);
             virtual ~PHOMAU();

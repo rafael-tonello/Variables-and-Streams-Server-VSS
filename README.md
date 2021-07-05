@@ -2,6 +2,10 @@
     I wrote this code in the Visual Studio Code, so , some functions will be documented using a notation
     that can be used by this IDE.
 
+
+    I Used to use the 'tests' project during the development to make unity and integrations tests. Eventually I compile the main project.
+    Whena new version is done, i run the deploy scripts (inside 'deploy' folder).
+
 # things to do..
     When i wrote this app, I reused ancient codes, that was not very well structured. So some things should be refactored.
 

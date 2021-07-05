@@ -10,7 +10,7 @@ void SocketInfoTester::run(string context)
 {
     if (context == "APIs.PHOMAU")
     {
-        //this->yellowMessage("SocketInfo::getId()");
+        this->yellowMessage("SocketInfo testes");
         long lastId = 0;
         this->test("SocketInfo::getId() at first run should return a random number", [&](){
             lastId = this->socketInfo.getId();

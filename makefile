@@ -5,43 +5,69 @@
 # Name of the project
 PROJ_NAME=VarServer
 # .c files
-C_SOURCE=$(wildcard ./source/*.cpp) \
-		 $(wildcard ./source/fs_integration/*.cpp) \
-		 $(wildcard ./source/Shared/TCPServer/*.cpp) \
-		 $(wildcard ./source/Shared/ThreadPool/*.cpp) \
-		 $(wildcard ./source/Controller/*.cpp) \
-		 $(wildcard ./source/Services/VarSystem/*.cpp)
+C_SOURCE=$(wildcard ./source/*.cpp)
+C_SOURCE+=$(wildcard ./source/Controller/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/ThreadPool/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Misc/*.cpp)
+C_SOURCE+=$(wildcard ./source/Services/APIs/*.cpp)
+C_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.cpp)
  
 # .h files
-H_SOURCE=$(wildcard ./source/*.h) \
-		 $(wildcard ./source/fs_integration/*.h) \
-		 $(wildcard ./source/Shared/TCPServer/*.h) \
-		 $(wildcard ./source/Shared/ThreadPool/*.h) \
-		 $(wildcard ./source/Controller/*.h) \
-		 $(wildcard ./source/Services/VarSystem/*.h)
+H_SOURCE=$(wildcard ./source/*.h)
+H_SOURCE+=$(wildcard ./source/Controller/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/ThreadPool/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/Misc/*.h)
+H_SOURCE+=$(wildcard ./source/Services/APIs/*.h)
+H_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.h)
+C_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.h)
+
 
 objFolder:
 	@ mkdir -p objects
-	@ mkdir -p objects/fs_integration
-	@ mkdir -p objects/sci_projects
-	@ mkdir -p objects/Shared/TCPServer
-	@ mkdir -p objects/Shared/ThreadPool
 	@ mkdir -p objects/Controller
-	@ mkdir -p objects/Services/VarSystem
+	@ mkdir -p objects/Shared/ThreadPool
+	@ mkdir -p objects/Shared/Misc
+	@ mkdir -p objects/Services/APIs
+	@ mkdir -p objects/Services/APIs/PHOMAU
+	@ mkdir -p objects/Shared/DependencyInjectionManager
+
+prebuild:
+# 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
+	@ mkdir ./build | true
+	@ cp -r ./source/copyToBuildFolder/* ./build | true
  
 # Object files
 OBJ=$(subst .cpp,.o,$(subst source,objects,$(C_SOURCE)))
  
 # Compiler and linker
-CC=g++
+CC= g++
  
 # Flags for compiler
-CC_FLAGS=-c         \
-         -W         \
+CC_FLAGS=-c			\
+		 -W         \
          -Wall      \
          -ansi      \
          -pedantic  \
-		 -std=c++11
+		 -pthread   \
+		 -lssl		\
+		 -lcrypto	\
+		 -g			\
+		 -std=c++17 \
+		 -I"./source/"
+
+# Flags for linker
+LK_FLAGS=-W         \
+         -Wall      \
+         -ansi      \
+         -pedantic  \
+		 -pthread   \
+		 -lssl		\
+		 -lcrypto	\
+		 -g			\
+		 -D__TESTING__ \
+		 -std=c++17 \
+		 -I"./source/"
  
 # Command used at clean target
 RM = rm -rf
@@ -49,11 +75,11 @@ RM = rm -rf
 #
 # Compilation and linking
 #
-all: objFolder $(PROJ_NAME)
+all: objFolder prebuild $(PROJ_NAME)
  
 $(PROJ_NAME): $(OBJ)
 	@ echo 'Building binary using GCC linker: $@'
-	$(CC) $^ -o $@
+	$(CC) $^ $(LK_FLAGS) -o build/$@
 	@ echo 'Finished building binary: $@'
 	@ echo ' '
  

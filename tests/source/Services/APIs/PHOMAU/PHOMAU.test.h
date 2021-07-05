@@ -34,8 +34,11 @@ public:
 public:
     /*ApiMediatorInterface*/
     future<void> createAlias(string name, string dest);
+    future<string> getAliasValue(string aliasName);
+    future<void> deleteAlias(string aliasName);
+
     string observeVar(string varName, observerCallback callback, void* args = NULL, string observerId = "");
-    void stopObserve(string observerId);
+    void stopObservingVar(string observerId);
     future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
     
     future<void> setVar(string name, DynamicVar value);
@@ -43,5 +46,8 @@ public:
     future<vector<string>> getChildsOfVar(string parentName);
 
 };
+
+        
+
 
 #endif

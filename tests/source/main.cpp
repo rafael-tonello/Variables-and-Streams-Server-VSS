@@ -8,6 +8,8 @@
 
 #include "./Services/APIs/PHOMAU/SocketInfo.test.h"
 #include "./Services/APIs/PHOMAU/PHOMAU.test.h"
+#include "./Controller/Controller.test.h"
+#include "./Shared/DependencyInjectionManager/DependencyInjectionManager.test.h"
 
 using namespace std;
 int main(int argc, char* argv[]){
@@ -19,12 +21,14 @@ int main(int argc, char* argv[]){
     vector<Tester*> testers;
 
     //***** testers instances
-    //***** make your changes just here
+    //***** make your changes only here
         testers.push_back(new SocketInfoTester());
         testers.push_back(new PhomauTester());
+        testers.push_back(new ControllerTester());
+        testers.push_back(new DependencyInjectionManagerTester());
     //*****
 
-    //raises the contexts of the testers and agruoup them by specifcs contexts
+    //raises the contexts of the testers and gruoup them by specifcs contexts
     map<string, vector<Tester*>> contexts;// = {"all", {}};
 
     for (auto &c: testers)
@@ -40,7 +44,7 @@ int main(int argc, char* argv[]){
         }
 
         //sets ta special tag in the tester indicating that it is not runned yet. This tag will be used to prevent call more one time a tester.
-        c->setTag("main.tested", "false");
+        //c->setTag("main.tested", "false");
     }
 
     //identify required contexts (or all if no one is informed)
@@ -90,5 +94,5 @@ int main(int argc, char* argv[]){
     cout << endl << "Final statistics: " << Tester::testsPassed << " passed and " << Tester::testsFailed << " failed." << endl;;
 
 
-    return 0;
+    return Tester::testsFailed;
 }
