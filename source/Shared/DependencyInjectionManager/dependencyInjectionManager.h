@@ -1,3 +1,22 @@
+/*
+	Some usage examples
+
+	Example1:
+		DependencyInjectionManager dim;
+		//two points to controller (to allow systems to find it by all it types):
+		// the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
+		dim.addSingleton<TheController>(new TheController());
+		dim.addSingleton<ApiMediatorInterface>(dim.get<TheController>());
+
+		dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>()));
+
+	Example 2:
+		DependencyInjectionManager dim;
+		//another option is the use of names.. Names are very useful when services are requested inside modules.
+		dim.addSingleton<TheController>(new TheController(), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
+		dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(typeid(ApiMediatorInterface).name()));
+*/
+
 #ifndef _DEPENDENCY_INJECTION_MANAGER_H_
 #define _DEPENDENCY_INJECTION_MANAGER_H_
 #include <vector>
@@ -15,9 +34,11 @@
 
 using namespace std;
 
+
 struct OnDemandInstance{
 	function<void*()> createInstance;
 	void* instance;
+	string typesAndNames;
 };
 
 class DependencyInjectionManager{
@@ -25,91 +46,123 @@ private:
 #ifdef __TESTING__
     public:
 #endif
-	map<string, OnDemandInstance> singletons;
-	map<string, function<void*()>> multiInstance;
+	int autoNameCount = 0;
+	vector<OnDemandInstance> singletons;
+	vector<OnDemandInstance> multiInstance;
 public:
 	
 	~DependencyInjectionManager()
 	{
 		for (auto &c: singletons)
 		{
-			if (c.second.instance != NULL)
-				delete c.second.instance;
+			if (c.instance != NULL)
+				delete c.instance;
 		}
 	}
 
-	void addSingleton(string name, function<void*()> createInstance, bool instantiateImediately)
-	{
-		if (multiInstance.count(name) > 0)
-			multiInstance.erase(name);
-		
+	void addSingleton(function<void*()> createInstance, vector<string> typesAndNames = {}, bool instantiateImediately = false)
+	{	
 		OnDemandInstance p;
 		p.createInstance = createInstance;
 		p.instance = NULL;
+		p.typesAndNames = "";
+		for (auto c: typesAndNames)
+			p.typesAndNames += c;
 		
 		if (instantiateImediately)
 			p.instance = createInstance();
 		
-		singletons[name] = p;
+		singletons.push_back(p);
 	}
 	
 	///Pre instantiated singletons. Very util to create hosted services.
 	template <class T>
-	void addSingleton(string name, T* instance)
+	void addSingleton(T* instance, vector<string> typesAndNames = {})
 	{
-		this->addSingleton(name, [instance](){
+		typesAndNames.push_back(typeid(T).name());
+		this->addSingleton([instance](){
 			return (void*)instance;
-		}, true);
+		}, typesAndNames, true);
 	}
 	
 	///Create the singleton only when needed
 	template <class T>
-	void addSingleton(string name, function<T*()> createInstance)
+	void addSingleton(function<T*()> createInstance, vector<string> typesAndNames = {})
 	{
-		this->addSingleton(name, [createInstance](){
+		typesAndNames.push_back(typeid(T).name());
+		this->addSingleton([createInstance](){
 			return (void*)createInstance();
-		}, false);
+		}, typesAndNames, false);
 	}	
 
 	template <class T>
-	void addMultiInstance(string name, function<T*()> createInstance)
-	{
-		if (singletons.count(name) > 0)
-			singletons.erase(name);
+	void addMultiInstance(function<T*()> createInstance, vector<string> typesAndNames = {})
+	{	
+		OnDemandInstance p;
+		p.createInstance = createInstance;
+		p.instance = NULL;
+		p.typesAndNames = typeid(T).name();
+		for (auto c: typesAndNames)
+			p.typesAndNames += c;
 		
-		multiInstance[name] = [createInstance](){
-			return (void*)createInstance();
-		};
+		multiInstance.push_back(p);
 	}	
 
 	
 	template <class T>
-	T* get(string name)
+	T* get(string typeOrName)
 	{
-		if (singletons.count(name) > 0)
+		for (auto &c: singletons)
 		{
-			if (singletons[name].instance == NULL)
-				singletons[name].instance = singletons[name].createInstance();
-			
-			return (T*)singletons[name].
-			instance;
-			
+			if (c.typesAndNames.find(typeOrName) != string::npos)
+			{
+				if (c.instance == NULL)
+					c.instance = c.createInstance();
+
+				return (T*)c.instance;
+			}
 		}
-		else if (multiInstance.count(name) > 0)
+
+		for (auto &c: multiInstance)
 		{
-			return (T*)multiInstance[name]();
-			
+			if (c.typesAndNames.find(typeOrName) != string::npos)
+				return (T*)c.createInstance();
 		}
-		else
-			return NULL;
+		
+		return NULL;
 	}
-	
+
 	template <class T>
+	T* get()
+	{
+		string type = typeid(T).name();
+		for (auto &c: singletons)
+		{
+			if (c.typesAndNames.find(type) != string::npos)
+			{
+				if (c.instance == NULL)
+					c.instance = c.createInstance();
+
+				return (T*)c.instance;
+			}
+		}
+
+		for (auto &c: multiInstance)
+		{
+			if (c.typesAndNames.find(type) != string::npos)
+				return (T*)c.createInstance();
+		}
+		
+		return NULL;
+	}
+
+	
+	/*template <class T>
 	void putBack(string name, T* instance)
 	{
 		if (multiInstance.count(name) > 0)
 			delete instance;
-	}
+	}*/
 };
 
 

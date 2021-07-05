@@ -20,7 +20,7 @@ H_SOURCE+=$(wildcard ./source/Shared/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ./source/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ./source/Services/APIs/*.h)
 H_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.h)
-C_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.h)
 
 
 objFolder:

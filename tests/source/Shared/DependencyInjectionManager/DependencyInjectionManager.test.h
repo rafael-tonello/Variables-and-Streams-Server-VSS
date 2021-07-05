@@ -5,6 +5,8 @@
 #include "../../../../source/Shared/DependencyInjectionManager/DependencyInjectionManager.h"
 class DependencyInjectionManagerTester: public Tester{
 private:
+    void testsUsingTypes();
+    void testsUsingNames();
 
 public:
     vector<string> getContexts();
