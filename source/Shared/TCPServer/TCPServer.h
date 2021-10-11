@@ -59,6 +59,10 @@ namespace TCPServerLib
 
     class ClientInfo: public SocketHelper{
         public:
+            void ___notifyListeners_dataReceived(char* data, size_t size, string dataAsStr);
+            void ___notifyListeners_connEvent(CONN_EVENT action);
+            size_t ___getReceiveListeners_sSize();
+
             int socket;
             mutex writeMutex;
             ClientInfo();
@@ -88,7 +92,8 @@ namespace TCPServerLib
             std::atomic<int> nextLoopWait;
 
             ThreadPool *__tasks = NULL;
-            map<int, ClientInfo> connectedClients;
+            map<int, ClientInfo*> connectedClients;
+            std::mutex connectClientsMutext;
             vector<thread*> listenThreads;
             void notifyListeners_dataReceived(ClientInfo *client, char* data, size_t size);
             void notifyListeners_connEvent(ClientInfo *client, CONN_EVENT action);
@@ -104,6 +109,8 @@ namespace TCPServerLib
             TCPServer(int port, ThreadPool *tasker = NULL);
             TCPServer(vector<int> ports, ThreadPool *tasker = NULL);
             ~TCPServer();
+
+            bool isConnected(ClientInfo *client);
 
             void disconnect(ClientInfo *client);
             void disconnectAll(vector<ClientInfo*> *clientList = NULL);

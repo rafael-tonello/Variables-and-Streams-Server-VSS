@@ -91,6 +91,10 @@ public:
         string failMessage = ""
     );
 
+    static int runTests(vector<Tester*> testers, int argc = 0, char* argv[] = NULL);
+
+
+
     /*void test(
         string desc, 
         function<Shared::DynamicVar()> func, 

@@ -17,12 +17,31 @@ Description: |
 
               
 Commands and actions:
-  vs:
+  sv: 
+    desc: set variable value. When called, the variable is turned in to a single value variable (only to prevent excessive storage usage)
+    format: "sv:name=value"
+    arguments:
+      name: name of the variable
+      value: the value of the variable
+    example: "sv:root.child.child2=value"
 
-  vg:
+  gv: get variable value
 
-  ov:
+  gvr: response ofa get variable value
 
-  so:
+  ov: observate variable
 
-  vc:
+  so: stop obvervate variable
+
+  av: Append value to variable value. When called, the variable is turned into a accumulative data variable
+
+About historical data: |
+                        To  allow  hitorical data for the variables, with access
+                        by  indexes and access of the raw data, is necessary the
+                        use  of  a  raw  file with all the data and an aditional
+                        file  with  metadata . This metada is the count of items
+                        and  the start and the end of each item in the file with
+                        the raw data.
+
+Tips:
+    "Create a graphic client to monitor variables and show historical data"

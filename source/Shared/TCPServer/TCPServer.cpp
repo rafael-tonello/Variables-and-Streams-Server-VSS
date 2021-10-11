@@ -2,19 +2,71 @@
 
 #include "TCPServer.h"
 
+#pragma region SocketHelper class
+	void TCPServerLib::SocketHelper::addReceiveListener(function<void(ClientInfo *client, char* data,  size_t size)> onReceive)
+	{
+		this->receiveListeners.push_back(onReceive);
+	}
+
+	void TCPServerLib::SocketHelper::addReceiveListener_s(function<void(ClientInfo *client, string data)> onReceive)
+	{
+		this->receiveListeners_s.push_back(onReceive);
+	}
+
+	void TCPServerLib::SocketHelper::addConEventListeners(function<void(ClientInfo *client, CONN_EVENT event)> onConEvent)
+	{
+		this->connEventsListeners.push_back(onConEvent);
+	}
+#pragma endregion
+
 #pragma region TCPServer class
 	#pragma region private functions
 		void TCPServerLib::TCPServer::notifyListeners_dataReceived(ClientInfo *client, char* data, size_t size)
 		{
+			string dataAsString = "";
+			if ((this->receiveListeners_s.size() > 0) || (client->___getReceiveListeners_sSize() > 0))
+			{
+				dataAsString.resize(size);
+				for (size_t i = 0; i < size; i++)
+					dataAsString[i] = data[i];
+			}
 
+			//notify the events in the TCPServer
+			for (auto &c: this->receiveListeners)
+			{
+				c(client, data, size);
+			}
+
+			for (auto &c: this->receiveListeners_s)
+			{
+				c(client, dataAsString);
+			}
+
+			//notify the events in the 'client'
+			client->___notifyListeners_dataReceived(data, size, dataAsString);
+
+
+			//dataAsString.resize(0);
+			dataAsString = "";
 		}
 
 		void TCPServerLib::TCPServer::notifyListeners_connEvent(ClientInfo *client, CONN_EVENT action)
 		{
+			//notify the events in the TCPServer
+			for (auto &c: this->connEventsListeners)
+			{
+				c(client, action);
+			}
+
+			client->___notifyListeners_connEvent(action);
+			
 			//IMPORTANT: if disconnected, the 'client' must be destroyed here (or in the function that calls this function);
 			if (action == CONN_EVENT::DISCONNECTED)
 			{
-				
+				connectClientsMutext.lock();
+				this->connectedClients.erase(client->socket);
+				connectClientsMutext.unlock();
+				delete client;
 			}
 		}
 
@@ -99,8 +151,9 @@
 								client.socketHandle = theSocket;
 								client.server = this;
 								client.socket = theSocket;
-
-								this->connectedClients[theSocket] = client;
+								connectClientsMutext.lock();
+								this->connectedClients[theSocket] = &client;
+								connectClientsMutext.unlock();
 								this->notifyListeners_connEvent(&client, CONN_EVENT::CONNECTED);
 							}
 							else{
@@ -127,27 +180,34 @@
 			while (this->running)
 			{
 				//scrolls the list of clients and checks if there is data to be read
-				for (auto &currClient: this->connectedClients)
+				//a for was used instead a 'foreach' to allow connectedClientsMutex lock() and unlock() and allow modificatiosn in the list
+				//during execution.
+				for (size_t c = 0; c < this->connectedClients.size(); c++)
 				{
+					connectClientsMutext.lock();
+					auto currClient = connectedClients.begin();
+					std::advance(currClient, c);
+				//for (auto &currClient: this->connectedClients)
+				//{
 					//checks if a reading process is already in progress
-					if (!currClient.second.__reading)
+					if (!currClient->second->__reading)
 					{
 						//checks if client is connected
-						if (this->__SocketIsConnected(currClient.second.socket))
+						if (this->__SocketIsConnected(currClient->second->socket))
 						{
 
 							int availableBytes = 0;
-							ioctl(currClient.second.socket, FIONREAD, &availableBytes);
+							ioctl(currClient->second->socket, FIONREAD, &availableBytes);
 
 							if (availableBytes > 0)
 							{
 								//create a new task in the thread pool (this->__tasks) to read the socket
-								currClient.second.__reading = true;
+								currClient->second->__reading = true;
 
 								this->__tasks->enqueue([this](ClientInfo* __currClient){
 									this->chatWithClient(__currClient);
 									__currClient->__reading = false;
-								}, &currClient.second);
+								}, currClient->second);
 							}
 						}
 						else
@@ -155,9 +215,10 @@
 							//send disconnected notifications
 							this->__tasks->enqueue([this](ClientInfo* __currClient){
 								this->notifyListeners_connEvent(__currClient, CONN_EVENT::DISCONNECTED);
-							}, &currClient.second);
+							}, currClient->second);
 						}
 					}
+					connectClientsMutext.unlock();
 				}
 
 				//checks if the current loop must waits.. this block allow to prevent waiting, if needed, outside here
@@ -226,22 +287,6 @@
 		this->running = false;
 	}
 
-	void TCPServerLib::SocketHelper::addReceiveListener(function<void(ClientInfo *client, char* data,  size_t size)> onReceive)
-	{
-		this->receiveListeners.push_back(onReceive);
-	}
-
-	void TCPServerLib::SocketHelper::addReceiveListener_s(function<void(ClientInfo *client, string data)> onReceive)
-	{
-		this->receiveListeners_s.push_back(onReceive);
-	}
-
-	void TCPServerLib::SocketHelper::addConEventListeners(function<void(ClientInfo *client, CONN_EVENT event)> onConEvent)
-	{
-		this->connEventsListeners.push_back(onConEvent);
-	}
-
-
 	void TCPServerLib::TCPServer::sendData(ClientInfo *client, char* data, size_t size)
 	{ 
 		client->writeMutex.lock();
@@ -262,8 +307,11 @@
 		if (clientList == NULL)
 		{
 			vector<ClientInfo*> temp;
+			connectClientsMutext.lock();
 			for (auto &c: this->connectedClients)   
-				temp.push_back(&(c.second));
+				temp.push_back(c.second);
+			connectClientsMutext.unlock();
+
 			clientList = &temp;
 			clearList = true;
 		}
@@ -292,6 +340,7 @@
 	void TCPServerLib::TCPServer::disconnect(ClientInfo *client)
 	{
 		close(client->socket);
+		//the observer are notified in TCPServer::the clientsCheckLoop method
 	}
 
 	void TCPServerLib::TCPServer::disconnectAll(vector<ClientInfo*> *clientList)
@@ -300,8 +349,10 @@
 		if (clientList == NULL)
 		{
 			vector<ClientInfo*> temp;
+			connectClientsMutext.lock();
 			for (auto &c: this->connectedClients)   
-				temp.push_back(&(c.second));
+				temp.push_back(c.second);
+			connectClientsMutext.unlock();
 			clientList = &temp;
 			clearList = true;
 		}
@@ -318,6 +369,67 @@
 		}
 	}
 
+	bool TCPServerLib::TCPServer::isConnected(ClientInfo *client)
+	{
+		return this->__SocketIsConnected(client->socket);
+	}
+
 
 	#pragma endregion
+#pragma endregion
+
+
+#pragma region ClientInfo class
+
+	void TCPServerLib::ClientInfo::sendData(char* data, size_t size)
+	{
+		this->server->sendData(this, data, size);
+		
+	}
+
+	void TCPServerLib::ClientInfo::sendString(string data)
+	{
+		this->server->sendString(this, data);
+	}
+
+	bool TCPServerLib::ClientInfo::isConnected()
+	{
+		return this->server->isConnected(this);
+	}
+
+	void TCPServerLib::ClientInfo::disconnect(ClientInfo *client)
+	{
+		this->server->disconnect(this);
+	}
+
+	void TCPServerLib::ClientInfo::___notifyListeners_dataReceived(char* data, size_t size, string dataAsStr)
+	{
+		//notify the events in the TCPServer
+		for (auto &c: this->receiveListeners)
+		{
+			c(this, data, size);
+		}
+
+		for (auto &c: this->receiveListeners_s)
+		{
+			c(this, dataAsStr);
+		}
+
+	}
+
+	void TCPServerLib::ClientInfo::___notifyListeners_connEvent(CONN_EVENT action)
+	{
+		for (auto &c: this->connEventsListeners)
+		{
+			c(this, action);
+		}
+	}
+
+	size_t TCPServerLib::ClientInfo::___getReceiveListeners_sSize()
+	{
+		return this->receiveListeners_s.size();
+	}
+
+
+
 #pragma endregion

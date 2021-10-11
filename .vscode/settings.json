@@ -23,6 +23,10 @@
         "sstream": "cpp",
         "stdexcept": "cpp",
         "system_error": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "compare": "cpp",
+        "mutex": "cpp",
+        "stop_token": "cpp",
+        "type_traits": "cpp"
     }
 }

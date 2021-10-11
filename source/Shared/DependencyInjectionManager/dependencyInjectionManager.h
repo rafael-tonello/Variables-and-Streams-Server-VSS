@@ -1,20 +1,27 @@
 /*
 	Some usage examples
 
-	Example1:
-		DependencyInjectionManager dim;
-		//two points to controller (to allow systems to find it by all it types):
-		// the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
-		dim.addSingleton<TheController>(new TheController());
-		dim.addSingleton<ApiMediatorInterface>(dim.get<TheController>());
+		Example1:
+			DependencyInjectionManager dim;
+			//two points to controller (to allow systems to find it by all it types):
+			// the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
+			dim.addSingleton<TheController>(new TheController());
+			dim.addSingleton<ApiMediatorInterface>(dim.get<TheController>());
 
-		dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>()));
+			dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>()));
 
-	Example 2:
-		DependencyInjectionManager dim;
-		//another option is the use of names.. Names are very useful when services are requested inside modules.
-		dim.addSingleton<TheController>(new TheController(), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-		dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(typeid(ApiMediatorInterface).name()));
+		Example 2:
+			DependencyInjectionManager dim;
+			//another option is the use of names.. Names are very useful when services are requested inside modules.
+			dim.addSingleton<TheController>(new TheController(), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
+			dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(typeid(ApiMediatorInterface).name()));
+
+	why the class use a string to find types instead of a type_info list
+		
+		the classes uses a string with names, instead a type_info list, to allow custom names to the objects. So you can
+		uses type names (typeid(TheController).name() or your own names for the unities. If you optate to use custom names, I suggest
+		you to use const string (only a suggestion).
+		
 */
 
 #ifndef _DEPENDENCY_INJECTION_MANAGER_H_

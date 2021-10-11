@@ -53,7 +53,7 @@ CC_FLAGS=-c			\
 		 -lssl		\
 		 -lcrypto	\
 		 -g			\
-		 -std=c++17 \
+		 -std=c++11 \
 		 -I"./source/"
 
 # Flags for linker
@@ -66,7 +66,7 @@ LK_FLAGS=-W         \
 		 -lcrypto	\
 		 -g			\
 		 -D__TESTING__ \
-		 -std=c++17 \
+		 -std=c++11 \
 		 -I"./source/"
  
 # Command used at clean target

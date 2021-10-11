@@ -3,11 +3,16 @@
 # Name of the project
 PROJ_NAME=tests
 # .c files
+
+CUSTOM_INCLUDE_PATH = -I"../source/Shared/Misc"
+
 #test app files
 C_SOURCE=$(wildcard ./source/*.cpp)
 C_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.cpp)
 C_SOURCE+=$(wildcard ./source/Controller/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Confs/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Confs/internal/*.cpp)
 
 #main app files
 C_SOURCE+=$(wildcard ../source/Controller/*.cpp)
@@ -16,6 +21,9 @@ C_SOURCE+=$(wildcard ../source/Services/VarSystem/*.cpp)
 C_SOURCE+=$(wildcard ../source/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ../source/Shared/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ../source/Shared/DependencyInjectionManager/*.cpp)
+C_SOURCE+=$(wildcard ../source/Shared/Confs/*.cpp)
+C_SOURCE+=$(wildcard ../source/Shared/Confs/internal/*.cpp)
+C_SOURCE+=$(wildcard ../source/Shared/Misc/*.cpp)
  
 # .h files
 #test app files
@@ -23,6 +31,8 @@ H_SOURCE=$(wildcard ./source/*.h)
 H_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.h)
 H_SOURCE+=$(wildcard ./source/Controller/*.h)
 H_SOURCE+=$(wildcard ./source/Shared/DependencyInjectionManager/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/Confs/*.h)
+H_SOURCE+=$(wildcard ./source/Shared/Confs/internal/*.h)
 
 #main app files
 H_SOURCE+=$(wildcard ../source/Controller/*.h)
@@ -31,12 +41,17 @@ H_SOURCE+=$(wildcard ../source/Services/VarSystem/*.h)
 H_SOURCE+=$(wildcard ../source/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ../source/Shared/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ../source/Shared/DependencyInjectionManager/*.h)
+H_SOURCE+=$(wildcard ../source/Shared/Confs/*.h)
+H_SOURCE+=$(wildcard ../source/Shared/Confs/internal/*.h)
+H_SOURCE+=$(wildcard ../source/Shared/Misc/*.h)
 
 objFolder:
 	@ mkdir -p objects/tests/
 	@ mkdir -p objects/tests/Services/APIs/PHOMAU
 	@ mkdir -p objects/tests/Controller
 	@ mkdir -p objects/tests/Shared/DependencyInjectionManager
+	@ mkdir -p objects/tests/Shared/Confs
+	@ mkdir -p objects/tests/Shared/Confs/internal
 #	the main app directories
 	@ mkdir -p objects/main/Controller
 	@ mkdir -p objects/main/Services/APIs/PHOMAU
@@ -44,6 +59,9 @@ objFolder:
 	@ mkdir -p objects/main/Shared/Misc
 	@ mkdir -p objects/main/Shared/ThreadPool
 	@ mkdir -p objects/main/Shared/DependencyInjectionManager
+	@ mkdir -p objects/main/Shared/Confs
+	@ mkdir -p objects/main/Shared/Confs/internal
+	@ mkdir -p objects/main/Shared/Misc
 	
 	
 
@@ -69,8 +87,11 @@ CC_FLAGS=-c			\
 		 -lcrypto	\
 		 -g			\
 		 -D__TESTING__ \
-		 -std=c++17 \
-		 -I"./source/"
+		 -std=c++11 \
+		 -I"./source/" \
+		 $(CUSTOM_INCLUDE_PATH)
+		 
+
 
 # Flags for linker
 LK_FLAGS=-W         \
@@ -82,8 +103,9 @@ LK_FLAGS=-W         \
 		 -lcrypto	\
 		 -g			\
 		 -D__TESTING__ \
-		 -std=c++17 \
-		 -I"./source/"
+		 -std=c++11 \
+		 -I"./source/" \
+		 $(CUSTOM_INCLUDE_PATH)
  
 # Command used at clean target
 RM = rm -rf

@@ -1,0 +1,80 @@
+#include "SimpleConfFileProvider.h"
+
+Shared::SimpleConfFileProvider::SimpleConfFileProvider(string filename)
+{
+    this->filename = filename;
+}
+    
+vector<tuple<string, string>> Shared::SimpleConfFileProvider::readAllConfigurations()
+{
+    ifstream fileStream(this->filename);
+    vector<tuple<string, string>> result;
+
+    for(string line; getline(fileStream, line); )
+    {
+        line = ltrim(line);
+        if (line != "" && line[0] != '#' && line[0] != '/' && line[0] != ';')
+        {
+            //try detect the separator from current line
+            string lineSep = this->identifyKeyValueSeparator(line);
+            if (lineSep != "")
+            {
+                string name = rtrim(line.substr(0, line.find(lineSep)));
+                string value = rtrim(ltrim(line.substr(line.find(lineSep)+1)));
+
+                result.push_back({name, value});
+            }
+            else
+            {
+                //trey use the first space as a charcter separator
+
+            }
+        }
+    }
+
+    return result;
+}
+
+string Shared::SimpleConfFileProvider::ltrim(string str)
+{
+    size_t c = 0;
+    string to_remove = " \t";
+    for (; c < str.size(); c++)
+        if (to_remove.find(str[c]) == string::npos)
+            break;
+
+    if (c < str.size())
+        return str.substr(c);
+    
+    return "";
+}
+
+string Shared::SimpleConfFileProvider::rtrim(string str)
+{
+    string to_remove = " \t";
+    size_t c = str.size()-1;
+    for (; c >= 0 ; c--)
+        if (to_remove.find(str[c]) == string::npos)
+            break;
+
+    if (c > 0)
+        return str.substr(0, c+1);
+    
+    return "";
+
+}
+
+
+string Shared::SimpleConfFileProvider::identifyKeyValueSeparator(string str)
+{
+    for (size_t c = 0; c < str.size(); c++)
+        if (separatorChars.find(str[c]) != string::npos)
+        {
+            char sep = str[c];
+            string ret;
+            ret.push_back(sep);
+            return ret;
+        }
+
+    return "";
+}
