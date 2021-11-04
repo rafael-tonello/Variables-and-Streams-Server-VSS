@@ -26,3 +26,8 @@ charaters to be used ✔ ✘
 [ ] Create a logger library
 [ ] Create the configuration system (observable configuration system)
 [ ] Paralel project (app server)
+
+[ ] Convert configs to a repository
+[ ] Convert TCP server to a repository
+
+[ ] Create mirror service (to mirror current server in a another server - a parent server). This mirror server should prevent 'back notification' from the remote server.

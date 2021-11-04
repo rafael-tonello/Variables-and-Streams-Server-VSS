@@ -3,6 +3,49 @@
 Shared::SimpleConfFileProvider::SimpleConfFileProvider(string filename)
 {
     this->filename = filename;
+    this->runing = true;
+    std::async([&](){  std::launch::async, this->fileCheckPoll(); } );
+}
+
+
+Shared::SimpleConfFileProvider::~SimpleConfFileProvider()
+{
+    
+    //set the runnin as false. The poll thread will stop and releases the 'trheadExitingMutex'
+    this->runing = false;
+    
+    threadExitingMutex.lock();
+    threadExitingMutex.unlock();
+}
+
+void Shared::SimpleConfFileProvider::fileCheckPoll()
+{
+    threadExitingMutex.lock();
+
+    auto lastChangeTime = getFileChangeTime(filename);
+    while (this->runing)
+    {
+        //checks by file changes
+        auto currChangeTime = getFileChangeTime(filename);
+        if (currChangeTime != lastChangeTime)
+        {
+            //read and nofity observers
+            readAndNotify();
+            lastChangeTime = currChangeTime;
+        }
+
+        usleep(250000);
+    }
+    threadExitingMutex.unlock();
+}
+
+time_t Shared::SimpleConfFileProvider::getFileChangeTime(string fname)
+{
+    struct stat result;
+    if (stat(fname.c_str(), &result)==0)
+        return result.st_mtime;
+
+    return 0;
 }
     
 vector<tuple<string, string>> Shared::SimpleConfFileProvider::readAllConfigurations()
@@ -33,6 +76,12 @@ vector<tuple<string, string>> Shared::SimpleConfFileProvider::readAllConfigurati
     }
 
     return result;
+}
+
+void Shared::SimpleConfFileProvider::readAndObservate(IConfigurationProvider_onData onData)
+{
+    this->_onData = onData;
+    readAndNotify();
 }
 
 string Shared::SimpleConfFileProvider::ltrim(string str)
@@ -77,4 +126,9 @@ string Shared::SimpleConfFileProvider::identifyKeyValueSeparator(string str)
         }
 
     return "";
+}
+
+void Shared::SimpleConfFileProvider::readAndNotify()
+{
+    _onData(this->readAllConfigurations());
 }

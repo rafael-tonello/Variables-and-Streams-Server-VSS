@@ -183,6 +183,7 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
 
     //raises the contexts of the testers and gruoup them by specifcs contexts
     map<string, vector<Tester*>> contexts;// = {"all", {}};
+    vector<string> contextsRunOrder;
 
     for (auto &c: testers)
     {
@@ -191,7 +192,10 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
         for (auto &c2: testerContexts)
         {
             if (contexts.count(c2) == 0)
+            {
                 contexts[c2] = {};
+                contextsRunOrder.push_back(c2);
+            }
             
             contexts[c2].push_back(c);
         }
@@ -231,10 +235,10 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
     };
 
     if (args.size() == 1 || args.size() == 2 && args[1] == "all")
-        for (auto &c : contexts)
+        for (auto &c : contextsRunOrder)
         {
-            cout << "    Context " << c.first << ":" << endl;
-            runContext(c.first);
+            cout << "    Context " << c << ":" << endl;
+            runContext(c);
         }
 
     else

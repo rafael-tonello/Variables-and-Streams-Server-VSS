@@ -3,16 +3,18 @@
 Shared::Config::Config(shared_ptr<IConfigurationProvider> provider)
 {
     this->confProvider = provider;
-    this->reloadFile();
+
+    this->confProvider->readAndObservate([&](vector<tuple<string, string>> configurations){
+        this->processConfigs(configurations);
+    });
 }
 
-void Shared::Config::reloadFile()
+void Shared::Config::processConfigs(vector<tuple<string, string>> configurations)
 {
     //read all configuration from the configuration provider
-    auto currentConfigs = this->confProvider->readAllConfigurations();
     string name, value;
 
-    for (auto &c : currentConfigs)
+    for (auto &c : configurations)
     {
         name = this->vars.count(std::get<0>(c));
         value = this->vars.count(std::get<1>(c));

@@ -23,7 +23,7 @@ namespace Shared{
 
 
         //this function read the entiry file and notify the variable observers
-        void reloadFile();
+        void processConfigs(vector<tuple<string, string>> configurations);
     public:
         Config(shared_ptr<IConfigurationProvider> provider);
         Config(string fileName):Config(shared_ptr<IConfigurationProvider>(new SimpleConfFileProvider(fileName))){}

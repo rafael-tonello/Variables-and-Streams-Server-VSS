@@ -8,6 +8,12 @@
 #include <string>
 #include <fstream>
 #include "IConfigurationProvider.h"
+#include <mutex>
+#include <atomic>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <thread>
+#include <future>
 
 using namespace std;
 namespace Shared{
@@ -19,14 +25,28 @@ namespace Shared{
     #endif
         const string separatorChars = "=:";
         string filename;
+        IConfigurationProvider_onData _onData;
+
+
+
+        mutex threadExitingMutex;
+        atomic<bool> runing;
+        //a long poll file check
+        void fileCheckPoll();
+
+        time_t getFileChangeTime(string fname);
+        void readAndNotify();
         string ltrim(string str);
         string rtrim(string str);
         string identifyKeyValueSeparator(string str);
+        vector<tuple<string, string>> readAllConfigurations();
+
     public:
         SimpleConfFileProvider(string filename);
+        ~SimpleConfFileProvider();
     
     //{IConfigurationProvider interface}
     public:
-        vector<tuple<string, string>> readAllConfigurations();
+        void readAndObservate(IConfigurationProvider_onData onData);
     };
 }

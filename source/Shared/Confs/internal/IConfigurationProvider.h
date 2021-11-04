@@ -3,13 +3,15 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <functional>
 
 using namespace std;
 namespace Shared{
+    using IConfigurationProvider_onData = function<void (vector<tuple<string, string>> configurations)>;
     class IConfigurationProvider
     {
     public:
-        virtual vector<tuple<string, string>> readAllConfigurations() = 0;
+        virtual void readAndObservate(IConfigurationProvider_onData onData) = 0;
     };
 }
 
