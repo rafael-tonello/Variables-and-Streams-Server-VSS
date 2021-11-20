@@ -11,6 +11,8 @@ string API::PHOMAU_ACTIONS::GET_ALIAS_DESTNAME = "gad";
 string API::PHOMAU_ACTIONS::REMOVE_ALIAS = "ra";
 string API::PHOMAU_ACTIONS::GET_CHILDS = "gc";
 string API::PHOMAU_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
+string API::PHOMAU_ACTIONS::LOCK_VAR = "lv";
+string API::PHOMAU_ACTIONS::UNLOCK_VAR = "uv";
 
 
 API::PHOMAU::PHOMAU(int port, ApiMediatorInterface *ctr)
@@ -71,6 +73,20 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
             string buffer = std::get<0>(c) + "="+(std::get<1>(c)).getString();
             this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_VAR_RESPONSE , buffer);
         }
+    }
+    else if (command == PHOMAU_ACTIONS::LOCK_VAR)
+    {
+        //note: with the actual structure and socket system, this operation will block que socket reading until the var is sucessful locked
+        auto lockFuture = this->ctrl->lockVar(varName);
+        lockFuture.get();
+        this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::LOCK_VAR_DONE, varName);
+    }
+    else if (command == PHOMAU_ACTIONS::UNLOCK_VAR)
+    {
+        //note: with the actual structure and socket system, this operation will block que socket reading until the var is sucessful locked
+        auto lockFuture = this->ctrl->unlockVar(varName);
+        lockFuture.get();
+        this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::UNLOCK_VAR_DONE, varName);
     }
     else if (command == PHOMAU_ACTIONS::OBSERVE_VAR)
     {

@@ -11,6 +11,7 @@
 #include "./Controller/Controller.test.h"
 #include "./Shared/DependencyInjectionManager/DependencyInjectionManager.test.h"
 #include "./Shared/Confs/internal/SimpleConfFileProvider.test.h"
+#include "./Shared/Confs/Confs.test.h"
 
 using namespace std;
 int main(int argc, char* argv[]){
@@ -24,6 +25,7 @@ int main(int argc, char* argv[]){
         testers.push_back(new ControllerTester());
         testers.push_back(new DependencyInjectionManagerTester());
         testers.push_back(new SimpleConfFileProviderTester());
+        testers.push_back(new ConfsTester());
     //*****
 
     return Tester::runTests(testers, argc, argv);

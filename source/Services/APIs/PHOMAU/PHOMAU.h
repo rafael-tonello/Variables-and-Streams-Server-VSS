@@ -45,6 +45,10 @@ namespace API {
         static string REMOVE_ALIAS;
         static string GET_CHILDS;
         static string GET_CHILDS_RESPONSE;
+        static string LOCK_VAR;
+        static string UNLOCK_VAR;
+        static string LOCK_VAR_DONE;
+        static string UNLOCK_VAR_DONE;
     };
 
     class PHOMAU

@@ -28,6 +28,9 @@ namespace Shared{
 
             bool getBool(function<void()> onError = [](){});
             void setBool(bool value);
+
+            bool isEquals(DynamicVar* other);
+            bool isEquals(DynamicVar other);
     };
 }
 #endif

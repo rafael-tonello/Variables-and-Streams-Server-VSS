@@ -30,6 +30,10 @@ namespace API
         virtual future<void> delVar(string varname) = 0;
         virtual future<vector<string>> getChildsOfVar(string parentName) = 0;
 
+        
+        virtual future<void> lockVar(string varName) = 0;
+        virtual future<void> unlockVar(string varName) = 0;
+
     };
 };
 #endif

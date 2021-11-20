@@ -74,6 +74,11 @@ namespace Controller{
         //a list of observers and their respective VarNode. This map is used to facilidate the work of function 'stopObservingVar'
         map<string, VarNode*> observersShorcut;
 
+        future<void> internalSetVar(string name, DynamicVar value);
+
+        DynamicVar getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue);
+        void setVarInternalFlag(string vName, string flagName, DynamicVar value);
+
     public:
         TheController();
         ~TheController();

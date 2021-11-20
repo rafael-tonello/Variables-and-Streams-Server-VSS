@@ -4,13 +4,18 @@ Shared::SimpleConfFileProvider::SimpleConfFileProvider(string filename)
 {
     this->filename = filename;
     this->runing = true;
-    std::async([&](){  std::launch::async, this->fileCheckPoll(); } );
+    //std::async(std::launch::async, [&](){ this->fileCheckPoll(); } );
+    thread th([&](){
+        this->fileCheckPoll();
+    });
+
+    th.detach();
+
 }
 
 
 Shared::SimpleConfFileProvider::~SimpleConfFileProvider()
-{
-    
+{   
     //set the runnin as false. The poll thread will stop and releases the 'trheadExitingMutex'
     this->runing = false;
     
@@ -30,20 +35,21 @@ void Shared::SimpleConfFileProvider::fileCheckPoll()
         if (currChangeTime != lastChangeTime)
         {
             //read and nofity observers
-            readAndNotify();
             lastChangeTime = currChangeTime;
+            //usleep(50000);
+            readAndNotify();
         }
 
-        usleep(250000);
+        usleep(150000);
     }
     threadExitingMutex.unlock();
 }
 
-time_t Shared::SimpleConfFileProvider::getFileChangeTime(string fname)
+long int Shared::SimpleConfFileProvider::getFileChangeTime(string fname)
 {
     struct stat result;
     if (stat(fname.c_str(), &result)==0)
-        return result.st_mtime;
+        return result.st_mtim.tv_nsec;
 
     return 0;
 }

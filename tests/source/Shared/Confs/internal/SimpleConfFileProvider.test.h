@@ -7,6 +7,9 @@
 using namespace Shared;
 class SimpleConfFileProviderTester: public Tester{
 private:
+    string defaultFile = "/tmp/SimpleConfFileProvider_fileForTests.tmp";
+    void writeFile(string data);
+    void writeFile(string fName, string data);
 
 public:
     vector<string> getContexts();

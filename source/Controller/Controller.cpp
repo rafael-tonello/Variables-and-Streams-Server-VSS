@@ -83,6 +83,25 @@ ResolveVarNameResult TheController::_resolveVarName(string aliasOrVarName)
 //creates or change a variable
 future<void> TheController::setVar(string name, DynamicVar value)
 {
+    //check if name isn't a internal flag var
+    if (name.find('_') == 0 || name.find("._") != string::npos)
+    {
+        cerr << "variabls started with underscorn (_) are just for internal flags and can't be setted by clients" << endl;
+        return;
+    }
+
+    //checks if the variabel is locked
+    if (this->getVarInternalFlag(name, "_lock", 0).getInt() == 1)
+    {
+        cerr << "The variable '"<< name << "' is locked and can't be changed by setVar" << endl;
+        return;
+    }
+
+    return this->internalSetVar(name, value);
+
+}
+future<void> TheController::internalSetVar(string name, DynamicVar value)
+{
     return tasker.enqueue([name, value, this](){
         
         //resolve the destination varname
@@ -100,8 +119,14 @@ future<void> TheController::setVar(string name, DynamicVar value)
             return;
         }
 
-        //set the variable
+        //find the node of the variable
         VarNode* node = _findNode(rname, &rootNode);
+
+        //checks if the value is newer
+        if (node->value.isEquals(&value))
+            return;
+
+        //set the variable
         node->value = value;
         node->valueSetted = true;
 
@@ -150,6 +175,21 @@ future<void> TheController::setVar(string name, DynamicVar value)
 
         //cout << "all pending taskas was done" << endl;
     });
+}
+
+future<void> TheController::lockVar(string varName)
+{
+    //ir variable if currently locked, add an observer to it "._lock" property and wait the change of this to 0
+
+    //set the vars property'a '._lock' to 1 (use setVar to change the ._lock)
+
+    //set var can't change a lokced var
+
+}
+
+future<void> TheController::unlockVar(string varName)
+{
+
 }
 
 //create an alias (a shortcut) to a variable (or to another alias)
@@ -298,4 +338,28 @@ future<void> TheController::delVar(string varname)
 future<vector<string>> TheController::getChildsOfVar(string parentName)
 {
 
+}
+
+
+DynamicVar TheController::getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue)
+{
+    if (flagName != "")
+    {
+        if (flagName[0] != '_');
+            flagName = "_"+flagName;
+        
+        auto flagValue = this->getVar(vName + "."+flagName, defaultValue).get();
+        return std::get<1>(flagValue[0]);
+    }
+}
+
+void TheController::setVarInternalFlag(string vName, string flagName, DynamicVar value)
+{
+    if (flagName != "")
+    {
+        if (flagName[0] != '_');
+            flagName = "_"+flagName;
+        
+        this->internalSetVar(vName + "."+flagName, value).get();
+    }
 }

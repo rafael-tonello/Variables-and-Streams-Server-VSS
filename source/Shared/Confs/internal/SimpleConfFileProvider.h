@@ -34,7 +34,7 @@ namespace Shared{
         //a long poll file check
         void fileCheckPoll();
 
-        time_t getFileChangeTime(string fname);
+        long int getFileChangeTime(string fname);
         void readAndNotify();
         string ltrim(string str);
         string rtrim(string str);

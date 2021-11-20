@@ -18,6 +18,8 @@
 # Main task List
 charaters to be used ✔ ✘
 
+[ ] Very important: Mutex variables (lock and unlock). 'lock' or (setAndUnlock) and 'unlock' (setVar can't change this variables when locked). An ideia: lock can return an token that can be used by an special setLockedVar to change this value (this allow just one client to change a locked variable).
+[ ] Variables started with '_' are internal flags. Do not allow this names
 [ ] Variable persistency
 [ ] Configuration system (to specify)
 [ ] UDP replay to server search
@@ -31,3 +33,29 @@ charaters to be used ✔ ✘
 [ ] Convert TCP server to a repository
 
 [ ] Create mirror service (to mirror current server in a another server - a parent server). This mirror server should prevent 'back notification' from the remote server.
+[ ] Analyse the possibility of write var files in paralel (to best performance/best latency)
+```
++---------+           +------------ server -----------+
+| client  |           |  +-----+            +------+  |
++---------+           |  | RAM |            | disk |  |
+  |                   |  +-----+            +------+  |
+  |                   +-----|---------------------|---+
+  |                    |    |                     |
+  |                    |    |                     |
+  |   var set          |    |                     |
+  |-----'------------->|    |                     |
+  |                    |--->|--+  paralel process |
+  |                    |-------|--------'-------->|
+  |                    |    |  |                  |--+
+  |                    |    |<-+                  |  |
+  |  var set response  |<---|                     |  |
+  |<---------'---------|    |                     |  |
+  |                    |    |                     |  | Write to disk
+  |                    |    |                     |  | process may
+  |                    |    |                     |  | take a long
+  |                    |    |                     |  | time
+  |                    |    |                     |  |
+  |                    |    |                     |  |
+  |                    |    |                     |<-+
+  |                    |    |                     |
+```

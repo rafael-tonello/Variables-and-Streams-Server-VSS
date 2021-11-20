@@ -27,6 +27,7 @@
         "compare": "cpp",
         "mutex": "cpp",
         "stop_token": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "iostream": "cpp"
     }
 }
