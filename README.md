@@ -17,7 +17,7 @@
 
 # Main task List
 charaters to be used ✔ ✘
-
+[ ] Alias is realy needed ? Remove alias system
 [ ] Very important: Mutex variables (lock and unlock). 'lock' or (setAndUnlock) and 'unlock' (setVar can't change this variables when locked). An ideia: lock can return an token that can be used by an special setLockedVar to change this value (this allow just one client to change a locked variable).
 [ ] Variables started with '_' are internal flags. Do not allow this names
 [ ] Variable persistency

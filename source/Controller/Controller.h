@@ -11,6 +11,9 @@
 #include "../Services/VarSystem/FileVars.h"
 #include "../Shared/ThreadPool/ThreadPool.h"
 #include "../Services/APIs/ApiMediatorInterface.h"
+#include "../Services/VarSystem/FileVars.h"
+#include "../Shared/Confs/Confs.h"
+#include "../Shared/DependencyInjectionManager/dependencyInjectionManager.h"
 
 #ifdef __TESTING__
     #include <tester.h>
@@ -37,16 +40,12 @@ namespace Controller{
         string aliasName;
     };
 
-    enum VarType {NormalVar, Alias};
     struct VarNode{
         VarNode* parent = NULL;
         string name = "";
         string fullName = "";
-        DynamicVar value;
-        VarType type = VarType::NormalVar;
         map<string, VarNode> childs;
         vector<VarObserverInfo> observers;
-        bool valueSetted = false;
     };
 
     class TheController: public Observable, public API::ApiMediatorInterface
@@ -59,6 +58,10 @@ namespace Controller{
         ThreadPool tasker;
 
         VarNode rootNode;
+
+        FileVars *db = NULl;
+
+        Config *confs;
 
         //FileVars sVarSystem("vars", true);
         
@@ -74,13 +77,15 @@ namespace Controller{
         //a list of observers and their respective VarNode. This map is used to facilidate the work of function 'stopObservingVar'
         map<string, VarNode*> observersShorcut;
 
+
+
         future<void> internalSetVar(string name, DynamicVar value);
 
         DynamicVar getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue);
         void setVarInternalFlag(string vName, string flagName, DynamicVar value);
 
     public:
-        TheController();
+        TheController(DependencyInjectionManager* dim);
         ~TheController();
 
         //returned the literal value (a variable name) of an alias
@@ -97,6 +102,8 @@ namespace Controller{
         future<void> setVar(string name, DynamicVar value);
         future<void> delVar(string varname);
         future<vector<string>> getChildsOfVar(string parentName);
+        future<void> lockVar(string varName);
+        future<void> unlockVar(string varName);
 
     };
 }

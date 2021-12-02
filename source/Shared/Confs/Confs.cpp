@@ -16,8 +16,8 @@ void Shared::Config::processConfigs(vector<tuple<string, string>> configurations
 
     for (auto &c : configurations)
     {
-        name = this->vars.count(std::get<0>(c));
-        value = this->vars.count(std::get<1>(c));
+        name = std::get<0>(c);
+        value = applyPlaceHolders(std::get<1>(c));
 
         if (this->vars.count(name) > 0)
         {
@@ -46,11 +46,12 @@ Shared::DynamicVar Shared::Config::get(string varName, DynamicVar defaultValue)
 {
     if (this->vars.count(varName) > 0)
         return this->vars[varName].lastValue;
-    return defaultValue;
+    return DynamicVar(applyPlaceHolders(defaultValue.getString()));
 }
 
 void Shared::Config::observate(string varName, ObserveFunction onVarChanged, DynamicVar defaultValueIfVarNotExists, bool forceFirstCall)
 {
+    defaultValueIfVarNotExists =  DynamicVar(applyPlaceHolders(defaultValueIfVarNotExists.getString()));
     //check if variable already exists. If not, creates them
     if (this->vars.count(varName) == 0)
         this->vars[varName] = {.lastValue = defaultValueIfVarNotExists};
@@ -61,4 +62,25 @@ void Shared::Config::observate(string varName, ObserveFunction onVarChanged, Dyn
     //cals by the first time
     if (forceFirstCall)
         onVarChanged(this->vars[varName].lastValue);
+}
+
+void Shared::Config::createPlaceHolder(string placeHolder, string value)
+{
+    placeHolders.push_back(std::make_tuple(placeHolder, value));
+}
+
+string Shared::Config::applyPlaceHolders(string value)
+{
+    for (auto &c: placeHolders)
+    {
+        string pName = std::get<0>(c);
+        string pValue = std::get<1>(c);
+        auto pos = value.find(pName);
+        if (pos != string::npos)
+        {
+            value = value.substr(0, pos) + pValue + value.substr(pos + pName.size());
+        }
+    }
+
+    return value;
 }

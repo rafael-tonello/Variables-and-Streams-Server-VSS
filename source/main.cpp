@@ -3,11 +3,15 @@
 #include <stdlib.h>
 #include <mutex>
 #include <signal.h>
+#include <unistd.h>
+#include <limits.h>
 
 
 #include "Controller/Controller.h"
 #include "Services/APIs/PHOMAU/PHOMAU.h"
 #include "Shared/DependencyInjectionManager/dependencyInjectionManager.h"
+#include "Shared/Confs/Confs.h"
+#include "Services/VarSystem/SysLink.h"
 
 using namespace std;
 using namespace Controller;
@@ -20,6 +24,8 @@ void signalHandler( int signum ) {
    exitMutex.unlock();
 }
 
+std::string getApplicationDirectory();
+
 int main(){
     
     signal(SIGINT, signalHandler);  
@@ -29,6 +35,16 @@ int main(){
     signal(SIGTERM, signalHandler);  
     signal(SIGKILL, signalHandler);  
     
+
+    //determine the configuration file
+    string confFile = "/etc/vss/confs.conf";
+    SysLink sl;
+    if (sl.fileExists(getApplicationDirectory() + "/confs.confs"))
+        confFile = getApplicationDirectory() + "/confs.confs";
+
+
+
+
     
     /* #region code without dependency injection manager */
         /*//the application main controller
@@ -41,10 +57,16 @@ int main(){
     
     /* #region code with dependency injection manager */
         DependencyInjectionManager dim;
+
         
         //two points to controller (to allow systems to find it by all it types):
         // the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
-        dim.addSingleton<TheController>(new TheController(), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
+        Shared::Config *conf = new Shared::Config(confFile);
+        conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory()  + "/");
+
+        dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
+
+        dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
         dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>()));
 
     /* #endregion */
@@ -69,4 +91,14 @@ int main(){
 
     exit(0);  
     return 0;
+}
+
+std::string getApplicationDirectory() 
+{
+    char result[ PATH_MAX ];
+    ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+    std::string appPath = std::string( result, (count > 0) ? count : 0 );
+
+    std::size_t found = appPath.find_last_of("/\\");
+    return appPath.substr(0,found);
 }

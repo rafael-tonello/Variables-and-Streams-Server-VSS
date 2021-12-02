@@ -5,6 +5,7 @@
 #include <vector>
 #include <future>
 #include "../../Shared/Misc/DynamicVar.h"
+#include "ApiInterface.h"
 
 using namespace Shared;
 using namespace std;
@@ -33,6 +34,8 @@ namespace API
         
         virtual future<void> lockVar(string varName) = 0;
         virtual future<void> unlockVar(string varName) = 0;
+
+        virtual void apiStart(ApiInterface *api, string apiId) = 0;
 
     };
 };

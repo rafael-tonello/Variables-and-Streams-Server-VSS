@@ -1,12 +1,27 @@
 #include "Controller.h"
 
 using namespace Controller;
-TheController::TheController(){
-    
+
+TheController::TheController(DependencyInjectionManager* dim)
+{
+    //need to load path from configs here
+    this->confs = dim->get<Config>();
+
+    if (this->confs == NULL)
+        cerr << "TheController::TheController: configuration system can't be found in the dependency injection manager" << endl;
+
+
+    confs->observate("varsDbDirectory", [&](DynamicVar value)
+    {
+        if (db != NULL)
+            delete db;
+
+        db = new FileVars(value.getString(), true);
+    }, "~/.local/VSS/varsDb");
 }
 
 TheController::~TheController(){
-    
+    if (db != NULL) delete db;
 }
 
 VarNode* TheController::_findNode(string name, VarNode* curr, bool createNewNodes)
@@ -49,8 +64,8 @@ VarNode* TheController::_findNode(string name, VarNode* curr, bool createNewNode
 
     //if the node is an alias, continue the search in the destination
     //to remove this feature and allow childs for aliases, just comment these two lines
-    if (next->type == VarType::Alias)
-        next = _findNode(next->value.getString(), &rootNode);
+    if (this->getVarInternalFlag(next->fullName, "_type", "normal").getString() == "alias")
+        next = _findNode(db->get(next->fullName, "").AsString(), &rootNode);
 
     //checks if search reaches the end
     if (remainingName == "")
@@ -67,10 +82,9 @@ ResolveVarNameResult TheController::_resolveVarName(string aliasOrVarName)
     result.searchIsAnAlias = false;
 
 
-
-    if ((dest != NULL) && (dest->type == VarType::Alias))
+    if (this->getVarInternalFlag(aliasOrVarName, "_type", "normal").getString() == "alias")
     {
-        result.destination = _resolveVarName(dest->value.getString()).destination;
+        result.destination = _resolveVarName(db->get(aliasOrVarName, "").AsString()).destination;
         result.searchIsAnAlias = true;
     }
     else
@@ -102,7 +116,7 @@ future<void> TheController::setVar(string name, DynamicVar value)
 }
 future<void> TheController::internalSetVar(string name, DynamicVar value)
 {
-    return tasker.enqueue([name, value, this](){
+    return tasker.enqueue([&](){
         
         //resolve the destination varname
         string rname = _resolveVarName(name).destination;
@@ -119,61 +133,66 @@ future<void> TheController::internalSetVar(string name, DynamicVar value)
             return;
         }
 
-        //find the node of the variable
-        VarNode* node = _findNode(rname, &rootNode);
-
-        //checks if the value is newer
-        if (node->value.isEquals(&value))
-            return;
 
         //set the variable
-        node->value = value;
-        node->valueSetted = true;
+        
+        db->set(name, value.getString());
 
-        #ifdef __TESTING__
-            Tester::global_test_result = "Setted node: "+to_string((uint64_t)(node))+", setted value: "+(const_cast <DynamicVar&>(value)).getString();
-        #endif
+        //observing system tasks
+        //{
+
+            //find the node of the variable
+            VarNode* node = _findNode(rname, &rootNode);
+
+            //checks if the value is newer
+            if (std::get<1>(this->getVar(name, "").get()[0]).isEquals(value))
+                return;
+
+            #ifdef __TESTING__
+                Tester::global_test_result = "Setted node: "+to_string((uint64_t)(node))+", setted value: "+(const_cast <DynamicVar&>(value)).getString();
+            #endif
 
 
-        //notify observers
-        //auto th = tasker.enqueue([this, name, value, node](){
-            for (auto f : node->observers)
-            {
-                pendingTasks.push_back(
-                    tasker.enqueue([rname, value](VarObserverInfo f2){
-                        f2.fun(f2.aliasName != "" ? f2.aliasName : rname, value, f2.args, f2.id);
-                    }, f)
-                );
-            }
-
-            //after notify directly observers, finds (in the same dictionary) observers using regular expressions
-            VarNode* tmpNode = node;
-            while (tmpNode != NULL)
-            {
-                //checks if node has a special child name '*'
-                if (tmpNode->childs.count("*") > 0)
+            //notify observers
+            //auto th = tasker.enqueue([this, name, value, node](){
+                for (auto f : node->observers)
                 {
-                    for (auto func : tmpNode->childs["*"].observers)
-                    {
-                        pendingTasks.push_back(
-                            tasker.enqueue([rname, value](VarObserverInfo func2){
-                                func2.fun(func2.aliasName != "" ? func2.aliasName : rname, value, func2.args, func2.id);
-                            }, func)
-                        );
-                    }
+                    pendingTasks.push_back(
+                        tasker.enqueue([rname, value](VarObserverInfo f2){
+                            f2.fun(f2.aliasName != "" ? f2.aliasName : rname, value, f2.args, f2.id);
+                        }, f)
+                    );
                 }
-                tmpNode = tmpNode->parent;
-            }
-            //http://www.cplusplus.com/reference/regex/
-        //});
 
-        //th.wait();
+                //after notify directly observers, finds (in the same dictionary) observers using regular expressions
+                VarNode* tmpNode = node;
+                while (tmpNode != NULL)
+                {
+                    //checks if node has a special child name '*'
+                    if (tmpNode->childs.count("*") > 0)
+                    {
+                        for (auto func : tmpNode->childs["*"].observers)
+                        {
+                            pendingTasks.push_back(
+                                tasker.enqueue([rname, value](VarObserverInfo func2){
+                                    func2.fun(func2.aliasName != "" ? func2.aliasName : rname, value, func2.args, func2.id);
+                                }, func)
+                            );
+                        }
+                    }
+                    tmpNode = tmpNode->parent;
+                }
+                //http://www.cplusplus.com/reference/regex/
+            //});
 
-        //wait all pending tasks
-        for (auto &c: pendingTasks)
-            c.wait();
+            //th.wait();
 
-        //cout << "all pending taskas was done" << endl;
+            //wait all pending tasks
+            for (auto &c: pendingTasks)
+                c.wait();
+
+            //cout << "all pending taskas was done" << endl;
+        //}
     });
 }
 
@@ -203,7 +222,7 @@ future<void> TheController::createAlias(string name, string dest)
         auto node = _findNode(name, &rootNode);
 
         //set the type of the node to 'alias'
-        node->type = VarType::Alias;
+        this->setVarInternalFlag(name, "_type", "alias");
     });
 }
 
@@ -270,13 +289,13 @@ string TheController::observeVar(string varName, observerCallback callback, void
             notifierFunc = [&, this](VarNode *tmpNode){
                 if (tmpNode != NULL)
                 {
-                    if (tmpNode->valueSetted)
+                    auto tmpNodeValue = db->get(tmpNode->fullName, "__invalid__").AsString();
+                    if (tmpNodeValue != "__invalid__")
                     {
                         tasker.enqueue([&](){
-                            //to notify the observer, first get the variable value using the 'getVar' function. This is necessary why there are some
+                            //to notify the observer, first get the variable value using the 'getVar' function. This is necessary because there are some
                             //operations (like load values from files on startyp) that are made by getVar function.
-                            auto value = std::get<1>(getVar(tmpNode->fullName, DynamicVar(string(""))).get()[0]);
-                            callback(tmpNode->fullName, value, args, id);
+                            callback(tmpNode->fullName, DynamicVar(tmpNodeValue), args, id);
                         });
                     }
 
@@ -327,7 +346,53 @@ string TheController::_createId()
 
 future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, DynamicVar defaultValue)
 {
+    return tasker.enqueue([name, defaultValue, this](){
+        
+        //resolve the destination varname
+        string rname = _resolveVarName(name).destination;
 
+        function <vector<tuple<string, DynamicVar>>(string name, bool childsToo)> readFromDb;
+        readFromDb = [&](string nname, bool childsToo)        
+        {
+            vector<tuple<string, DynamicVar>> result;    
+            string value = db->get(nname, "___invalid____").AsString();
+            if (value != "___invalid___")
+                result.push_back(make_tuple( nname,  value));
+            
+            if (childsToo)
+            {
+                auto childs = db->getChilds(name);
+                for (auto curr: childs)
+                {
+                    auto tmp = readFromDb(curr, childsToo);                    
+                    result.insert(result.begin(), tmp.begin(), tmp.end());
+                }
+            }
+
+            return result;
+        };
+
+        //if variable ends with *, determine just their name
+        string name2 = name;
+        bool childsToo = false;
+        if (name2.find(".*") != string::npos)
+        {
+            childsToo = true;
+            name2 = name2.substr(0, name2.size()-2);
+        }
+
+        //load the valures
+        auto values = readFromDb(name2, childsToo);
+        
+
+        //if nothing was found, add the default value to the result
+        if (values.size() == 0)
+            values.push_back(make_tuple(name2, defaultValue));
+
+        //return the values
+
+        return values;
+    });
 }
 
 future<void> TheController::delVar(string varname)
