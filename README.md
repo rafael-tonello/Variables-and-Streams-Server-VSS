@@ -25,7 +25,7 @@ charaters to be used ✔ ✘
 [ ] UDP replay to server search
 [ ] Restfull and ws API
 [ ] Rename Controller to Business or Logic (to analyze. Is to prevent confuse with MVC system)
-[ ] Create a logger library
+[✔] Create a logger library
 [✔] Create the configuration system (observable configuration system)
 [ ] Paralel project (app server)
 

@@ -16,6 +16,7 @@ void Utils::named_lock(string session_name, named_lock_f f)
     {
         Utils::names_locks_mutexes[session_name] = new mutex();
     }
+    Utils::names_locks_mutexes_mutex.unlock();
 
     Utils::names_locks_mutexes[session_name]->lock();
 
@@ -23,7 +24,6 @@ void Utils::named_lock(string session_name, named_lock_f f)
 
     Utils::names_locks_mutexes[session_name]->unlock();
 
-    Utils::names_locks_mutexes_mutex.unlock();
 }
 
 int64_t Utils::getCurrentTimeMilliseconds()
