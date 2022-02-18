@@ -10,7 +10,7 @@ this->test("observating a inexistent configuration and create it", [](){return f
 
 vector<string> ConfsTester::getContexts()
 {
-
+    return {"Confs"};
 }
 
 void ConfsTester::run(string context)

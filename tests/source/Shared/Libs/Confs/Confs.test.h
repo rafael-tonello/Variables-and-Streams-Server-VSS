@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <tester.h>
-#include "../../../../../source/Shared/Confs/Confs.h"
+#include <Confs.h>
 
 using namespace Shared;
 using namespace std;

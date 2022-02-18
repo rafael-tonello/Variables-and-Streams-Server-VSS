@@ -22,6 +22,7 @@
 #include "../ApiMediatorInterface.h"
 #include "SocketInfo.h"
 #include <thread>
+#include <logger.h>
  
 //#define MSG_DONTWAIT 0x40
 
@@ -59,9 +60,10 @@ namespace API {
             #endif
 
             ApiMediatorInterface *ctrl;
+            ILogger *log;
 
             //string __resolveVarName(string key);
-            void debug(string msg){cout << msg << endl;}
+            void debug(string msg);
 
             /**
              * @brief this function is called when a fclient is connected to the server
@@ -74,11 +76,6 @@ namespace API {
              * @param cliente is a pointer to an ScoketInfo object with the connected client info
             */
             void clientDisconnected(SocketInfo* client);
-
-            /** 
-             * @brief this function will remove all observating requests in the main controller
-            */
-           void stopObservating(SocketInfo& client);
             
             /** 
              * @brief this function is called majority by the function ThreadTalkWithClientFunction when a pack is receitved
@@ -108,7 +105,7 @@ namespace API {
             mutex __socketsMutex;
             map<long, SocketInfo*> __sockets;
 
-            PHOMAU(int port, ApiMediatorInterface *ctr);
+            PHOMAU(int port, ApiMediatorInterface *ctr, ILogger *log);
             virtual ~PHOMAU();
 
             bool __SocketIsConnected(SocketInfo socket);

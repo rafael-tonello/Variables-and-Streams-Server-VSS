@@ -7,11 +7,15 @@
 #include <limits.h>
 
 
-#include "Controller/Controller.h"
+#include <Controller.h>
 #include "Services/APIs/PHOMAU/PHOMAU.h"
-#include "Shared/DependencyInjectionManager/dependencyInjectionManager.h"
-#include "Shared/Confs/Confs.h"
-#include "Services/VarSystem/SysLink.h"
+#include <dependencyInjectionManager.h>
+#include <Confs.h>
+#include <StorageInterface.h>
+#include <Storage/VarSystemLib/VarSystemLibStorage.h>
+#include <SysLink.h>
+#include <logger.h>
+#include <logger/writers/LoggerConsoleWriter.h>
 
 using namespace std;
 using namespace Controller;
@@ -37,44 +41,34 @@ int main(){
     
 
     //determine the configuration file
-    string confFile = "/etc/vss/confs.conf";
     SysLink sl;
+    string confFile = "/etc/vss/confs.conf";
     if (sl.fileExists(getApplicationDirectory() + "/confs.confs"))
         confFile = getApplicationDirectory() + "/confs.confs";
 
-
-
+    
+    
+    DependencyInjectionManager dim;
 
     
-    /* #region code without dependency injection manager */
-        /*//the application main controller
-        TheController* controller = new TheController();
+    //two points to controller (to allow systems to find it by all it types):
+    // the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
+    Shared::Config *conf = new Shared::Config(confFile);
+    conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory()  + "/");
 
-        // #region the other services and dependency injection
-            PHOMAU* phomau = new PHOMAU((int)5021, controller);
-        // #endregion*/
-    /* #endregion */
-    
-    /* #region code with dependency injection manager */
-        DependencyInjectionManager dim;
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(true)}));
+    dim.addSingleton<ThreadPool>(new ThreadPool(4));
+    dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
+    dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
+    dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
 
-        
-        //two points to controller (to allow systems to find it by all it types):
-        // the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
-        Shared::Config *conf = new Shared::Config(confFile);
-        conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory()  + "/");
 
-        dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
-
-        dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-        dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>()));
-
-    /* #endregion */
-        
+    auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */
-        cout << "the system is running" << endl;
-        cout << "\tPHOMAU API port: 5021" << endl;
+        logger->info("", "the system is running");
+        logger->info("", "\tPHOMAU API port: 5021");
     /* #endregion */
 
     //prevent program close (equivalent to while (true))
@@ -82,7 +76,7 @@ int main(){
     exitMutex.lock();
 
     /* #region finalization of the program */
-        cout << "The program is exiting. Please wait..." <<endl;
+        logger->info("", "The program is exiting. Please wait...");
         //delete controller;
         //delete phomau;
         delete dim.get<PHOMAU>();

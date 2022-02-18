@@ -18,13 +18,6 @@ namespace API
     class ApiMediatorInterface
     {
     public:
-        virtual future<void> createAlias(string name, string dest) = 0;
-        virtual future<string> getAliasValue(string aliasName) = 0;
-        virtual future<void> deleteAlias(string aliasName) = 0;
-
-        virtual string observeVar(string varName, observerCallback callback, void* args = NULL, string observerId = "") = 0;
-        virtual void stopObservingVar(string observerId) = 0;
-
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         virtual future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue) = 0;
         virtual future<void> setVar(string name, DynamicVar value) = 0;
@@ -34,8 +27,11 @@ namespace API
         
         virtual future<void> lockVar(string varName) = 0;
         virtual future<void> unlockVar(string varName) = 0;
-
-        virtual void apiStart(ApiInterface *api, string apiId) = 0;
+        
+        virtual void apiStarted(ApiInterface *api) = 0;
+        virtual string clientConnected(string clientId, ApiInterface* api) = 0;
+        virtual void observeVar(string varName, string clientId, ApiInterface* api) = 0;
+        virtual void stopObservingVar(string clientId, string varName) = 0;
 
     };
 };

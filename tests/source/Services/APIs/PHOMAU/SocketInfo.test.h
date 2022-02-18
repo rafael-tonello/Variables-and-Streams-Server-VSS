@@ -6,7 +6,7 @@
 #include <tester.h>
 #include <unistd.h>
 #include "../../../../../source/Services/APIs/PHOMAU/SocketInfo.h"
-#include "../../../../../source/Shared/ThreadPool/ThreadPool.h"
+#include "../../../../../source/Shared/Libs/ThreadPool/ThreadPool.h"
 
 class SocketInfoTester: public Tester{
 private:

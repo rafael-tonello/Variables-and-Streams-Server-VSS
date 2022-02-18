@@ -12,6 +12,7 @@ namespace Shared{
     {
     public:
         virtual void readAndObservate(IConfigurationProvider_onData onData) = 0;
+        virtual ~IConfigurationProvider(){}
     };
 }
 

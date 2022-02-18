@@ -8,6 +8,8 @@ LoggerConsoleWriter::LoggerConsoleWriter(bool useColors)
 void LoggerConsoleWriter::write(Logger* sender, string msg, int level, string name, bool aboveOrInLogLevel){
     if (aboveOrInLogLevel)
     {
+        if (name != "") msg = name + ": "+msg;
+        
         if (level == Logger::LOGGER_WARNING_LEVEL)
             cout << "\e[0;33m        " << msg << "\e[0m" << endl; 
         else if (level == sender->Logger::LOGGER_ERROR_LEVEL)

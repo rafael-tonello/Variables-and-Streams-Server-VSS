@@ -6,30 +6,30 @@
 #include <vector>
 #include <mutex>
 #include <functional>
-#include "../Shared/Misc/Observable.h";
-#include "../Shared/Misc/DynamicVar.h";
-#include "../Services/VarSystem/FileVars.h"
-#include "../Shared/ThreadPool/ThreadPool.h"
-#include "../Services/APIs/ApiMediatorInterface.h"
-#include "../Services/VarSystem/FileVars.h"
-#include "../Shared/Confs/Confs.h"
-#include "../Shared/DependencyInjectionManager/dependencyInjectionManager.h"
+#include <DynamicVar.h>
+#include <ThreadPool.h>
+#include <ApiMediatorInterface.h>
+#include <Confs.h>
+#include <dependencyInjectionManager.h>
+#include <StorageInterface.h>
+#include <ApiInterface.h>
+#include <utils.h>
+#include <logger.h>
+#include "Internal/Controller_ClientHelper.h"
 
 #ifdef __TESTING__
     #include <tester.h>
 #endif
 
 using namespace Shared;
-using namespace std;    
+using namespace std;
+using namespace API;
 
 namespace Controller{
-    typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
+    
 
-    struct ResolveVarNameResult{
-        string search;
-        string destination;
-        bool searchIsAnAlias;
-    };
+
+    typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
     
     struct VarObserverInfo{
         string id = "";
@@ -40,62 +40,46 @@ namespace Controller{
         string aliasName;
     };
 
-    struct VarNode{
-        VarNode* parent = NULL;
-        string name = "";
-        string fullName = "";
-        map<string, VarNode> childs;
-        vector<VarObserverInfo> observers;
-    };
-
-    class TheController: public Observable, public API::ApiMediatorInterface
+    class TheController: public API::ApiMediatorInterface
     {
     private:
         #ifdef __TESTING__
             public:
         #endif
 
-        ThreadPool tasker;
+        mutex observerMutex;
+        ThreadPool *tasker;
+        Shared::Config *confs;
+        StorageInterface* db;
+        ILogger *log;
+        int64_t maxTimeWaitingClient = 12*60*60;
 
-        VarNode rootNode;
+        map<string, ApiInterface*> apis;
 
-        FileVars *db = NULl;
+        string _createUniqueId();
 
-        Config *confs;
+        void updateClientAboutObservatingVars(Controller_ClientHelper controller_ClientHelper);
+        void notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues);
+        void deleteClient(Controller_ClientHelper client);
 
-        //FileVars sVarSystem("vars", true);
-        
-        mutex varsObserversMutex;
-        map<string, vector<VarObserverInfo>> varsObservers;
-
-        VarNode* _findNode(string name, VarNode* curr, bool createNewNodes = true);
-
-        ResolveVarNameResult _resolveVarName(string aliasOrVarName);
-
-        string _createId();
-
-        //a list of observers and their respective VarNode. This map is used to facilidate the work of function 'stopObservingVar'
-        map<string, VarNode*> observersShorcut;
-
-
+        //checks the amount of time that client is disconnected and remove them from the system
+        void checkClientLiveTime(Controller_ClientHelper client);
 
         future<void> internalSetVar(string name, DynamicVar value);
 
         DynamicVar getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue);
         void setVarInternalFlag(string vName, string flagName, DynamicVar value);
-
     public:
         TheController(DependencyInjectionManager* dim);
         ~TheController();
 
-        //returned the literal value (a variable name) of an alias
+    /* ApiMediatorIntgerface interface*/
+    public: 
 
-        future<void> createAlias(string name, string dest);
-        future<void> deleteAlias(string aliasName);
-        future<string> getAliasValue(string aliasName);
-
-        string observeVar(string varName, observerCallback callback, void* args = NULL, string observerId = "");
-        void stopObservingVar(string observerId);
+        void apiStarted(ApiInterface *api);
+        string clientConnected(string clientId, ApiInterface* api);
+        void observeVar(string varName, string clientId, ApiInterface* api);
+        void stopObservingVar(string clientId, string varName);
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
@@ -105,6 +89,8 @@ namespace Controller{
         future<void> lockVar(string varName);
         future<void> unlockVar(string varName);
 
+
+
     };
 }
-#endif;
+#endif

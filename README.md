@@ -17,23 +17,23 @@
 
 # Main task List
 charaters to be used ✔ ✘
-[ ] Alias is realy needed ? Remove alias system
+[✔] Alias is realy needed ? Remove alias system
 [ ] Very important: Mutex variables (lock and unlock). 'lock' or (setAndUnlock) and 'unlock' (setVar can't change this variables when locked). An ideia: lock can return an token that can be used by an special setLockedVar to change this value (this allow just one client to change a locked variable).
-[ ] Variables started with '_' are internal flags. Do not allow this names
-[ ] Variable persistency
-[ ] Configuration system (to specify)
+[✔] Variables started with '_' are internal flags. Do not allow this names
+[✔] Variable persistency
+[✔] Configuration system (to specify)
 [ ] UDP replay to server search
 [ ] Restfull and ws API
 [ ] Rename Controller to Business or Logic (to analyze. Is to prevent confuse with MVC system)
 [ ] Create a logger library
-[ ] Create the configuration system (observable configuration system)
+[✔] Create the configuration system (observable configuration system)
 [ ] Paralel project (app server)
 
 [ ] Convert configs to a repository
-[ ] Convert TCP server to a repository
+[✔] Convert TCP server to a repository
 
 [ ] Create mirror service (to mirror current server in a another server - a parent server). This mirror server should prevent 'back notification' from the remote server.
-[ ] Analyse the possibility of write var files in paralel (to best performance/best latency)
+[✔] Analyse the possibility of write var files in paralel (to best performance/best latency)
 ```
 +---------+           +------------ server -----------+
 | client  |           |  +-----+            +------+  |

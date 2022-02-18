@@ -165,7 +165,7 @@ void PhomauTester::testeWriteFunction()
 future<int> PhomauTester::connectToPHOMAU()
 {
     return th.enqueue([&](){
-        int sock = 0, valread;
+        int sock = 0;
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf("\n Socket creation error \n");
@@ -204,30 +204,6 @@ string PhomauTester::convertStringToByteList(string s, size_t i){
 }
 
 /*ApiMediatorInterface*/
-future<void> PhomauTester::createAlias(string name, string dest)
-{
-
-}
-
-
-future<string> PhomauTester::getAliasValue(string aliasName)
-{
-    
-}
-future<void> PhomauTester::deleteAlias(string aliasName)
-{
-    
-}
-
-string PhomauTester::observeVar(string varName, observerCallback callback, void* args, string observerId)
-{
-
-}
-
-void PhomauTester::stopObservingVar(string observerId)
-{
-
-}
 
 future<vector<tuple<string, DynamicVar>>> PhomauTester::getVar(string name, DynamicVar defaultValue)
 {
@@ -260,10 +236,49 @@ future<void> PhomauTester::setVar(string name, DynamicVar value)
 
 future<void> PhomauTester::delVar(string varname)
 {
-
+    varname = "";
+    promise<void> p;
+    p.set_value();
+    return p.get_future();
 }
 
 future<vector<string>> PhomauTester::getChildsOfVar(string parentName)
 {
+    promise<vector<string>> p;
+    p.set_value({});
+    return p.get_future();
+}
 
+void PhomauTester::apiStarted(ApiInterface *api)
+{
+}
+
+string PhomauTester::clientConnected(string clientId, ApiInterface* api)
+{
+    
+    return "";
+}
+
+void PhomauTester::observeVar(string varName, string clientId, ApiInterface* api)
+{
+    return "";
+}
+
+void PhomauTester::stopObservingVar(string clientId, string varName)
+{
+
+}
+
+future<void> PhomauTester::lockVar(string varName)
+{
+    promise<void> p;
+    p.set_value();
+    return p.get_future();
+}
+
+future<void> PhomauTester::unlockVar(string varName)
+{
+    promise<void> p;
+    p.set_value();
+    return p.get_future();
 }

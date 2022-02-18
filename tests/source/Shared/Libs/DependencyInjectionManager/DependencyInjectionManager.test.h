@@ -2,7 +2,7 @@
 #define _DEPENDENCY_INJECTION_MANAGER_TESTS_H
 
 #include <tester.h>
-#include "../../../../source/Shared/DependencyInjectionManager/DependencyInjectionManager.h"
+#include "../../../../source/Shared/Libs/DependencyInjectionManager/DependencyInjectionManager.h"
 class DependencyInjectionManagerTester: public Tester{
 private:
     void testsUsingTypes();

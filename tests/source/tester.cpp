@@ -159,11 +159,10 @@ void Tester::delMsgObserver(int id)
 
 tuple<string, void*> Tester::msgBusWaitNext(string messagePrefix, function<void()> preAction)
 {
-    int observerId;
     promise<tuple<string, void*>> prom;
     auto fut = prom.get_future();
 
-    observerId = addMsgBusObserver([&](string msg, string payloadS, void* payloadV){
+    addMsgBusObserver([&](string msg, string payloadS, void* payloadV){
         tuple<string, void*> r;
         std::get<0>(r) = payloadS;
         std::get<1>(r) = payloadV;
@@ -234,7 +233,7 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
 
     };
 
-    if (args.size() == 1 || args.size() == 2 && args[1] == "all")
+    if (args.size() == 1 || (args.size() == 2 && args[1] == "all"))
         for (auto &c : contextsRunOrder)
         {
             cout << "    Context " << c << ":" << endl;
@@ -242,7 +241,7 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
         }
 
     else
-        for (int c =1; c < args.size(); c++)
+        for (size_t c =1; c < args.size(); c++)
         {
             cout << "    Context " << args[c] << ":" << endl;
             runContext(args[c]);

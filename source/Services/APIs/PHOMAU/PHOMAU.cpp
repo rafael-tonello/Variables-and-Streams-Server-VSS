@@ -6,17 +6,16 @@ string API::PHOMAU_ACTIONS::GET_VAR_RESPONSE = "gvr";
 string API::PHOMAU_ACTIONS::OBSERVE_VAR = "ov";
 string API::PHOMAU_ACTIONS::STOP_OBSERVER_VAR = "sov";
 string API::PHOMAU_ACTIONS::VAR_CHANGED = "vc";
-string API::PHOMAU_ACTIONS::CREATE_ALIAS = "ca";
-string API::PHOMAU_ACTIONS::GET_ALIAS_DESTNAME = "gad";
-string API::PHOMAU_ACTIONS::REMOVE_ALIAS = "ra";
 string API::PHOMAU_ACTIONS::GET_CHILDS = "gc";
 string API::PHOMAU_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
 string API::PHOMAU_ACTIONS::LOCK_VAR = "lv";
 string API::PHOMAU_ACTIONS::UNLOCK_VAR = "uv";
+string API::PHOMAU_ACTIONS::LOCK_VAR_DONE = "lvd";
+string API::PHOMAU_ACTIONS::UNLOCK_VAR_DONE = "uvd";
 
-
-API::PHOMAU::PHOMAU(int port, ApiMediatorInterface *ctr)
+API::PHOMAU::PHOMAU(int port, ApiMediatorInterface *ctr, ILogger* log)
 {
+    this->log = log;
     this->__port = port;
     this->ctrl = ctr;
     //ctorDD
@@ -41,16 +40,18 @@ API::PHOMAU::~PHOMAU()
     //dtor
 }
 
+void API::PHOMAU::debug(string msg)
+{
+    log->debug("PHOMAU", msg);
+}
+
 void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, size_t dataSize, SocketInfo &clientSocket)
 {
     string strData;
-    long separatorPosition;
-    long observersCount;
     string key;
     string tempStr;
     string value;
     char* buffer;
-    bool founded;
 
     future<vector<tuple<string, DynamicVar>>> get_var_fut;
     vector<tuple<string, DynamicVar>> get_var_values;
@@ -90,7 +91,7 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
     }
     else if (command == PHOMAU_ACTIONS::OBSERVE_VAR)
     {
-        string observerTagName = "observingIds."+varName;
+        /*string observerTagName = "observingIds."+varName;
         //save the observer id to the tags of socket
         clientSocket.setTag(observerTagName, 
             this->ctrl->observeVar(varName, [&](string name, DynamicVar value, void* args, string id)
@@ -116,23 +117,9 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
 
             }, 
             (void*)&clientSocket, std::to_string(clientSocket.getId()))
-        );
+        );*/
     }
     else if (command == PHOMAU_ACTIONS::STOP_OBSERVER_VAR)
-    {
-
-    }
-    else if (command == PHOMAU_ACTIONS::CREATE_ALIAS)
-    {
-        string destination = string(data, dataSize);
-        this->ctrl->createAlias(varName, destination);
-    }
-    else if (command ==  PHOMAU_ACTIONS::GET_ALIAS_DESTNAME)
-    {
-        this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_ALIAS_DESTNAME, "");
-
-    }
-    else if (command == PHOMAU_ACTIONS::REMOVE_ALIAS)
     {
 
     }
@@ -140,7 +127,7 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
     {
         vector<string> result = this->ctrl->getChildsOfVar(varName).get();
         string response = "";
-        for (int cont = 0; cont < result.size(); cont++)
+        for (size_t cont = 0; cont < result.size(); cont++)
         {
             response += result[cont];
             if (cont < result.size()-1)
@@ -150,7 +137,7 @@ void API::PHOMAU::__PROCESS_PACK(string command, string varName, char* data, siz
 
         //prepara buffer with response and send this
         buffer = new char[response.size()];
-        for (int cont  =0; cont < response.size(); cont++)
+        for (size_t cont  =0; cont < response.size(); cont++)
             buffer[cont] = response[cont];
 
         this->__PROTOCOL_PHOMAU_WRITE(clientSocket, PHOMAU_ACTIONS::GET_CHILDS_RESPONSE, buffer, response.size());
@@ -199,7 +186,6 @@ void API::PHOMAU::ThreadAwaitClientsFunction()
     struct sockaddr_in *cli_addr = new sockaddr_in();
     int status;
     socklen_t clientSize;
-    pthread_t *thTalkWithClient = NULL;
 
 
 
@@ -227,7 +213,7 @@ void API::PHOMAU::ThreadAwaitClientsFunction()
             if (status >= 0)
             {
                 clientSize = sizeof(cli_addr);
-                cout << "Server is waiting for incoming connections on port "<< this->__port << endl << flush;
+                log->info("PHOMAU", "Server is waiting for incoming connections on port "+to_string(this->__port));
                 while (true)
                 {
                     int client = accept(listener, (struct sockaddr *) cli_addr, &clientSize);
@@ -244,13 +230,13 @@ void API::PHOMAU::ThreadAwaitClientsFunction()
                 }
             }
             else
-                cout << "Problem to open socket" << endl << flush;
+                log->error("PHOMAU", "Problem to open socket");
         }
         else
-            cout << "Problem to bind socket" << endl << flush;
+            log->error("PHOMAU", "Problem to bind socket");
     }
     else
-        cout << "Some error with socklen_t" << endl << flush;
+        log->error("PHOMAU", "Some error with socklen_t");
 
         //n = read(newsockfd,buffer,255);
         //n = write(newsockfd,"I got your message",18);
@@ -277,9 +263,7 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
     string name = "";
     vector<char> value;
     bool scape = false;
-    
 
-    unsigned int currCharIndex = 0;
     //setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
     //this->clientConnected(client);
     while (state != States::FINISHED)
@@ -366,6 +350,8 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
                                         value.push_back(curr);
                                 }
                             break;
+                            case FINISHED:
+                            break;
                         }
                     }
 
@@ -399,8 +385,6 @@ void API::PHOMAU::ThreadTalkWithClientFunction(int socketClient)
             state = States::FINISHED;
         }
     }
-
-    cout << "Saiu do While, state = " << state <<endl  << flush;
 
     this->clientDisconnected(client);
 
@@ -462,7 +446,7 @@ bool API::PHOMAU::__SocketIsConnected(SocketInfo socket)
     //bool connected = keepAliveSeconds <= (15*60);
     bool connected = keepAliveSeconds <= (60*60);
     if (!connected)
-        cout << "Um client foi desconectado" << endl << flush;
+        log->debug("PHOMAU", "Client disconnected");
     return connected;
 }
 
@@ -480,17 +464,5 @@ void API::PHOMAU::clientDisconnected(SocketInfo* client)
     #endif
 
     //stop observers for this client
-    stopObservating(*client);
 
-}
-
-void API::PHOMAU::stopObservating(SocketInfo& client)
-{
-    for (auto curTag: client.tags)
-    { 
-        if (curTag.first.find("observingIds.") == 0)
-        {
-            this->ctrl->stopObservingVar(curTag.second);
-        }
-    }
 }

@@ -3,6 +3,9 @@
     this kind of file are key-value pair, where key and value are separed by double dot (:) or a equals (=) character
 
 */
+#ifndef __SIMPLE_CONF_PROVIDER_H__
+#define __SIMPLE_CONF_PROVIDER_H__
+
 #include <vector>
 #include <tuple>
 #include <string>
@@ -50,3 +53,5 @@ namespace Shared{
         void readAndObservate(IConfigurationProvider_onData onData);
     };
 }
+
+#endif

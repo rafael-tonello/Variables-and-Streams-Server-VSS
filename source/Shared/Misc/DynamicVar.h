@@ -16,9 +16,13 @@ namespace Shared{
             DynamicVar(int value);
             DynamicVar(double value);
             DynamicVar(bool value);
+            DynamicVar(int64_t value);
 
             int getInt(function<void()> onError = [](){});
             void setInt(int value);
+
+            int64_t getInt64(function<void()> onError = [](){});
+            void setInt64(int64_t value);
 
             double getDouble(function<void()> onError = [](){});
             void setDouble(double value);

@@ -163,6 +163,46 @@ public:
 		return NULL;
 	}
 
+	template <class T>
+	bool contains()
+	{
+		string type = typeid(T).name();
+		for (auto &c: singletons)
+		{
+			if (c.typesAndNames.find(type) != string::npos)
+			{
+				return true;
+			}
+		}
+
+		for (auto &c: multiInstance)
+		{
+			if (c.typesAndNames.find(type) != string::npos)
+				return true;
+		}
+		
+		return false;
+	}
+
+	template <class T>
+	bool contains(string typeOrName)
+	{
+		for (auto &c: singletons)
+		{
+			if (c.typesAndNames.find(typeOrName) != string::npos)
+			{
+				return true;
+			}
+		}
+
+		for (auto &c: multiInstance)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+
 	
 	/*template <class T>
 	void putBack(string name, T* instance)

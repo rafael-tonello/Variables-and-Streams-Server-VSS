@@ -1,3 +1,6 @@
+#ifndef __CONFS_H__
+#define __CONFS_H__
+
 #include <string>
 #include <DynamicVar.h>
 #include <map>
@@ -26,6 +29,8 @@ namespace Shared{
 
         //this function read the entiry file and notify the variable observers
         void processConfigs(vector<tuple<string, string>> configurations);
+
+        string applyPlaceHolders(string value);
     public:
         Config(shared_ptr<IConfigurationProvider> provider);
         Config(string fileName):Config(shared_ptr<IConfigurationProvider>(new SimpleConfFileProvider(fileName))){}
@@ -37,3 +42,5 @@ namespace Shared{
         void observate(string varName, ObserveFunction onVarChanged, DynamicVar defaultValueIfVarNotExists = "", bool forceFirstCall = true);
     };
 }
+
+#endif

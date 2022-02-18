@@ -9,10 +9,8 @@ using namespace std;
 using namespace Controller;
 class ControllerTester: public Tester{
 private:
-    TheController ctrl;
-
-    void testSetVar();
-    void testGetVar();
+    TheController *ctrl;
+    
 public:
     /*Tester 'interface'*/
     vector<string> getContexts();

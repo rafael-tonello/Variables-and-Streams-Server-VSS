@@ -26,6 +26,11 @@ namespace Shared{
         setBool(value);
     }
 
+    DynamicVar::DynamicVar(int64_t value)
+    {
+        setInt64(value);
+    }
+
 
     int DynamicVar::getInt(function<void()> onError)
     {
@@ -42,6 +47,25 @@ namespace Shared{
     }
 
     void DynamicVar::setInt(int value)
+    {
+        __data = std::to_string(value);
+    }
+
+    int64_t DynamicVar::getInt64(function<void()> onError)
+    {
+        int ret = 0;
+        try
+        {
+            ret = std::stoll(__data, nullptr);
+        }
+        catch(...)
+        {
+            onError();
+        }
+        return ret;
+    }
+
+    void DynamicVar::setInt64(int64_t value)
     {
         __data = std::to_string(value);
     }

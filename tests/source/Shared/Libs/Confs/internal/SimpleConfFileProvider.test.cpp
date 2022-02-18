@@ -78,9 +78,9 @@ void SimpleConfFileProviderTester::run(string context)
             auto configs = confProvider->readAllConfigurations();
 
             return TestResult{
-                .result = configs.size() == 5,
-                .expected = "5",
-                .returned = to_string(configs.size())
+                configs.size() == 5,
+                "5",
+                to_string(configs.size())
             };
         });
 
@@ -95,9 +95,9 @@ void SimpleConfFileProviderTester::run(string context)
             result = result != "" ? result.substr(0, result.size() -2) : "";
 
             return TestResult{
-                .result = expected == result,
-                .expected = expected,
-                .returned = result
+                expected == result,
+                expected,
+                result
 
             };
         });
@@ -113,9 +113,9 @@ void SimpleConfFileProviderTester::run(string context)
             result = result != "" ? result.substr(0, result.size() -2) : "";
 
             return TestResult{
-                .result = expected == result,
-                .expected = expected,
-                .returned = result
+                expected == result,
+                expected,
+                result
 
             };
         });
@@ -152,9 +152,9 @@ void SimpleConfFileProviderTester::run(string context)
             string received = conf1 + ", " + conf2;
             return TestResult
             {
-                .result = received == expected,
-                .expected = expected,
-                .returned = received
+                received == expected,
+                expected,
+                received
             };
         });
 
@@ -171,9 +171,9 @@ void SimpleConfFileProviderTester::run(string context)
             string received = conf1 + ", " + conf2;
             return TestResult
             {
-                .result = received == expected,
-                .expected = expected,
-                .returned = received
+                received == expected,
+                expected,
+                received
             };
         });
 
@@ -190,9 +190,9 @@ void SimpleConfFileProviderTester::run(string context)
             string received = conf1 + ", " + conf2;
             return TestResult
             {
-                .result = received == expected,
-                .expected = expected,
-                .returned = received
+                received == expected,
+                expected,
+                received
             };
         });
 
@@ -209,9 +209,9 @@ void SimpleConfFileProviderTester::run(string context)
             string received = conf1 + ", " + conf2;
             return TestResult
             {
-                .result = received == expected,
-                .expected = expected,
-                .returned = received
+                received == expected,
+                expected,
+                received
             };
         });
     }
