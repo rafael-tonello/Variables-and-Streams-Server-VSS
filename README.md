@@ -28,6 +28,7 @@ charaters to be used ✔ ✘
 [✔] Create a logger library
 [✔] Create the configuration system (observable configuration system)
 [ ] Paralel project (app server)
+[ ] Create the Controller_VarHelper to isolate vars logic form Controller
 
 [ ] Convert configs to a repository
 [✔] Convert TCP server to a repository

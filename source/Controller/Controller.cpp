@@ -83,7 +83,7 @@ future<void> TheController::internalSetVar(string name, DynamicVar value)
         //set the variable
         db->set(name, value.getString());
 
-//        notifyVarModification(name, value);
+        notifyVarModification(name, value);
     });
 }
 
@@ -147,23 +147,39 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
 {
     varName = "vars."+varName;
 
-    Controller_ClientHelper client(this->db, clientId, api);
-    if (!db->exists(varName + "._observers.byId."+clientId))
-    {
-        //Utils::named_lock("observingSystem"+varName, [&]() //more memory, lock by each variable
-        Utils::named_lock("observingSystem", [&]() //less memory, lock all variables
+    Utils::named_lock("vars."+varName + ".observationLock", [&](){
+
+        Controller_ClientHelper client(this->db, clientId, api);
+        if (!db->exists(varName + "._observers.byId."+clientId))
         {
-            int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
-            db->set(varName + "._observers.list.count", actualVar_observersCount);
+            //Utils::named_lock("observingSystem"+varName, [&]() //more memory, lock by each variable
+            Utils::named_lock("observingSystem", [&]() //less memory, lock all variables
+            {
+                int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
+                db->set(varName + "._observers.list.count", actualVar_observersCount);
 
-            db->set(varName + "._observers.list."+to_string(actualVar_observersCount), clientId);
+                db->set(varName + "._observers.list."+to_string(actualVar_observersCount), clientId);
 
-            db->set(varName + "._observers.byId."+clientId, actualVar_observersCount);
+                db->set(varName + "._observers.byId."+clientId, actualVar_observersCount);
 
-            client.registerNewObservation(varName);
-        });
-    }
+                client.registerNewObservation(varName);
+            });
+        }
+    });
     
+}
+
+void TheController::notifyVarModification(string name, DynamicVar value)
+{
+    /*string varName = "vars."+varName;
+
+    int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
+    for (int c =0; c < actualVar_observersCount; c++)
+    {
+        tasker->enqueue([&](string clientId){
+
+        }, db->get(varName + "._observers.list."+to_string(c), "");
+    }*/
 }
 
 //stop observate variable
@@ -171,6 +187,32 @@ void TheController::stopObservingVar(string clientId, string varName)
 {
     varName = "vars."+varName;
 
+    Utils::named_lock("vars."+varName + ".observationLock", [&](){
+
+        int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
+
+        for (int c = actualVar_observersCount-1; c>=0; c--)
+        {
+            if (db->get(varName + "._observers.list."+to_string(c), "").getString() == clientId)
+            {
+                for (int c2 = c; c2> < actualVar_observersCount; c2++)
+                {
+                    auto currId = db->get(varName + "._observers.list."+to_string(c2+1), "").getString();
+                    db->set(varName+"._observers.list."+to_string(c), currId);
+
+                    db->set(varName + "._observers.byId."+currId, c2);
+
+                }
+
+                //remove the last item from the _observers.list
+                db->del(varName + "._observers.list."+to_string(actualVar_observersCount-1));
+                actualVar_observersCount--;
+
+                //remove the item from _observers.byId
+                db->del(varName + "._observers.byId"+clientId);
+            }
+        }
+    });
 }
 
 void TheController::apiStarted(ApiInterface *api)
@@ -292,10 +334,10 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
 
         //remove the 'vars.' from the begining of the varname
 
-        if (checkClientLiveTime = false)
+        if (checkClientLiveTime == false)
         {
             if (controller_ClientHelper.notify(currVarsAndValues) != API::ClientSendResult::LIVE)
-                checkClientLiveTime = false;
+                checkClientLiveTime = true;
         }
     }, this->tasker);
 

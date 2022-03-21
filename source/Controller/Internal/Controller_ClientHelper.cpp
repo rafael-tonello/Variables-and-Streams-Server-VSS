@@ -37,9 +37,6 @@ Controller_ClientHelper::Controller_ClientHelper(StorageInterface *db, string cl
         this->api = apis[apiId];
     else
         onError(Controller_ClientHelperError::API_NOT_FOUND);
-    
-    
-
 }
 
 int64_t Controller_ClientHelper::getLastLiveTime()
@@ -104,4 +101,9 @@ void Controller_ClientHelper::registerNewObservation(string varName)
 string Controller_ClientHelper::getClientId()
 {
     return this->clientId;
+}
+
+void Controller_CLientHelper::removeClienteFromObservationSystem()
+{
+    
 }

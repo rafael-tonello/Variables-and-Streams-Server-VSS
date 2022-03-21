@@ -69,6 +69,7 @@ namespace Controller{
 
         DynamicVar getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue);
         void setVarInternalFlag(string vName, string flagName, DynamicVar value);
+        notifyVarModification(string name, DynamicVar value);
     public:
         TheController(DependencyInjectionManager* dim);
         ~TheController();
