@@ -22,8 +22,8 @@ public:
     bool set(string name, DynamicVar v);
     DynamicVar get(string name, DynamicVar defaultValue);
     vector<string> getChilds(string parentName);
-    bool exists(string name);
-    bool del(string name);
+    bool hasValue(string name);
+    bool deleteValue(string name, bool deleteChildsInACascade = false);
     void forEach(string parentName, function<void(DynamicVar)> f);
     future<void> forEach_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel);
 }; 

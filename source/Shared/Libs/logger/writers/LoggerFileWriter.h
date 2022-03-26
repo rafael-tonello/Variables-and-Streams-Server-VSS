@@ -11,6 +11,7 @@ private:
 	ofstream file;
 public:
 	LoggerFileWriter(string fname);
+	~LoggerFileWriter();
 	void write(Logger* sender, string msg, int level, string name, bool aboveOrInLogLevel);
 };
  

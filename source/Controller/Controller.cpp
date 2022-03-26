@@ -33,15 +33,17 @@ TheController::TheController(DependencyInjectionManager* dim)
     srand(Utils::getCurrentTimeMilliseconds());
 }
 
-TheController::~TheController(){
-    if (db != NULL) delete db;
+TheController::~TheController()
+{
+    
 }
 
 //creates or change a variable
 future<void> TheController::setVar(string name, DynamicVar value)
 {
-    name = "vars."+name;
+    Controller_VarHelper varHelper(log, this->db, name);
     //check if name isn't a internal flag var
+
     if (name.find('_') == 0 || name.find("._") != string::npos)
     {
         log->warning("TheController", "variabls started with underscorn (_) are just for internal flags and can't be setted by clients");
@@ -51,7 +53,7 @@ future<void> TheController::setVar(string name, DynamicVar value)
     }
 
     //checks if the variabel is locked
-    if (this->getVarInternalFlag(name, "_lock", 0).getInt() == 1)
+    if (varHelper.isLocked())
     {
         log->warning("TheController", "The variable '"+ name + "' is locked and can't be changed by setVar");
         promise<void> p;
@@ -59,160 +61,72 @@ future<void> TheController::setVar(string name, DynamicVar value)
         return p.get_future();
     }
 
-    return this->internalSetVar(name, value);
+    return tasker->enqueue([this](string namep, Controller_VarHelper varhelperp, DynamicVar valuep)
+    {
+        varhelperp.setValue(valuep);
+        this->notifyVarModification(namep, valuep);
+    }, name, varHelper, value);
 
-}
-
-future<void> TheController::internalSetVar(string name, DynamicVar value)
-{
-    return tasker->enqueue([&](){
-
-        vector<future<void>> pendingTasks;
-
-        if (name.find('*') != string::npos)
-        {
-            #ifdef __TESTING__
-                Tester::global_test_result = "Invalid setVar parameter. A variable with '*' can't be setted";
-            #endif
-            log->warning("TheController", "Invalid setVar parameter. A variable with '*' can't be setted");
-            //throw "Invalid setVar parameter. A variable with '*' can't be setted";
-            return;
-        }
-
-
-        //set the variable
-        db->set(name, value.getString());
-
-        notifyVarModification(name, value);
-    });
 }
 
 future<void> TheController::lockVar(string varName)
 {
-    
-
-    return tasker->enqueue([&](string vName){
-        string finalVName = "vars."+varName + "._lock";
-        //ir variable if currently locked, add an observer to it "._lock" property and wait the change of this to 0
-
-        function<bool()> tryLockFunc = [&]()
-        {
-            //try lock var
-            bool lockSucess = false;
-            Utils::named_lock("varLockerSystem", [&]{
-                if (db->get(finalVName, "0").getString() == "0")
-                {
-                    //set the var property '._lock' to 1 (use setVar to change the ._lock)
-                    db->set(finalVName, "1");
-                    lockSucess = db->get(finalVName, "0").getString() == "1";
-                }
-            });
-
-            return lockSucess;
-        };
-
-        //await var be 0 to try another lock
-        bool lockedWithSucess = false;
-        while (!lockedWithSucess)
-        {
-            lockedWithSucess = tryLockFunc();
-
-            if (!lockedWithSucess)
-                usleep(1000 + rand() % 9000);
-        }
-
-        return;
-
-
+    return tasker->enqueue([this](string varNamep){
+        Controller_VarHelper varHelper(log, db, varNamep);
+        varHelper.lock();
     }, varName);
-
-
-    //set var can't change a lokced var
-
 }
 
 future<void> TheController::unlockVar(string varName)
 {
-    return tasker->enqueue([&](){
-        varLockerMutex.lock();
-        string finalVName = "vars."+varName + "._lock";
-        db->set(finalVName, "0");
-        varLockerMutex.unlock();
-    });
-
+    return tasker->enqueue([this](string varNamep){
+        Controller_VarHelper varHelper(log, db, varNamep);
+        varHelper.unlock();
+    }, varName);
 }
 
 //start to observate a variable
 void TheController::observeVar(string varName, string clientId, ApiInterface* api)
 {
-    varName = "vars."+varName;
-
-    Utils::named_lock("vars."+varName + ".observationLock", [&](){
-
+    Controller_VarHelper varHelper(log, db, varName);
+    if (!varHelper.isClientObserving(clientId))
+    {
         Controller_ClientHelper client(this->db, clientId, api);
-        if (!db->exists(varName + "._observers.byId."+clientId))
-        {
-            //Utils::named_lock("observingSystem"+varName, [&]() //more memory, lock by each variable
-            Utils::named_lock("observingSystem", [&]() //less memory, lock all variables
-            {
-                int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
-                db->set(varName + "._observers.list.count", actualVar_observersCount);
 
-                db->set(varName + "._observers.list."+to_string(actualVar_observersCount), clientId);
-
-                db->set(varName + "._observers.byId."+clientId, actualVar_observersCount);
-
-                client.registerNewObservation(varName);
-            });
-        }
-    });
-    
+        varHelper.addClientToObservers(clientId);
+        client.registerNewObservation(varName);
+    };
 }
 
 void TheController::notifyVarModification(string name, DynamicVar value)
 {
-    /*string varName = "vars."+varName;
+    Controller_VarHelper vh(log, db, name);
 
-    int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
-    for (int c =0; c < actualVar_observersCount; c++)
-    {
-        tasker->enqueue([&](string clientId){
 
-        }, db->get(varName + "._observers.list."+to_string(c), "");
-    }*/
+    vh.foreachObserversClients([&](string clientId){
+        tasker->enqueue([&](string varNamep, string clientIdp, DynamicVar valuep){
+            
+            Controller_ClientHelperError resultError;
+            Controller_ClientHelper ch(db, clientIdp, this->apis, resultError);
+
+            if (resultError == Controller_ClientHelperError::NO_ERROR)
+                ch.notify( { std::make_tuple(varNamep, valuep) } );
+            else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
+                log->error("TheController", "Client notification failute due 'responsible API not found.");
+            else
+                log->error("TheController", "Client notification failute due an unknown error.");
+        }, name, clientId, value);
+    });
 }
 
 //stop observate variable
-void TheController::stopObservingVar(string clientId, string varName)
+void TheController::stopObservingVar(string clientId, string varName, ApiInterface* api)
 {
-    varName = "vars."+varName;
+    Controller_VarHelper varHelper(log, db, varName);
+    Controller_ClientHelper clienthelper(db, clientId, api);
 
-    Utils::named_lock("vars."+varName + ".observationLock", [&](){
-
-        int actualVar_observersCount = db->get(varName + "._observers.list.count", 0).getInt();
-
-        for (int c = actualVar_observersCount-1; c>=0; c--)
-        {
-            if (db->get(varName + "._observers.list."+to_string(c), "").getString() == clientId)
-            {
-                for (int c2 = c; c2> < actualVar_observersCount; c2++)
-                {
-                    auto currId = db->get(varName + "._observers.list."+to_string(c2+1), "").getString();
-                    db->set(varName+"._observers.list."+to_string(c), currId);
-
-                    db->set(varName + "._observers.byId."+currId, c2);
-
-                }
-
-                //remove the last item from the _observers.list
-                db->del(varName + "._observers.list."+to_string(actualVar_observersCount-1));
-                actualVar_observersCount--;
-
-                //remove the item from _observers.byId
-                db->del(varName + "._observers.byId"+clientId);
-            }
-        }
-    });
+    varHelper.removeClientFromObservers(clientId);
+    clienthelper.unregisterObservation(varName);
 }
 
 void TheController::apiStarted(ApiInterface *api)
@@ -229,20 +143,20 @@ string TheController::_createUniqueId()
 
 future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, DynamicVar defaultValue)
 {
-    name = "vars."+name;
-    return tasker->enqueue([name, defaultValue, this](){
+    return tasker->enqueue([this](string namep, DynamicVar defaultValuep){
 
-        function <vector<tuple<string, DynamicVar>>(string name, bool childsToo)> readFromDb;
+        function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
         readFromDb = [&](string nname, bool childsToo)        
         {
-            vector<tuple<string, DynamicVar>> result;    
-            string value = db->get(nname, "___invalid____").getString();
-            if (value != "___invalid___")
-                result.push_back(make_tuple( nname,  value));
+            vector<tuple<string, DynamicVar>> result;
+            Controller_VarHelper varHelper(log, db, nname);
+
+            if (varHelper.valueIsSetInTheDB())
+                result.push_back(make_tuple( nname,  varHelper.getValue()));
             
             if (childsToo)
             {
-                auto childs = db->getChilds(name);
+                auto childs = varHelper.getChildsNames();
                 for (auto curr: childs)
                 {
                     auto tmp = readFromDb(curr, childsToo);                    
@@ -254,62 +168,45 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
         };
 
         //if variable ends with *, determine just their name
-        string name2 = name;
         bool childsToo = false;
-        if (name2.find(".*") != string::npos)
+        if (namep.find(".*") != string::npos)
         {
             childsToo = true;
-            name2 = name2.substr(0, name2.size()-2);
+            namep = namep.substr(0, namep.size()-2);
         }
 
         //load the valures
-        auto values = readFromDb(name2, childsToo);
+        auto values = readFromDb(namep, childsToo);
         
 
         //if nothing was found, add the default value to the result
         if (values.size() == 0)
-            values.push_back(make_tuple(name2, defaultValue));
+            values.push_back(make_tuple(namep, defaultValuep));
 
         //return the values
 
         return values;
-    });
+    }, name, defaultValue);
+
 }
 
 future<void> TheController::delVar(string varname)
 {
-    varname = "vars."+varname;
-
+    return tasker->enqueue([this](string varnamep)
+    {
+        Controller_VarHelper varHelper(log, db, varnamep);
+        varHelper.deleteFromDB();
+    }, varname);
 }
 
 future<vector<string>> TheController::getChildsOfVar(string parentName)
 {
-    parentName = "vars."+parentName;
-
-}
-
-
-DynamicVar TheController::getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue)
-{ 
-    if (flagName != "")
+    return tasker->enqueue([this](string parentNamep)
     {
-        if (flagName[0] != '_');
-            flagName = "_"+flagName;
-        
-        auto flagValue = this->getVar(vName + "."+flagName, defaultValue).get();
-        return std::get<1>(flagValue[0]);
-    }
-}
+        Controller_VarHelper varHelper(log, db, parentNamep);
+        return varHelper.getChildsNames();
+    }, parentName);
 
-void TheController::setVarInternalFlag(string vName, string flagName, DynamicVar value)
-{
-    if (flagName != "")
-    {
-        if (flagName[0] != '_');
-            flagName = "_"+flagName;
-        
-        this->internalSetVar(vName + "."+flagName, value).get();
-    }
 }
 
 string TheController::clientConnected(string clientId, ApiInterface* api)
@@ -349,7 +246,6 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
 
 }
 
-
 void TheController::checkClientLiveTime(Controller_ClientHelper client)
 {
     if (!client.isConnected())
@@ -359,13 +255,16 @@ void TheController::checkClientLiveTime(Controller_ClientHelper client)
             deleteClient(client);
         }
     }
-
 }
-
 
 void deleteClient(Controller_ClientHelper client)
 {
-    //remove from vars observations
+    auto vars = client.getObservingVars();
+    client.removeClientFromObservationSystem(true)
+    for (auto &currVar: vars)
+    {
+        Controller_VarHelper varHelper(log, db, currVar);
+        varHelper.removeClientFromObservers(client.getClientId());
 
-    //delete the client
+    }
 }

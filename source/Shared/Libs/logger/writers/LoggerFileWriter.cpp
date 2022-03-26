@@ -7,6 +7,12 @@ LoggerFileWriter::LoggerFileWriter(string fname)
         throw runtime_error("Can't open log file to write");
     
 }
+
+LoggerFileWriter::~LoggerFileWriter()
+{
+    file.close();
+}
+
 void LoggerFileWriter::write(Logger* sender, string msg, int level, string name, bool aboveOrInLogLevel){
     file << (name != "" ? "["+ name + "]" : "") << msg << endl;
 }

@@ -16,6 +16,7 @@
 #include <utils.h>
 #include <logger.h>
 #include "Internal/Controller_ClientHelper.h"
+#include "Internal/Controller_VarHelper.h"
 
 #ifdef __TESTING__
     #include <tester.h>
@@ -69,7 +70,7 @@ namespace Controller{
 
         DynamicVar getVarInternalFlag(string vName, string flagName, DynamicVar defaultValue);
         void setVarInternalFlag(string vName, string flagName, DynamicVar value);
-        notifyVarModification(string name, DynamicVar value);
+        void notifyVarModification(string name, DynamicVar value);
     public:
         TheController(DependencyInjectionManager* dim);
         ~TheController();
@@ -80,7 +81,7 @@ namespace Controller{
         void apiStarted(ApiInterface *api);
         string clientConnected(string clientId, ApiInterface* api);
         void observeVar(string varName, string clientId, ApiInterface* api);
-        void stopObservingVar(string clientId, string varName);
+        void stopObservingVar(string clientId, string varName, ApiInterface* api);
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
@@ -89,9 +90,6 @@ namespace Controller{
         future<vector<string>> getChildsOfVar(string parentName);
         future<void> lockVar(string varName);
         future<void> unlockVar(string varName);
-
-
-
     };
 }
 #endif

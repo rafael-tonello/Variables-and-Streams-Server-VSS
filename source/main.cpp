@@ -51,8 +51,7 @@ int main(){
     DependencyInjectionManager dim;
 
     
-    //two points to controller (to allow systems to find it by all it types):
-    // the controller can be find by use of get<TheController> and get<ApiMediatorInterface>
+    
     Shared::Config *conf = new Shared::Config(confFile);
     conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory()  + "/");
 
@@ -60,6 +59,8 @@ int main(){
     dim.addSingleton<ThreadPool>(new ThreadPool(4));
     dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    /*two points to controller (to allow systems to find it by all it types):
+     the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
 

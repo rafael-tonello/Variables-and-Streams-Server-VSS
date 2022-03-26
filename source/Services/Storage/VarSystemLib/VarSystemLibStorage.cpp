@@ -25,14 +25,23 @@ vector<string> VarSystemLibStorage::getChilds(string parentName)
     return db->getChilds(parentName);
 }
 
-bool VarSystemLibStorage::exists(string name)
+bool VarSystemLibStorage::hasValue(string name)
 {
     return db->get(name, "__iNval!d__").AsString() != "__iNval!d__";
 }
 
-bool VarSystemLibStorage::del(string name)
+bool VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
 {
+
+    if (deleteChildsInACascade)
+    {
+        auto childs = getChilds(name);
+        for(auto &currChild: childs)
+            deleteValue(name + "." + currChild, true);
+    }
+    
     db->del(name);
+
     return true;
 }
 

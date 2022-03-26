@@ -14,13 +14,13 @@ public:
     void run(string context);
 };
 
-class TmpDB: public StorageInterface
+class TmpDBInMemory: public StorageInterface
 {
 public:
     map<string, DynamicVar> vars;
 
     bool set(string name, DynamicVar v){vars[name] = v;}
-    DynamicVar get(string name, DynamicVar defaultValue){if (exists(name)) return vars[name]; else return defaultValue;}
+    DynamicVar get(string name, DynamicVar defaultValue){if (hasValue(name)) return vars[name]; else return defaultValue;}
     vector<string> getChilds(string parentName)
     {
         vector<string> ret;
@@ -33,8 +33,8 @@ public:
         return ret;
     }
 
-    bool exists(string name){return vars.count(name) > 0;}
-    bool del(string name){if (exists(name)) vars.erase(name);}
+    bool hasValue(string name){return vars.count(name) > 0;}
+    bool deleteValue(string name, bool deleteChildsInACascade = false){if (hasValue(name)) vars.erase(name);}
     void forEach(string parentName, function<void(DynamicVar)> f){for (auto &c: vars) f(c.second);}
     future<void> forEach_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel)
     {
@@ -49,7 +49,7 @@ public:
             );
         }
 
-        return taskerForParallel->enqueue([](){
+        return taskerForParallel->enqueue([&](){
             for (auto &c: pending)
                 c.wait();
         });

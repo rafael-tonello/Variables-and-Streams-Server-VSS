@@ -6,32 +6,37 @@
 PROJ_NAME=VarServer
 CUSTOM_INCLUDE_PATH = -I"./source"
 CUSTOM_INCLUDE_PATH += -I"./source/Controller"
+CUSTOM_INCLUDE_PATH += -I"./source/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"./source/Services"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Misc"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/VarSystem"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/ThreadPool"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/TcpServer"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/DependencyInjectionManager"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/Confs"
 CUSTOM_INCLUDE_PATH += -I"./source/Services/Apis"
 CUSTOM_INCLUDE_PATH += -I"./source/Services/Storage"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Misc"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/Confs"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/DependencyInjectionManager"
 CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/logger"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/TCPServer"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/ThreadPool"
+CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/VarSystem"
 
 # .c files
 C_SOURCE+=$(wildcard ./source/*.cpp)
 C_SOURCE+=$(wildcard ./source/Controller/*.cpp)
+C_SOURCE+=$(wildcard ./source/Controller/Internal/*.cpp)
+C_SOURCE+=$(wildcard ./source/Services/APIs/*.cpp)
 C_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.cpp)
-C_SOURCE+=$(wildcard ./source/Services/VarSystem/*.cpp)
 C_SOURCE+=$(wildcard ./source/Services/Storage/*.cpp)
 C_SOURCE+=$(wildcard ./source/Services/Storage/VarSystemLib/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Misc/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/ThreadPool/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/DependencyInjectionManager/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/internal/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Libs/DependencyInjectionManager/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/Libs/logger/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/Libs/logger/writers/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Libs/TCPServer/*.cpp)
+
+C_SOURCE+=$(wildcard ./source/Services/VarSystem/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Misc/*.cpp)
+C_SOURCE+=$(wildcard ./source/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ./source/Shared/Libs/VarSystem/*.cpp)
  
 # .h files

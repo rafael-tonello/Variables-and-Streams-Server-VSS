@@ -6,6 +6,8 @@
 #include <string>
 #include <DynamicVar.h>
 #include <Utils.h>
+#include <logger.h>
+#include "Controller_VarHelper.h"
 
 using namespace Shared;
 using namespace std;
@@ -13,8 +15,7 @@ using namespace API;
 
  
 
-enum Controller_ClientHelperError {API_NOT_FOUND};
-using Controller_ClientHelperOnError = function<void(Controller_ClientHelperError error)>;
+enum Controller_ClientHelperError {NO_ERROR, API_NOT_FOUND};
 
 class Controller_ClientHelper{
 private:
@@ -24,7 +25,7 @@ private:
     void initialize();
 public:
     Controller_ClientHelper(StorageInterface *db, string clientId, ApiInterface* api);
-    Controller_ClientHelper(StorageInterface *db, string clientId, map<string, ApiInterface*> apis, Controller_ClientHelperOnError onError);
+    Controller_ClientHelper(StorageInterface *db, string clientId, map<string, ApiInterface*> apis, Controller_ClientHelperError &error);
     int64_t getLastLiveTime();
     int64_t timeSinceLastLiveTime();
     void updateLiveTime();
@@ -32,7 +33,9 @@ public:
     vector<string> getObservingVars();
     API::ClientSendResult notify(vector<tuple<string, DynamicVar>> varsAndValues);
     void registerNewObservation(string varName);
+    void unregisterObservation(string varName);
     string getClientId();
+    void removeClientFromObservationSystem();
 };
  
 #endif 

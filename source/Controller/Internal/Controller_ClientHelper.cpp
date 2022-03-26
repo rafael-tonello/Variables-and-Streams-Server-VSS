@@ -8,7 +8,7 @@ void Controller_ClientHelper::initialize()
     Utils::named_lock("db.intenal.clients", [&](){
 
         //check if cliente is already registred
-        if (!db->exists("internal.clients.byId."+clientId))
+        if (!db->existsValue("internal.clients.byId."+clientId))
         {
             //new client
             int clientsCount = db->get("internal.clients.list.count", 0).getInt();
@@ -30,13 +30,14 @@ Controller_ClientHelper::Controller_ClientHelper(StorageInterface *db, string cl
     this->initialize();
 }
 
-Controller_ClientHelper::Controller_ClientHelper(StorageInterface *db, string clientId, map<string, ApiInterface*> apis, Controller_ClientHelperOnError onError): db(db), clientId(clientId)
+Controller_ClientHelper::Controller_ClientHelper(StorageInterface *db, string clientId, map<string, ApiInterface*> apis, Controller_ClientHelperError &error): db(db), clientId(clientId)
 {
+    error = Controller_ClientHelperError::NO_ERROR;
     auto apiId = db->get("internal.clients.byId."+clientId+".apiId", "").getString();    
     if (apis.count(apiId) > 0)
         this->api = apis[apiId];
     else
-        onError(Controller_ClientHelperError::API_NOT_FOUND);
+        error = Controller_ClientHelperError::API_NOT_FOUND;
 }
 
 int64_t Controller_ClientHelper::getLastLiveTime()
@@ -87,12 +88,12 @@ API::ClientSendResult Controller_ClientHelper::notify(vector<tuple<string, Dynam
 
 void Controller_ClientHelper::registerNewObservation(string varName)
 {
+    varName = "vars."+varName;
     Utils::named_lock("db.intenal.clients", [&](){
         this->updateLiveTime();
 
         auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
         db->set("internal.clients.byId."+clientId+".observing.count", currentCount+1);
-
         db->set("internal.clients.byId."+clientId+".observing."+to_string(currentCount), varName);
     });
 }
@@ -103,7 +104,29 @@ string Controller_ClientHelper::getClientId()
     return this->clientId;
 }
 
-void Controller_CLientHelper::removeClienteFromObservationSystem()
+
+
+
+void Controller_ClientHelper::removeClientFromObservationSystem()
 {
-    
+    //completelly remove the client infor from obsrevation system and from variables
+    Utils::named_lock("db.intenal.clients", [&](){
+        this->updateLiveTime();
+
+        db->deleteValue("internal.clients.byId."+clientId, true);
+
+        //todo: DELETE ALSO FROM internal.clients.list 
+
+        /*auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
+        for (int c = 0; c < currentCount; c++)
+            db->del("internal.clients.byId."+clientId+".observing."+to_string(c));
+        db->del("internal.clients.byId."+clientId+".observing.count");*/
+
+    });
+
+}
+
+void Controller_ClientHelper::unregisterObservation(string varName)
+{
+
 }
