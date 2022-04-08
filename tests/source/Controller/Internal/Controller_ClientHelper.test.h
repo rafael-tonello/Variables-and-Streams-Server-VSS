@@ -4,75 +4,37 @@
 #include <tester.h>
 #include <StorageInterface.h>
 #include <Controller_ClientHelper.h>
+#include <test_utilities/ApiInterfaceTmp.h>
+#include <test_utilities/TmpDBInMemory.h>
 
 class Controller_ClientHelperTester: public Tester { 
+private:
+    TmpDBInMemory *db;
+    ApiInterfaceTmp *api;
+
+    Controller_ClientHelper *cli;
+    string clientId = "clientTestId";
+
+    void test_function_getClientId();
+    void test_function_notify();
+    void test_function_updateLiveTime_and_getLastLiveTime();
+    void test_function_timeSinceLastLiveTime();
+    void test_function_isConnected();
+    void test_function_registerNewObservation();
+    void test_function_getObservingVars();
+    void test_function_unregisterObservation();
+    void test_function_removeClientFromObservationSystem();
+
+    void instantiationTest();
 public: 
-    Controller_ClientHelperTester(); 
+    Controller_ClientHelperTester();
+    ~Controller_ClientHelperTester();
 public:
     /* Tester class */
     vector<string> getContexts();
     void run(string context);
 };
 
-class TmpDBInMemory: public StorageInterface
-{
-public:
-    map<string, DynamicVar> vars;
 
-    bool set(string name, DynamicVar v){vars[name] = v;}
-    DynamicVar get(string name, DynamicVar defaultValue){if (hasValue(name)) return vars[name]; else return defaultValue;}
-    vector<string> getChilds(string parentName)
-    {
-        vector<string> ret;
-        for (auto &c: vars)
-        {
-            if (c.first.find (parentName) == 0)
-                ret.push_back(c.first);
-        }
-
-        return ret;
-    }
-
-    bool hasValue(string name){return vars.count(name) > 0;}
-    bool deleteValue(string name, bool deleteChildsInACascade = false){if (hasValue(name)) vars.erase(name);}
-    void forEach(string parentName, function<void(DynamicVar)> f){for (auto &c: vars) f(c.second);}
-    future<void> forEach_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel)
-    {
-        vector <future<void>> pending;
-
-        for (auto &c: vars) 
-        {
-            pending.push_back(
-                taskerForParallel->enqueue([&](string name, DynamicVar value){
-                    f(name, value);
-                }, c.first, c.second)
-            );
-        }
-
-        return taskerForParallel->enqueue([&](){
-            for (auto &c: pending)
-                c.wait();
-        });
-    }
-};
-
-class ApiInterfaceTmp: public ApiInterface
-{
-public:
-    string getApiId()
-    {
-        return "tmpApiId";
-    }
-
-    ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
-    {
-        return ClientSendResult::LIVE;
-    }
-
-    ClientSendResult checkAlive(string clientId)
-    {
-        return ClientSendResult::LIVE;
-    }
-};
  
 #endif 
