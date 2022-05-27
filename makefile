@@ -4,80 +4,78 @@
  
 # Name of the project
 PROJ_NAME=VarServer
-CUSTOM_INCLUDE_PATH = -I"./source"
-CUSTOM_INCLUDE_PATH += -I"./source/Controller"
-CUSTOM_INCLUDE_PATH += -I"./source/Controller/Internal"
-CUSTOM_INCLUDE_PATH += -I"./source/Services"
-CUSTOM_INCLUDE_PATH += -I"./source/Services/Apis"
-CUSTOM_INCLUDE_PATH += -I"./source/Services/Storage"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Misc"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/Confs"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/DependencyInjectionManager"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/logger"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/TCPServer"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/ThreadPool"
-CUSTOM_INCLUDE_PATH += -I"./source/Shared/Libs/VarSystem"
+CUSTOM_INCLUDE_PATH = -I"./sources"
+CUSTOM_INCLUDE_PATH += -I"./sources/Controller"
+CUSTOM_INCLUDE_PATH += -I"./sources/Controller/Internal"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/Apis"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/Storage"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Misc"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/Confs"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/Confs/internal"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/DependencyInjectionManager"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/logger"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/TCPServer"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/ThreadPool"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/VarSystem"
 
 # .c files
-C_SOURCE+=$(wildcard ./source/*.cpp)
-C_SOURCE+=$(wildcard ./source/Controller/*.cpp)
-C_SOURCE+=$(wildcard ./source/Controller/Internal/*.cpp)
-C_SOURCE+=$(wildcard ./source/Services/APIs/*.cpp)
-C_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.cpp)
-C_SOURCE+=$(wildcard ./source/Services/Storage/*.cpp)
-C_SOURCE+=$(wildcard ./source/Services/Storage/VarSystemLib/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/internal/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/DependencyInjectionManager/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/logger/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/logger/writers/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/TCPServer/*.cpp)
-
-C_SOURCE+=$(wildcard ./source/Services/VarSystem/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Misc/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/ThreadPool/*.cpp)
-C_SOURCE+=$(wildcard ./source/Shared/Libs/VarSystem/*.cpp)
+C_SOURCE=$(wildcard ./sources/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Controller/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Controller/Internal/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/Storage/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/writers/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Misc/*.cpp)
  
 # .h files
-H_SOURCE+=$(wildcard ./source/*.h)
-H_SOURCE+=$(wildcard ./source/Controller/*.h)
-H_SOURCE+=$(wildcard ./source/Services/APIs/PHOMAU/*.h)
-H_SOURCE+=$(wildcard ./source/Services/VarSystem/*.h)
-H_SOURCE+=$(wildcard ./source/Services/Storage/*.h)
-H_SOURCE+=$(wildcard ./source/Services/Storage/VarSystemLib/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Misc/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/ThreadPool/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/DependencyInjectionManager/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/Confs/internal/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/logger/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/logger/writers/*.h)
-H_SOURCE+=$(wildcard ./source/Shared/Libs/VarSystem/*.h)
+H_SOURCE=$(wildcard ./sources/*.h)
+H_SOURCE+=$(wildcard ./sources/Controller/*.h)
+H_SOURCE+=$(wildcard ./sources/Controller/Internal/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/Storage/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/writers/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Misc/*.h)
 
 objFolder:
-	@ mkdir -p objects/Controller
+	@ mkdir -p objects/Controller/Internal
 	@ mkdir -p objects/Services/APIs/PHOMAU
-	@ mkdir -p objects/Services/VarSystem
 	@ mkdir -p objects/Services/Storage/VarSystemLib
-	@ mkdir -p objects/Shared/Libs/Misc
-	@ mkdir -p objects/Shared/Libs/ThreadPool
-	@ mkdir -p objects/Shared/Libs/DependencyInjectionManager
-	@ mkdir -p objects/Shared/Libs/Confs
 	@ mkdir -p objects/Shared/Libs/Confs/internal
-	@ mkdir -p objects/Shared/Misc
-	@ mkdir -p objects/Shared/Libs/logger
+	@ mkdir -p objects/Shared/Libs/DependencyInjectionManager
 	@ mkdir -p objects/Shared/Libs/logger/writers
+	@ mkdir -p objects/Shared/Misc
+	@ mkdir -p objects/Shared/Libs/ThreadPool
+	@ mkdir -p objects/Shared/Libs/TCPServer
 	@ mkdir -p objects/Shared/Libs/VarSystem
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
 	@ clear
 	@ mkdir ./build | true
-	@ cp -r ./source/copyToBuildFolder/* ./build | true
+	@ cp -r ./sources/copyToBuildFolder/* ./build | true
  
 # Object files
-OBJ=$(subst .cpp,.o,$(subst source,objects,$(C_SOURCE)))
+OBJ=$(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
  
 # Compiler and linker
 CC= g++
@@ -93,7 +91,7 @@ CC_FLAGS=-c			\
 		 -lcrypto	\
 		 -g			\
 		 -std=c++11 \
-		 -I"./source/" \
+		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
 
 # Flags for linker
@@ -106,7 +104,7 @@ LK_FLAGS=-W         \
 		 -lcrypto	\
 		 -g			\
 		 -std=c++11 \
-		 -I"./source/" \
+		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
  
 # Command used at clean target
@@ -123,12 +121,12 @@ $(PROJ_NAME): $(OBJ)
 	@ echo 'Finished building binary: $@'
 	@ echo ' '
  
-./objects/%.o: ./source/%.cpp ./source/%.h
+./objects/%.o: ./sources/%.cpp ./sources/%.h
 	@ echo 'Building target using GCC compiler: $<'
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
  
-./objects/main.o: ./source/main.cpp $(H_SOURCE)
+./objects/main.o: ./sources/main.cpp $(H_SOURCE)
 	@ echo 'Building target using GCC compiler: $<'
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
