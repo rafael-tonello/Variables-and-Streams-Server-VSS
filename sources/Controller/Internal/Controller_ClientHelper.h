@@ -9,7 +9,6 @@
 #include <logger.h>
 #include "Controller_VarHelper.h"
 
-using namespace Shared;
 using namespace std;
 using namespace API;
 
@@ -23,6 +22,7 @@ private:
     ApiInterface* api = NULL;
     string clientId;
     void initialize();
+    int findVarIndexOnObservingVars(string varName);
 public:
     Controller_ClientHelper(StorageInterface *db, string clientId, ApiInterface* api);
     Controller_ClientHelper(StorageInterface *db, string clientId, map<string, ApiInterface*> apis, Controller_ClientHelperError &error);

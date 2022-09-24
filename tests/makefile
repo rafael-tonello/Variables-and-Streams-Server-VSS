@@ -5,7 +5,7 @@ PROJ_NAME=tests
 # .c files
 
 #teste app includes
-CUSTOM_INCLUDE_PATH = -I"./"
+CUSTOM_INCLUDE_PATH = -I"./sources"
 
 #main app includes
 CUSTOM_INCLUDE_PATH += -I"../sources/Controller"
@@ -16,11 +16,13 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis/PHOMAU"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Misc"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DynamicVar/sources"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/json_maker/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Confs"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Confs/internal"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DependencyInjectionManager"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger/writers"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger/sources"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger/sources/writers"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/TCPServer"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/VarSystem"
@@ -29,6 +31,7 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/VarSystem"
 
 #test app files
 C_SOURCE=$(wildcard ./sources/*.cpp)
+C_SOURCE+=$(wildcard ./sources/mocks/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.cpp)
@@ -45,11 +48,13 @@ C_SOURCE+=$(wildcard ../sources/Services/Apis/PHOMAU/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Storage/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/DynamicVar/sources/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/json_maker/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/internal/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjectionManager/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/writers/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/writers/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.cpp)
@@ -57,6 +62,7 @@ C_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.cpp)
 # .h files
 #test app files
 H_SOURCE=$(wildcard ./sources/*.h)
+H_SOURCE+=$(wildcard ./sources/mocks/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.h)
@@ -73,11 +79,13 @@ H_SOURCE+=$(wildcard ../sources/Services/Apis/PHOMAU/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Storage/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/json_maker/sources/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/DynamicVar/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/internal/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjectionManager/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/writers/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/writers/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.h)
@@ -97,9 +105,11 @@ objFolder:
 	@ mkdir -p objects/main/Services
 	@ mkdir -p objects/main/Services/Storage
 	@ mkdir -p objects/main/Shared/Misc
+	@ mkdir -p objects/main/Shared/Libs/DynamicVar/sources
+	@ mkdir -p objects/main/Shared/Libs/json_maker/sources
 	@ mkdir -p objects/main/Shared/Libs/Confs/internal
 	@ mkdir -p objects/main/Shared/Libs/DependencyInjectionManager
-	@ mkdir -p objects/main/Shared/Libs/logger/writers
+	@ mkdir -p objects/main/Shared/Libs/logger/sources/writers
 	@ mkdir -p objects/main/Shared/Libs/TCPServer
 	@ mkdir -p objects/main/Shared/Libs/ThreadPool
 	@ mkdir -p objects/main/Shared/Libs/VarSystem
@@ -119,39 +129,38 @@ OBJ=$(subst .cpp,.o,$(subst ./sources,./objects/tests,$(subst ../sources,./objec
 CC=g++
  
 # Flags for compiler
-CC_FLAGS=-c			\
-		 -W         \
-         -Wall      \
+#		 -W         
+#        -Wall      
+#         -pedantic  
+CC_FLAGS=-D__TESTING__ \
+		 -c			\
          -ansi      \
-         -pedantic  \
 		 -pthread   \
 		 -lssl		\
 		 -lcrypto	\
 		 -g			\
-		 -D__TESTING__ \
-		 -std=c++11 \
+		 -std=c++17 \
 		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
 		 
 
 
 # Flags for linker
-LK_FLAGS=-W         \
-         -Wall      \
+#		 -W 		
+#         -Wall      
+#         -pedantic  
+LK_FLAGS=-D__TESTING__\
          -ansi      \
-         -pedantic  \
 		 -pthread   \
 		 -lssl		\
 		 -lcrypto	\
 		 -g			\
-		 -D__TESTING__ \
-		 -std=c++11 \
+		 -std=c++17 \
 		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
  
 # Command used at clean target
 RM = rm -rf
- 
 #
 # Compilation and linking
 #

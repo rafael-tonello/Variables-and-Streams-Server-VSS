@@ -264,7 +264,7 @@ void PhomauTester::observeVar(string varName, string clientId, ApiInterface* api
      
 }
 
-void PhomauTester::stopObservingVar(string clientId, string varName, ApiInterface* api)
+void PhomauTester::stopObservingVar(string varName, string clientId, ApiInterface* api)
 {
 
 }

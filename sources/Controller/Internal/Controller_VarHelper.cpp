@@ -132,9 +132,9 @@ void Controller_VarHelper::addClientToObservers(string clientId)
 
         int actualVar_observersCount = db->get(name + "._observers.list.count", 0).getInt();
         
-        db->set(name + "._observers.list.count", actualVar_observersCount);
         db->set(name + "._observers.list."+to_string(actualVar_observersCount), clientId);
         db->set(name + "._observers.byId."+clientId, actualVar_observersCount);
+        db->set(name + "._observers.list.count", actualVar_observersCount+1);
     });
 }
 
@@ -151,13 +151,16 @@ void Controller_VarHelper::removeClientFromObservers(string clientId)
                 for (int c2 = c; c2 < actualVar_observersCount-1; c2++)
                 {
                     auto currId = db->get(name + "._observers.list."+to_string(c2+1), "").getString();
-                    db->set(name+"._observers.list."+to_string(c), currId);
+                    db->set(name+"._observers.list."+to_string(c2), currId);
                     db->set(name + "._observers.byId."+currId, c2);
                 }
                 
                 //remove the last item from the _observers.list
                 db->deleteValue(name + "._observers.list."+to_string(actualVar_observersCount-1));
+                db->deleteValue(name + "._observers.byId."+clientId);
+
                 actualVar_observersCount--;
+                db->set(name + "._observers.list.count", actualVar_observersCount);
 
                 //remove the item from _observers.byId
                 db->deleteValue(name + "._observers.byId"+clientId);
@@ -192,11 +195,13 @@ vector<string> Controller_VarHelper::getObserversClientIds()
             result.push_back(clientId);
         }
     }
+
+    return result;
 }
 
-void Controller_VarHelper::deleteFromDB()
+void Controller_VarHelper::deleteValueFromDB()
 {
-    db->deleteValue(name, true);
+    db->deleteValue(name, false);
 }
 
 

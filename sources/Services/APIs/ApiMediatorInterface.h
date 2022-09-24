@@ -4,16 +4,13 @@
 #include <string>
 #include <vector>
 #include <future>
-#include "../../Shared/Misc/DynamicVar.h"
+#include <DynamicVar.h>
 #include "ApiInterface.h"
 
-using namespace Shared;
 using namespace std;
 namespace API
 {
     typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
-
-    using namespace Shared;
     
     class ApiMediatorInterface
     {
@@ -31,7 +28,7 @@ namespace API
         virtual void apiStarted(ApiInterface *api) = 0;
         virtual string clientConnected(string clientId, ApiInterface* api) = 0;
         virtual void observeVar(string varName, string clientId, ApiInterface* api) = 0;
-        virtual void stopObservingVar(string clientId, string varName, ApiInterface* api) = 0;
+        virtual void stopObservingVar(string varName, string clientId, ApiInterface* api) = 0;
 
     };
 };

@@ -158,15 +158,15 @@ void SimpleConfFileProviderTester::run(string context)
             };
         });
 
-        //change the values
-        writeFile(
-            string("key1=value1\n")+
-            string("key2=value2_changed\n")
-        ); 
-
         //at this point, the key1 and key2 variables should have the values "value1" and "value 2"
         this->test("conf1 and conf2 should have the values \"value1\" and \"value2_changed\"", [&]
         {
+            //change the values
+            writeFile(
+                string("key1=value1\n")+
+                string("key2=value2_changed\n")
+            ); 
+            
             string expected = "value1, value2_changed";
             string received = conf1 + ", " + conf2;
             return TestResult
@@ -177,15 +177,15 @@ void SimpleConfFileProviderTester::run(string context)
             };
         });
 
-        //change the values
-        writeFile(
-            string("key1=value1_changed\n")+
-            string("key2=value2\n")
-        ); 
-
         //at this point, the key1 and key2 variables should have the values "value1" and "value 2"
         this->test("conf1 and conf2 should have the values \"value1_changed\" and \"value2\"", [&]
         {
+            //change the values
+            writeFile(
+                string("key1=value1_changed\n")+
+                string("key2=value2\n")
+            ); 
+            
             string expected = "value1_changed, value2";
             string received = conf1 + ", " + conf2;
             return TestResult
@@ -196,15 +196,15 @@ void SimpleConfFileProviderTester::run(string context)
             };
         });
 
-        //change the values
-        writeFile(
-            string("key1=value1_changed\n")+
-            string("key2=value2_changed\n")
-        ); 
-
         //at this point, the key1 and key2 variables should have the values "value1" and "value 2"
         this->test("conf1 and conf2 should have the values \"value1_changed\" and \"value2_changed\"", [&]
         {
+            //change the values
+            writeFile(
+                string("key1=value1_changed\n")+
+                string("key2=value2_changed\n")
+            ); 
+            
             string expected = "value1_changed, value2_changed";
             string received = conf1 + ", " + conf2;
             return TestResult

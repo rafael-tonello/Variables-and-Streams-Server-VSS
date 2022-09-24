@@ -41,8 +41,6 @@ void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
     }
     
     db->del(name);
-
-    return true;
 }
 
 void VarSystemLibStorage::forEachChilds(string parentName, function<void(string, DynamicVar)> f)

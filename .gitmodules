@@ -1,0 +1,9 @@
+[submodule "sources/Shared/Libs/Logger"]
+	path = sources/Shared/Libs/Logger
+	url = https://github.com/rafael-tonello/Logger.git
+[submodule "sources/Shared/Libs/DynamicVar"]
+	path = sources/Shared/Libs/DynamicVar
+	url = https://github.com/rafael-tonello/DynamicVar.git
+[submodule "sources/Shared/Libs/json_maker"]
+	path = sources/Shared/Libs/json_maker
+	url = https://github.com/rafael-tonello/libs.json_maker.git

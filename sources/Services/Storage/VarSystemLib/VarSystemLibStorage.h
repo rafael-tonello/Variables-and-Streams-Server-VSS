@@ -24,8 +24,8 @@ public:
     vector<string> getChilds(string parentName);
     bool hasValue(string name);
     void deleteValue(string name, bool deleteChildsInACascade = false);
-    void forEach(string parentName, function<void(string, DynamicVar)> f);
-    future<void> forEach_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel);
+    void forEachChilds(string parentName, function<void(string, DynamicVar)> f);
+    future<void> forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel);
 }; 
  
 #endif 

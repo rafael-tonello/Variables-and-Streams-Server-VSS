@@ -13,12 +13,14 @@
 #endif
 
 using namespace std;
-using namespace Shared;
 
 using FObserversForEachFunction = function<void(string currentClientId)>;
 
 class Controller_VarHelper { 
 private:
+    #ifdef __TESTING__
+        public:
+    #endif
     string name;
     StorageInterface* db;
     ILogger *log;
@@ -36,7 +38,7 @@ public:
     bool valueIsSetInTheDB();
     void lock();
     void unlock();
-    void deleteFromDB();
+    void deleteValueFromDB();
     vector<string> getChildsNames();
     bool isClientObserving(string clientId);
     void addClientToObservers(string clientId);

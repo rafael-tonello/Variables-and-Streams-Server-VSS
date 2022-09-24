@@ -22,7 +22,7 @@
         {
             "label": "buildTests",
             "type": "shell",
-            "command": "make all",
+            "command": "make all -j -l 4",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/tests"

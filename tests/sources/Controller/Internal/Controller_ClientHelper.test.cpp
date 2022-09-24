@@ -165,7 +165,7 @@ void Controller_ClientHelperTester::test_function_updateLiveTime_and_getLastLive
 
     this->test("If updateLastLiveTime is called, lastLiveTime should be changed", [&](){
         auto t1 = cli->getLastLiveTime();
-        usleep(100000);
+        usleep(1000000);
         cli->updateLiveTime();
         auto t2 = cli->getLastLiveTime();
 
@@ -202,7 +202,7 @@ void Controller_ClientHelperTester::test_function_updateLiveTime_and_getLastLive
 
     this->test("If any data is exchanged , lastLiveTime should not change", [&](){
         auto t1 = cli->getLastLiveTime();
-        usleep(100000);
+        usleep(1000000);
 
         //when clientHelper try to notify the client, the api will return a sucess result, and the last live time should be updated
         api->setFunction_notifyClient([](string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
@@ -231,7 +231,7 @@ void Controller_ClientHelperTester::test_function_timeSinceLastLiveTime()
     this->test("If client is not active, timeSinceLastLiveTime should increase", [&]()
     {
         auto t1 = cli->timeSinceLastLiveTime();
-        usleep(50000);
+        usleep(1000000);
         auto t2 = cli->timeSinceLastLiveTime();
 
          return t2 > t1;
@@ -245,8 +245,8 @@ void Controller_ClientHelperTester::test_function_timeSinceLastLiveTime()
             return ClientSendResult::LIVE;
         });
 
-        usleep(10000);
         auto t1 = cli->timeSinceLastLiveTime();
+        usleep(1000000);
         cli->notify(
             { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
         );
@@ -291,8 +291,8 @@ void Controller_ClientHelperTester::test_function_registerNewObservation()
     //void registerNewObservation(string varName);
     this->test("registerNewObservation must reset liveTime", [&]()
     {
-        usleep(500000);
         auto t1 = db->get("internal.clients.byId."+clientId+".lastLiveTime", 0).getInt64();
+        usleep(1000000);
         cli->registerNewObservation("mustreset.livetime");
         auto t2 = db->get("internal.clients.byId."+clientId+".lastLiveTime", 0).getInt64();
 
@@ -315,6 +315,10 @@ void Controller_ClientHelperTester::test_function_registerNewObservation()
         cli->registerNewObservation(varName);
         auto registeredItem = db->get("internal.clients.byId."+clientId+".observing."+to_string(itemIndex), "").getString();
 
+        //remove the '.vars', that is added by varHelper to the var name
+        if (registeredItem.find("vars.") == 0)
+            registeredItem = registeredItem.substr(5);
+
         return TestResult{
             registeredItem == varName,
             varName, 
@@ -332,7 +336,12 @@ void Controller_ClientHelperTester::test_function_getObservingVars()
         string received = "";
         auto totalCountOnDb = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
         for (auto c = 0; c < totalCountOnDb; c++)
-            expected += db->get("internal.clients.byId."+clientId+".observing."+to_string(c), "").getString() + " ";
+        {
+            auto tmpName = db->get("internal.clients.byId."+clientId+".observing."+to_string(c), "").getString();
+            //remove the "vars." from the start of the tmpName
+            tmpName = tmpName.substr(5);
+            expected += tmpName + " ";
+        }
 
         for (auto &c: cli->getObservingVars())
             received += c + " ";
@@ -358,7 +367,7 @@ void Controller_ClientHelperTester::test_function_unregisterObservation()
     
     auto counterAfterRemoving = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
 
-    auto isInList = [](string find, vector<string> list)
+    auto isOnTheList = [](string find, vector<string> list)
     {
         for (auto &c: list)
             if (c == find)
@@ -377,12 +386,12 @@ void Controller_ClientHelperTester::test_function_unregisterObservation()
 
     this->test("unregisterObservation should remove a previus added observer", [&]()
     {
-        return isInList("an.observer", cli->getObservingVars()) == false;
+        return isOnTheList("an.observer", cli->getObservingVars()) == false;
     });
 
     this->test("unregisterObservation should not remove another vars", [&]()
     {
-        return isInList("an.anotherObserver", cli->getObservingVars()) == true;
+        return isOnTheList("an.anotherObserver", cli->getObservingVars()) == true;
     });
 
     cli->unregisterObservation("an.observer");
@@ -416,7 +425,7 @@ void Controller_ClientHelperTester::test_function_removeClientFromObservationSys
 
 
     this->test("ClientHelper::removeClientFromObservationSystem sould remove internal counter", [&](){
-        return db->hasValue("internal.clients.byId."+clientId+".observing.count");
+        return db->hasValue("internal.clients.byId."+clientId+".observing.count") == false;
     });
 
     this->test("ClientHelper::removeClientFromObservationSystem sould remove variable lists", [&](){

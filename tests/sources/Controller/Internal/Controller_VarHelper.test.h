@@ -23,13 +23,13 @@ private:
     void test_function_isLocked();
     void test_function_setValue();
     void test_function_getValue();
-    void test_function_deleteFromDB();
+    void test_function_deleteValueFromDB();
     void test_function_getChildsNames();
-    void test_function_isClientObserving();
     void test_function_addClientToObservers();
     void test_function_removeClientFromObservers();
-    void test_function_foreachObserversClients();
+    void test_function_isClientObserving();
     void test_function_getObserversClientIds();
+    void test_function_foreachObserversClients();
 
 public: 
     Controller_VarHelperTester(); 

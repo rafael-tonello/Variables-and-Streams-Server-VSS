@@ -23,8 +23,15 @@ public:
         vector<string> ret;
         for (auto &c: vars)
         {
-            if (c.first.find (parentName) == 0)
-                ret.push_back(c.first.substr(0, parentName.size()-1));
+            if (c.first.size() > parentName.size() && c.first.find(parentName) == 0)
+            {   
+                string tmp = c.first.substr(parentName.size());
+                if (tmp.find('.') != string::npos)
+                    tmp = tmp.substr(0, tmp.find('.'));
+
+                if (std::count(ret.begin(), ret.end(), tmp) == 0)
+                    ret.push_back(tmp);
+            }
         }
 
         return ret;
@@ -33,7 +40,8 @@ public:
     bool hasValue(string name){return vars.count(name) > 0;}
     void deleteValue(string name, bool deleteChildsInACascade = false)
     {
-        if (hasValue(name)) vars.erase(name);
+        if (hasValue(name)) 
+            vars.erase(name);
 
         vector<string> toDelete;
         if (deleteChildsInACascade)

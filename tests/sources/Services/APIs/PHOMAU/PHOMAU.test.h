@@ -10,7 +10,7 @@
 #include "../../../../../sources/Services/APIs/ApiMediatorInterface.h"
 #include "../../../../../sources/Shared/Libs/ThreadPool/ThreadPool.h"
 #include <logger.h>
-#include <logger/writers/LoggerConsoleWriter.h>
+#include <LoggerConsoleWriter.h>
 
 using namespace API;
 class  PhomauTester: public Tester, public API::ApiMediatorInterface{
@@ -28,7 +28,7 @@ private:
     string convertStringToByteList(string s, size_t i = 0);
 public:
     PhomauTester(){
-        ph = new PHOMAU(5100, this, new Logger({new LoggerConsoleWriter(true)}, Logger::LOGGER_DEBUG_LEVEL));
+        ph = new PHOMAU(5100, this, new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_DEBUG)}));
     };
     vector<string> getContexts();
     void run(string context);
@@ -38,7 +38,7 @@ public:
     void apiStarted(ApiInterface *api);
     string clientConnected(string clientId, ApiInterface* api);
     void observeVar(string varName, string clientId, ApiInterface* api);
-    void stopObservingVar(string clientId, string varName, ApiInterface* api);
+    void stopObservingVar(string varName, string clientId, ApiInterface* api);
     future<void> lockVar(string varName);
     future<void> unlockVar(string varName);
     

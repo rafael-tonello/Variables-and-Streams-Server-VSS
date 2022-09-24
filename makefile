@@ -15,7 +15,7 @@ CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/Confs"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/Confs/internal"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/DependencyInjectionManager"
-CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/logger"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/Logger/sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/TCPServer"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/VarSystem"
@@ -31,8 +31,9 @@ C_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp)
-C_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/*.cpp)
-C_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/writers/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/DynamicVar/sources/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/writers/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.cpp)
@@ -49,8 +50,9 @@ H_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h)
-H_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/*.h)
-H_SOURCE+=$(wildcard ./sources/Shared/Libs/logger/writers/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/DynamicVar/sources/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/writers/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.h)
@@ -62,7 +64,8 @@ objFolder:
 	@ mkdir -p objects/Services/Storage/VarSystemLib
 	@ mkdir -p objects/Shared/Libs/Confs/internal
 	@ mkdir -p objects/Shared/Libs/DependencyInjectionManager
-	@ mkdir -p objects/Shared/Libs/logger/writers
+	@ mkdir -p objects/Shared/Libs/DynamicVar
+	@ mkdir -p objects/Shared/Libs/Logger/writers
 	@ mkdir -p objects/Shared/Misc
 	@ mkdir -p objects/Shared/Libs/ThreadPool
 	@ mkdir -p objects/Shared/Libs/TCPServer

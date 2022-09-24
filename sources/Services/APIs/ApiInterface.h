@@ -4,14 +4,11 @@
 #include <string>
 #include <vector>
 #include <future>
-#include "../../Shared/Misc/DynamicVar.h"
+#include <DynamicVar.h>
 
-using namespace Shared;
 using namespace std;
 namespace API
 {
-
-    using namespace Shared;
     
     enum ClientSendResult {LIVE, DISCONNECTED};
 

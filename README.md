@@ -1,9 +1,9 @@
 # About VSS
-  "Vss is a variable server. It means you can write and read variables from it". This is simplest way to describe de VSS. Vss is a server that provides some APIs to manage variables from multiple clients. 
-  All variables are shared between clients, that means that you can write a variable in any client and read it in any client.
+  "Vss is a variable server. It means you can write and read variables from it". This is simplest way to describe the VSS. Vss is a server that provides some APIs to manage variables from multiple clients. 
+  All variables are shared between clients, that means you can write a variable in any client and read it in any client.
   In addition to being read and written, variables are also streams, meaning you can watch them and be notified when their values ​​change.
 
-  These variables can be write with object notation. For instance, you can set a variable named "parent.child.child2". It allow a beter organization and allow some aditional features, like read a lot of varibales usina the * character and observe a lot of variables (agains, by use of * character).
+  These variables can be write with object notation. For instance, you can set a variable named "parent.child.child2". It allow a beter organization and allow some aditional features, like read a lot of varibales usina the * character and observe a lot of variables (also by use of * character).
 
 # General information
   I wrote this code in the Visual Studio Code, so , some functions will be documented using a notation
@@ -43,7 +43,7 @@
     [✔] Configuration system (to specify)
     [ ] UDP replay to server search
     [ ] Restfull and WebSocket API
-    [ ] Rename Controller to Business or Logic (to a \nalyze. Is tprevent confuse with MVC system)
+    [ ] Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
     [✔] Create a logger library
     [✔] Create the configuration system (observable \ configuratiosystem)
     [ ] Paralel project (app server)
@@ -55,6 +55,8 @@
   
     [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
     [✔] Analyse the possibility of write var files  \in paralel (to besperformance/best latency)
+    [ ] Import new Logger lib repository
+    [ ] Import the TCPServer repo
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper

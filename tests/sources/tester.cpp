@@ -247,7 +247,7 @@ int Tester::runTests(vector<Tester*> testers, int argc, char* argv[])
             runContext(args[c]);
         }
 
-    cout << endl << "Final statistics: " << Tester::testsPassed << " passed and " << Tester::testsFailed << " failed." << endl;;
+    cout << endl << "Final statistics: "<< to_string(Tester::testsPassed + Tester::testsFailed) <<" tests perfomed, where " << Tester::testsPassed << " passed and " << Tester::testsFailed << " failed." << endl;;
 
 
     return Tester::testsFailed;

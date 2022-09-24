@@ -46,7 +46,7 @@ future<void> TheController::setVar(string name, DynamicVar value)
 
     if (name.find('_') == 0 || name.find("._") != string::npos)
     {
-        log->warning("TheController", "variabls started with underscorn (_) are just for internal flags and can't be setted by clients");
+        log->warning("TheController", "Variabls started with underscorn (_) are just for internal flags and can't be setted by clients");
         promise<void> p;
         p.set_value();
         return p.get_future();
@@ -102,8 +102,15 @@ void TheController::notifyVarModification(string varName, DynamicVar value)
 {
     Controller_VarHelper vh(log, db, varName);
     notifyClientsAboutVarChange(vh.getObserversClientIds(), varName, value);
+
     //todo: scrolls through parent vars lookin for '*' special child
     notifyParentGenericObservers(varName, varName, value);
+
+    /*done: If the current variable contains the child '*', should it be notified?
+        when i observe the variable "a.b.c.*" i want to observate also a.b.c or only their childs.*/
+   Controller_VarHelper childWildcard(log, db, varName + ".*");
+   notifyClientsAboutVarChange(childWildcard.getObserversClientIds(), varName, value);
+    
 }
 
 void TheController::notifyParentGenericObservers(string varName, string changedVarName, DynamicVar value)
@@ -138,7 +145,7 @@ void TheController::notifyClientsAboutVarChange(vector<string> clients, string c
 }
 
 //stop observate variable
-void TheController::stopObservingVar(string clientId, string varName, ApiInterface* api)
+void TheController::stopObservingVar(string varName, string clientId, ApiInterface* api)
 {
     Controller_VarHelper varHelper(log, db, varName);
     Controller_ClientHelper clienthelper(db, clientId, api);
@@ -174,10 +181,11 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
             
             if (childsToo)
             {
+                nname = nname == "" ? nname : nname + ".";
                 auto childs = varHelper.getChildsNames();
                 for (auto curr: childs)
                 {
-                    auto tmp = readFromDb(curr, childsToo);                    
+                    auto tmp = readFromDb(nname + curr, childsToo);                    
                     result.insert(result.begin(), tmp.begin(), tmp.end());
                 }
             }
@@ -187,10 +195,24 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
 
         //if variable ends with *, determine just their name
         bool childsToo = false;
-        if (namep.find(".*") != string::npos)
+        if (namep.find("*") != string::npos)
         {
-            childsToo = true;
-            namep = namep.substr(0, namep.size()-2);
+            if (namep.find("*") == namep.size()-1)
+            {
+                childsToo = true;
+                auto p = namep.find(".");
+                if (p != string::npos && p == namep.size()-2)
+                    namep = namep.substr(0, namep.size()-2);
+                else
+                    namep = namep.substr(0, namep.size()-1);
+            }
+            else
+            {
+                log->error("TheController", "wildcard char (*) can be used only at last of varname in the getVar function");
+                //vector<tuple<string, DynamicVar>> emptyResult = { std::make_tuple(namep, defaultValuep ) };
+                vector<tuple<string, DynamicVar>> emptyResult = { };
+                return emptyResult;
+            }
         }
 
         //load the valures
@@ -213,7 +235,7 @@ future<void> TheController::delVar(string varname)
     return tasker->enqueue([this](string varnamep)
     {
         Controller_VarHelper varHelper(log, db, varnamep);
-        varHelper.deleteFromDB();
+        varHelper.deleteValueFromDB();
     }, varname);
 }
 

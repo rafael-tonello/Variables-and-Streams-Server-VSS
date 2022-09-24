@@ -1,3 +1,6 @@
+#ifndef __API_INTERFACE_TMP__
+#define __API_INTERFACE_TMP__
+
 #include<ApiInterface.h>
 #include <tuple>
 #include <functional>
@@ -43,3 +46,5 @@ public:
         return checkAliveFunction(clientId);
     }
 };
+
+#endif

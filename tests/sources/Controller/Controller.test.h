@@ -8,15 +8,36 @@
 #include <writers/LoggerConsoleWriter.h>
 #include <mocks/TmpDBInMemory.h>
 #include "../mocks/InMemoryConfProvider.h"
+#include <logger.h>
+#include <LoggerLambdaWriter.h>
+#include <mocks/ApiInterfaceTmp.h>
 
 using namespace std;
 using namespace Controller;
+
+struct ControllerTesterLastLogInfo
+{
+    Logger* sender;
+    string msg;
+    int level;
+    string name;
+};
+
 class ControllerTester: public Tester{
 private:
     DependencyInjectionManager dim;
     TheController *ctrl;
 
+    ControllerTesterLastLogInfo lastLogInfo;
+
+    TmpDBInMemory database;
+
     void test_function__createUniqueId();
+    void test_function_setVar();
+    void test_function_getVar();
+    void test_function_delVar();
+    void test_function_observeVar();
+    void test_function_stopObservingVar();
     void test_function_updateClientAboutObservatingVars();
     void test_function_notifyClient();
     void test_function_deleteClient();
@@ -29,11 +50,6 @@ private:
     void test_function_notifyClientsAboutVarChange();
     void test_function_apiStarted();
     void test_function_clientConnected();
-    void test_function_observeVar();
-    void test_function_stopObservingVar();
-    void test_function_getVar();
-    void test_function_setVar();
-    void test_function_delVar();
     void test_function_getChildsOfVar();
     void test_function_lockVar();
     void test_function_unlockVar();

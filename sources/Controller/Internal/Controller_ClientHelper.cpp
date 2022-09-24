@@ -69,8 +69,13 @@ vector<string> Controller_ClientHelper::getObservingVars()
     vector<string> result;
     vector<string> tmp = db->getChilds("internal.clients.byId."+clientId+".observing");;
     for (auto &c : tmp)
-        if (c.find(".count") == string::npos && c.find(".size") == string::npos)
-            result.push_back(db->get(c, "").getString());
+        if (c.find("count") == string::npos && c.find("size") == string::npos)
+        {
+            auto currChildName = db->get("internal.clients.byId."+clientId+".observing."+c, "").getString();
+            //remove the "vars." from begining o ght currChildName
+            currChildName = currChildName.substr(5);
+            result.push_back(currChildName);
+        }
 
     return result;
 }
@@ -112,15 +117,26 @@ void Controller_ClientHelper::removeClientFromObservationSystem()
     //completelly remove the client infor from obsrevation system and from variables
     Utils::named_lock("db.intenal.clients", [&](){
         this->updateLiveTime();
+        
+        auto clientIndexOnInternalDBList = db->get("internal.clients.byId."+clientId, -1).getInt();
 
-        db->deleteValue("internal.clients.byId."+clientId, true);
+        if (clientIndexOnInternalDBList > -1)
+        {
+            db->deleteValue("internal.clients.byId."+clientId, true);
 
-        //todo: DELETE ALSO FROM internal.clients.list 
+            //todo: DELETE ALSO FROM internal.clients.list 
 
-        /*auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
-        for (int c = 0; c < currentCount; c++)
-            db->del("internal.clients.byId."+clientId+".observing."+to_string(c));
-        db->del("internal.clients.byId."+clientId+".observing.count");*/
+            auto currentCount = db->get("internal.clients.list.count", 0).getInt();
+            for (int c = clientIndexOnInternalDBList; c < currentCount-1; c++)
+            {
+                auto currentId = db->get("internal.clients.list."+to_string(c+1), "");
+                db->set("internal.clients.list."+to_string(c), currentId);
+            }
+
+            currentCount--;
+            db->deleteValue("internal.clients.list."+to_string(currentCount));
+            db->set("internal.clients.list.count", currentCount);
+        }
 
     });
 
@@ -128,5 +144,38 @@ void Controller_ClientHelper::removeClientFromObservationSystem()
 
 void Controller_ClientHelper::unregisterObservation(string varName)
 {
+    varName = "vars."+varName;
+    Utils::named_lock("db.intenal.clients", [&](){
+        this->updateLiveTime();
+        
+        auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
+        auto varIndex = findVarIndexOnObservingVars(varName);
+        if (varIndex > -1)
+        {
+            for (int c = varIndex; c < currentCount-1; c++)
+            {
+                auto currVar = db->get("internal.clients.byId."+clientId+".observing."+to_string(c+1), "");
+                db->set("internal.clients.byId."+clientId+".observing."+to_string(c), currVar);
+            }
 
+            db->deleteValue("internal.clients.byId."+clientId+".observing."+to_string(currentCount-1));
+
+            db->set("internal.clients.byId."+clientId+".observing.count", currentCount-1);
+        }
+        
+    });
+}
+
+int Controller_ClientHelper::findVarIndexOnObservingVars(string varName)
+{
+    auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
+
+    for (int c = 0; c < currentCount; c++)
+    {
+        auto currVar = db->get("internal.clients.byId."+clientId+".observing."+to_string(c), "").getString();
+        if (currVar == varName)
+            return c;
+    }
+
+    return -1;
 }

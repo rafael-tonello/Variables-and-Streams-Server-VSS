@@ -1,0 +1,686 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Fri Aug 19 19:35:10 2022
+
+# Variables
+
+# makefile (from 'makefile', line 6)
+PROJ_NAME = VarServer
+# makefile (from 'makefile', line 78)
+OBJ = $(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
+# environment
+GDK_BACKEND = x11
+# environment
+LC_ALL = C
+# environment
+GNOME_SHELL_SESSION_MODE = ubuntu
+# environment
+SSH_AGENT_LAUNCHER = gnome-keyring
+# environment
+GJS_DEBUG_OUTPUT = stderr
+# environment
+LC_NAME = pt_BR.UTF-8
+# environment
+LC_NUMERIC = pt_BR.UTF-8
+# environment
+VSCODE_CWD = /home/rafinha_tonello
+# environment
+WINDOWPATH = 2
+# environment
+LC_ADDRESS = pt_BR.UTF-8
+# default
+MAKE_COMMAND := make
+# environment
+QT_ACCESSIBILITY = 1
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# makefile (from 'makefile', line 57)
+H_SOURCE = $(wildcard ./sources/*.h) $(wildcard ./sources/Controller/*.h) $(wildcard ./sources/Controller/Internal/*.h) $(wildcard ./sources/Services/APIs/*.h) $(wildcard ./sources/Services/APIs/PHOMAU/*.h) $(wildcard ./sources/Services/Storage/*.h) $(wildcard ./sources/Services/Storage/VarSystemLib/*.h) $(wildcard ./sources/Shared/Libs/Confs/*.h) $(wildcard ./sources/Shared/Libs/Confs/internal/*.h) $(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h) $(wildcard ./sources/Shared/Libs/logger/*.h) $(wildcard ./sources/Shared/Libs/logger/writers/*.h) $(wildcard ./sources/Shared/Libs/TCPServer/*.h) $(wildcard ./sources/Shared/Libs/ThreadPool/*.h) $(wildcard ./sources/Shared/Libs/VarSystem/*.h) $(wildcard ./sources/Shared/Misc/*.h)
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /media/veracrypt/projects/rafinha_tonello/homeaut2
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+XDG_DATA_DIRS = /usr/share/ubuntu-xorg:/usr/share/gnome:/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# automatic
+%F = $(notdir $%)
+# environment
+VSCODE_CODE_CACHE_PATH = /home/rafinha_tonello/.config/Code/CachedData/6d9b74a70ca9c7733b29f0456fd8195364076dda
+# environment
+LANG = C
+# environment
+XAUTHORITY = /run/user/1000/gdm/Xauthority
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
+# makefile
+MAKEFLAGS = pqrR
+# makefile
+CURDIR := /media/veracrypt/projects/rafinha_tonello/homeaut2
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# environment
+LESSOPEN = | /usr/bin/lesspipe %s
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# default
+.SHELLFLAGS := -c
+# environment
+XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu-xorg:/etc/xdg/xdg-ubuntu:/etc/xdg
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+XDG_SESSION_DESKTOP = ubuntu-xorg
+# makefile (from 'makefile', line 1)
+MAKEFILE_LIST := makefile
+# automatic
+@F = $(notdir $@)
+# environment
+VSCODE_PID = 447786
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+SESSION_MANAGER = local/ubuntupessoal-vm:@/tmp/.ICE-unix/421778,unix/ubuntupessoal-vm:/tmp/.ICE-unix/421778
+# automatic
+*F = $(notdir $*)
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# makefile (from 'makefile', line 98)
+LK_FLAGS = -W -Wall -ansi -pedantic -pthread -lssl -lcrypto -g -std=c++11 -I"./sources/" $(CUSTOM_INCLUDE_PATH)
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# environment
+GNOME_DESKTOP_SESSION_ID = this-is-deprecated
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# environment
+XMODIFIERS = @im=ibus
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+# environment
+SHLVL = 0
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /home/rafinha_tonello/bin:/home/rafinha_tonello/bin:/home/rafinha_tonello/bin:/home/rafinha_tonello/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/rafinha_tonello/.dotnet/tools:/home/rafinha_tonello/.dotnet/tools:/home/rafinha_tonello/.dotnet/tools
+# default
+MAKEFILES := 
+# environment
+LC_MONETARY = pt_BR.UTF-8
+# automatic
+^F = $(notdir $^)
+# environment
+LC_TIME = pt_BR.UTF-8
+# environment
+INVOCATION_ID = f305e83bbc7c4192b470e209c1eb3ed9
+# environment
+USERNAME = rafinha_tonello
+# environment
+LC_TELEPHONE = pt_BR.UTF-8
+# environment
+LESSCLOSE = /usr/bin/lesspipe %s %s
+# automatic
+?F = $(notdir $?)
+# environment
+XDG_CURRENT_DESKTOP = Unity
+# environment
+LS_COLORS = 
+# automatic
++F = $(notdir $+)
+# environment
+DESKTOP_SESSION = ubuntu-xorg
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
+# 'override' directive
+GNUMAKEFLAGS := 
+# environment
+LOGNAME = rafinha_tonello
+# environment
+GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
+# makefile
+.DEFAULT_GOAL := objFolder
+# environment
+SYSTEMD_EXEC_PID = 421802
+# makefile (from 'makefile', line 111)
+RM = rm -rf
+# environment
+DISPLAY = :0
+# environment
+USER = rafinha_tonello
+# environment
+GTK_MODULES = gail:atk-bridge
+# default
+MAKE_VERSION := 4.3
+# environment
+MANAGERPID = 368642
+# environment
+LC_MEASUREMENT = pt_BR.UTF-8
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 447786
+# environment
+_ = /usr/share/code/code
+# environment
+LC_PAPER = pt_BR.UTF-8
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
+# environment
+LC_CTYPE = pt_BR.UTF-8
+# makefile (from 'makefile', line 39)
+C_SOURCE = $(wildcard ./sources/*.cpp) $(wildcard ./sources/Controller/*.cpp) $(wildcard ./sources/Controller/Internal/*.cpp) $(wildcard ./sources/Services/APIs/*.cpp) $(wildcard ./sources/Services/APIs/PHOMAU/*.cpp) $(wildcard ./sources/Services/Storage/*.cpp) $(wildcard ./sources/Services/Storage/VarSystemLib/*.cpp) $(wildcard ./sources/Shared/Libs/Confs/*.cpp) $(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp) $(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp) $(wildcard ./sources/Shared/Libs/logger/*.cpp) $(wildcard ./sources/Shared/Libs/logger/writers/*.cpp) $(wildcard ./sources/Shared/Libs/TCPServer/*.cpp) $(wildcard ./sources/Shared/Libs/ThreadPool/*.cpp) $(wildcard ./sources/Shared/Libs/VarSystem/*.cpp) $(wildcard ./sources/Shared/Misc/*.cpp)
+# environment
+JOURNAL_STREAM = 8:2255902
+# environment
+XDG_SESSION_CLASS = user
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/rafinha_tonello
+# environment
+QT_IM_MODULE = ibus
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-750b433e-1.70.1-main.sock
+# environment
+IM_CONFIG_PHASE = 1
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# makefile (from 'makefile', line 21)
+CUSTOM_INCLUDE_PATH = -I"./sources" -I"./sources/Controller" -I"./sources/Controller/Internal" -I"./sources/Services" -I"./sources/Services/Apis" -I"./sources/Services/Storage" -I"./sources/Shared/Misc" -I"./sources/Shared/Libs" -I"./sources/Shared/Libs/Confs" -I"./sources/Shared/Libs/Confs/internal" -I"./sources/Shared/Libs/DependencyInjectionManager" -I"./sources/Shared/Libs/logger" -I"./sources/Shared/Libs/TCPServer" -I"./sources/Shared/Libs/ThreadPool" -I"./sources/Shared/Libs/VarSystem"
+# default
+SUFFIXES := 
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# makefile (from 'makefile', line 81)
+CC = g++
+# environment
+XDG_MENU_PREFIX = gnome-
+# environment
+GDMSESSION = ubuntu-xorg
+# environment
+LC_IDENTIFICATION = pt_BR.UTF-8
+# makefile (from 'makefile', line 84)
+CC_FLAGS = -c -W -Wall -ansi -pedantic -pthread -lssl -lcrypto -g -std=c++11 -I"./sources/" $(CUSTOM_INCLUDE_PATH)
+# variable set hash-table stats:
+# Load=112/1024=11%, Rehash=0, Collisions=4/238=2%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# ./sources/Services/Storage (device 51, inode 17660): 4 files, no impossibilities.
+# ./sources/Controller (device 51, inode 17653): 5 files, no impossibilities.
+# ./sources/Shared/Libs/logger/writers (device 51, inode 17686): 8 files, no impossibilities.
+# ./sources/Shared/Libs/Confs (device 51, inode 17680): 5 files, no impossibilities.
+# ./sources/Shared/Libs/DependencyInjectionManager (device 51, inode 17677): 4 files, no impossibilities.
+# ./sources/Shared/Libs/TCPServer (device 51, inode 17672): 4 files, no impossibilities.
+# ./sources/Shared/Libs/ThreadPool (device 51, inode 17670): 4 files, no impossibilities.
+# ./sources/Shared/Libs/Confs/internal (device 51, inode 17687): 5 files, no impossibilities.
+# ./sources/Shared/Libs/logger (device 51, inode 17675): 5 files, no impossibilities.
+# . (device 51, inode 17179): 14 files, no impossibilities.
+# ./sources/Services/Storage/VarSystemLib (device 51, inode 17671): 4 files, no impossibilities.
+# sources (device 51, inode 17637): 8 files, no impossibilities.
+# ./sources/Controller/Internal (device 51, inode 17658): 6 files, no impossibilities.
+# ./sources/Services/APIs/PHOMAU (device 51, inode 17683): 6 files, no impossibilities.
+# ./sources/Shared/Misc (device 51, inode 17655): 10 files, no impossibilities.
+# ./sources (device 51, inode 17637): 8 files, no impossibilities.
+# ./sources/Services/APIs (device 51, inode 17664): 5 files, no impossibilities.
+# ./sources/Shared/Libs/VarSystem (device 51, inode 17667): 6 files, no impossibilities.
+
+# 111 files, no impossibilities in 18 directories.
+
+# Implicit Rules
+
+objects/%.o: sources/%.cpp sources/%.h
+#  recipe to execute (from 'makefile', line 125):
+	@ echo 'Building target using GCC compiler: $<'
+	$(CC) $< $(CC_FLAGS) -o $@
+	@ echo ' '
+
+# 1 implicit rules, 0 (0.0%) terminal.
+ 
+# Files
+
+# Not a target:
+objects/Shared/Libs/VarSystem/FileVars.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Misc/DynamicVar.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+VarServer: objects/main.o objects/Controller/Controller.o objects/Controller/Internal/Controller_ClientHelper.o objects/Controller/Internal/Controller_VarHelper.o objects/Services/APIs/PHOMAU/PHOMAU.o objects/Services/APIs/PHOMAU/SocketInfo.o objects/Services/Storage/VarSystemLib/VarSystemLibStorage.o objects/Shared/Libs/Confs/Confs.o objects/Shared/Libs/Confs/internal/SimpleConfFileProvider.o objects/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.o objects/Shared/Libs/logger/logger.o objects/Shared/Libs/logger/writers/LoggerConsoleWriter.o objects/Shared/Libs/logger/writers/LoggerFileWriter.o objects/Shared/Libs/logger/writers/LoggerLambdaWriter.o objects/Shared/Libs/TCPServer/TCPServer.o objects/Shared/Libs/ThreadPool/ThreadPool.o objects/Shared/Libs/VarSystem/FileVars.o objects/Shared/Libs/VarSystem/SysLink.o objects/Shared/Misc/DynamicVar.o objects/Shared/Misc/Observable.o objects/Shared/Misc/TaggedObject.o objects/Shared/Misc/utils.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'makefile', line 119):
+	@ echo 'Building binary using GCC linker: $@'
+	$(CC) $^ $(LK_FLAGS) -o build/$@
+	@ echo 'Finished building binary: $@'
+	@ echo ' '
+
+# Not a target:
+sources/Shared/Libs/logger/writers/LoggerFileWriter.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/Confs/internal/SimpleConfFileProvider.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Controller/Controller.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/TCPServer/TCPServer.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/logger/writers/LoggerLambdaWriter.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/VarSystem/SysLink.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/logger/logger.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/Confs/internal/SimpleConfFileProvider.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Misc/Observable.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/Confs/internal/IConfigurationProvider.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Misc/Observable.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+objFolder:
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: ''
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := objFolder
+# automatic
+# * := 
+# automatic
+# < := 
+# automatic
+# + := 
+# automatic
+# % := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# automatic
+# | := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/11=9%
+#  recipe to execute (from 'makefile', line 60):
+	@ mkdir -p objects/Controller/Internal
+	@ mkdir -p objects/Services/APIs/PHOMAU
+	@ mkdir -p objects/Services/Storage/VarSystemLib
+	@ mkdir -p objects/Shared/Libs/Confs/internal
+	@ mkdir -p objects/Shared/Libs/DependencyInjectionManager
+	@ mkdir -p objects/Shared/Libs/logger/writers
+	@ mkdir -p objects/Shared/Misc
+	@ mkdir -p objects/Shared/Libs/ThreadPool
+	@ mkdir -p objects/Shared/Libs/TCPServer
+	@ mkdir -p objects/Shared/Libs/VarSystem
+
+# Not a target:
+sources/Shared/Libs/Confs/Confs.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/main.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Services/Storage/VarSystemLib/VarSystemLibStorage.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Services/APIs/PHOMAU/PHOMAU.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Misc/TaggedObject.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Services/APIs/ApiInterface.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'makefile', line 135):
+	@ $(RM) ./objects/*.o $(PROJ_NAME) *~
+	@ rm -rf objects
+
+# Not a target:
+objects/Shared/Misc/DynamicVar.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Services/APIs/ApiMediatorInterface.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Misc/utils.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/logger/writers/LoggerConsoleWriter.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Controller/Internal/Controller_VarHelper.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Controller/Internal/Controller_ClientHelper.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Services/APIs/PHOMAU/PHOMAU.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Services/APIs/PHOMAU/SocketInfo.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+all: objFolder prebuild VarServer
+#  Phony target (prerequisite of .PHONY).
+#  Command line target.
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/3=0%
+
+# Not a target:
+objects/Shared/Misc/utils.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/ThreadPool/ThreadPool.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/Confs/Confs.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Controller/Internal/Controller_VarHelper.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/VarSystem/SysLink.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+
+# Not a target:
+sources/Shared/Libs/TCPServer/TCPServer.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+objects/main.o: sources/main.cpp sources/Controller/Controller.h sources/Controller/Internal/Controller_ClientHelper.h sources/Controller/Internal/Controller_VarHelper.h sources/Services/APIs/ApiInterface.h sources/Services/APIs/ApiMediatorInterface.h sources/Services/APIs/PHOMAU/PHOMAU.h sources/Services/APIs/PHOMAU/SocketInfo.h sources/Services/Storage/StorageInterface.h sources/Services/Storage/VarSystemLib/VarSystemLibStorage.h sources/Shared/Libs/Confs/Confs.h sources/Shared/Libs/Confs/internal/IConfigurationProvider.h sources/Shared/Libs/Confs/internal/SimpleConfFileProvider.h sources/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.h sources/Shared/Libs/logger/logger.h sources/Shared/Libs/logger/writers/LoggerConsoleWriter.h sources/Shared/Libs/logger/writers/LoggerFileWriter.h sources/Shared/Libs/logger/writers/LoggerLambdaWriter.h sources/Shared/Libs/TCPServer/TCPServer.h sources/Shared/Libs/ThreadPool/ThreadPool.h sources/Shared/Libs/VarSystem/FileVars.h sources/Shared/Libs/VarSystem/SysLink.h sources/Shared/Misc/DynamicVar.h sources/Shared/Misc/Observable.h sources/Shared/Misc/TaggedObject.h sources/Shared/Misc/utils.h
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'makefile', line 130):
+	@ echo 'Building target using GCC compiler: $<'
+	$(CC) $< $(CC_FLAGS) -o $@
+	@ echo ' '
+	
+
+# Not a target:
+makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-05-26 20:58:58
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+sources/Services/Storage/VarSystemLib/VarSystemLibStorage.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/ThreadPool/ThreadPool.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/logger/writers/LoggerLambdaWriter.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/logger/writers/LoggerConsoleWriter.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/VarSystem/FileVars.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Controller/Controller.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Services/Storage/StorageInterface.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Shared/Libs/logger/logger.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.PHONY: all clean
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+sources/Services/APIs/PHOMAU/SocketInfo.h:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Misc/TaggedObject.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Controller/Internal/Controller_ClientHelper.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+objects/Shared/Libs/logger/writers/LoggerFileWriter.o:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+prebuild:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'makefile', line 73):
+	@ clear
+	@ mkdir ./build | true
+	@ cp -r ./sources/copyToBuildFolder/* ./build | true
+
+# files hash-table stats:
+# Load=57/1024=6%, Rehash=0, Collisions=4/124=3%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 147 / storage = 3713 B / avg = 25 B
+# current buf: size = 8162 B / used = 3713 B / count = 147 / avg = 25 B
+
+# strcache performance: lookups = 200 / hit rate = 26%
+# hash-table stats:
+# Load=147/8192=2%, Rehash=0, Collisions=2/200=1%
+# Finished Make data base on Fri Aug 19 19:35:10 2022
+
+ 

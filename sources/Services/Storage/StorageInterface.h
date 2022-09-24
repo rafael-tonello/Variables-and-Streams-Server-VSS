@@ -7,7 +7,6 @@
 #include <ThreadPool.h>
 
 using namespace std;
-using namespace Shared;
  
 class StorageInterface { 
 public: 

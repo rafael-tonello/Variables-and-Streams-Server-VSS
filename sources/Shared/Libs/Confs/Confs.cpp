@@ -42,7 +42,7 @@ void Shared::Config::processConfigs(vector<tuple<string, string>> configurations
 
 }
 
-Shared::DynamicVar Shared::Config::get(string varName, DynamicVar defaultValue)
+DynamicVar Shared::Config::get(string varName, DynamicVar defaultValue)
 {
     if (this->vars.count(varName) > 0)
         return this->vars[varName].lastValue;
