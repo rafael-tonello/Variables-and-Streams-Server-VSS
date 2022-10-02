@@ -64,7 +64,7 @@ string Utils::StringToHex(string &input, size_t size)
     std::string output;
     size_t outputSize = size * 2;
     output.reserve(outputSize);
-    for (auto count = 0; count < outputSize; count++)
+    for (auto count = 0; count < size; count++)
     {
         auto c = input[count];
         output.push_back(hex_digits[c >> 4]);

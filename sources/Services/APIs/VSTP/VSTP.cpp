@@ -27,6 +27,8 @@ API::VSTP::VSTP(int port, ApiMediatorInterface *ctr, ILogger* log)
 
     this->log->info((DVV){"VSTP service started with port: ", port});
     //this->log.log(LOGGER_LOGLEVEL_INFO2, (DVV){"VSTP service started with port: ", port});
+
+    ctrl->apiStarted(this);
 }
 
 API::VSTP::~VSTP()
@@ -58,6 +60,8 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     incomingDataBuffers[cli] = "";
 
     sendIdToClient(cli, cli->tags["id"]);
+
+    log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id '",cli->tags["id"],"'"});
 }
 
 void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
@@ -105,6 +109,7 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
         clientsById.erase(oldId);
     }
     
+    cli->tags["id"] = newId;
     clientsById[newId]  = cli;
 }
 
@@ -155,37 +160,13 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::OBSERVE_VAR)
     {
-        /*string observerTagName = "observingIds."+varName;
-        //save the observer id to the tags of socket
-        clientSocket.setTag(observerTagName, 
-            this->ctrl->observeVar(varName, [&](string name, DynamicVar value, void* args, string id)
-            {
-                //Todo: teste
-                //checks if client is already connected
-                if (__SocketIsConnected(clientSocket))
-                {
-                    //Note: The client could not be deleted
-                    SocketInfo* cli = (SocketInfo*)args;
-                    string response =  name + "=" + value.getString();
-                    this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::VAR_CHANGED, response);
-                }
-                else
-                {
-                    //this is only a security call. The stopObservating will be called when ThreadTalkWithClientFunction detects the client disconnection.
-                    //when the ThreadTalkWithClientFunction detects the disconnection, it will call the function clientDisconnected that by its time will call
-                    //stopObservating.
-                    stopObservating(clientSocket);
-                }
-
-                return;
-
-            }, 
-            (void*)&clientSocket, std::to_string(clientSocket.getId()))
-        );*/
+        ctrl->observeVar(varName, clientSocket.tags["id"], this);
+        log->info({"Client", clientSocket.tags["id"], "is now observing the variable", varName});
     }
     else if (command == VSTP_ACTIONS::STOP_OBSERVER_VAR)
     {
-
+        ctrl->stopObservingVar(varName, clientSocket.tags["id"], this);
+        log->info({"Client", clientSocket.tags["id"], "stop watching the variable", varName});
     }
     else if (command == VSTP_ACTIONS::GET_CHILDS)
     {
@@ -214,6 +195,19 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::PING)
     {
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::PONG, "");
+    }
+    else if (command == VSTP_ACTIONS::CHANGE_CLI_ID)
+    {
+        string oldId = clientSocket.tags["id"];
+        if (oldId != payload)
+        {
+            this->updateClientsByIdList(&clientSocket, payload);
+            log->info((DVV){"Client", clientSocket.address, "(remote port",clientSocket.port,") changed its id from", oldId, "to", payload});
+        }
+        else
+        {
+            log->info((DVV){"The client", clientSocket.address, "(remote port",clientSocket.port,") requested an id change with its actual id (", oldId,")"});
+        }
     }
 }
 
@@ -274,6 +268,9 @@ bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output)
 
 void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
 {
+    log->warning("removing \\r from the message for tests using telent");
+    message = message.substr(0, message.size()-1);
+
     log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
     string command = "";
     string payload = "";
@@ -316,8 +313,9 @@ API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<stri
             string bufferStr = std::get<0>(c) + "="+(std::get<1>(c)).getString();
             this->__PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
         }
+        return ClientSendResult::LIVE;
     }
-
+    return ClientSendResult::DISCONNECTED;
 }
 
 API::ClientSendResult API::VSTP::checkAlive(string clientId)

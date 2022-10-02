@@ -80,7 +80,9 @@ future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, func
 string VarSystemLibStorage::escape(string text)
 {
     text = Utils::stringReplace(text, {
-        std::make_tuple<string, string>("*", "__wildcard__")
+        std::make_tuple<string, string>("*", "__wildcard__"),
+        std::make_tuple<string, string>("\r", "__cr__"),
+        std::make_tuple<string, string>("\n", "__nl__")
     });
 
     return text;
@@ -90,7 +92,9 @@ string VarSystemLibStorage::escape(string text)
 string VarSystemLibStorage::unescape(string text)
 {
     text = Utils::stringReplace(text, {
-        std::make_tuple<string, string>("__wildcard__", "*")
+        std::make_tuple<string, string>("__wildcard__", "*"),
+        std::make_tuple<string, string>("__cr__", "\r"),
+        std::make_tuple<string, string>("__nl__", "\n")
     });
 
     return text;

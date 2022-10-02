@@ -55,11 +55,6 @@ int main(){
     dim.addSingleton<VSTP>(new VSTP(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
 
 
-    cout << "line 1" << endl;
-    cout << "line 2 " << endl;
-    cout << "line 2 ";
-
-
     auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */

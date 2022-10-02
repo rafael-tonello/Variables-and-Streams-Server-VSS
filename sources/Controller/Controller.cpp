@@ -88,6 +88,7 @@ future<void> TheController::unlockVar(string varName)
 //start to observate a variable
 void TheController::observeVar(string varName, string clientId, ApiInterface* api)
 {
+    log->info("TheController", {"::observeVar called. varName: '",varName,"', clientId:: '",clientId,"', api(id): '",api->getApiId(),"'"});
     Controller_VarHelper varHelper(log, db, varName);
     if (!varHelper.isClientObserving(clientId))
     {
@@ -134,8 +135,10 @@ void TheController::notifyClientsAboutVarChange(vector<string> clients, string c
             Controller_ClientHelper ch(db, clientIdp, this->apis, resultError);
 
             if (resultError == Controller_ClientHelperError::NO_ERROR)
+            {
                 if (ch.notify( { std::make_tuple(changedVarNamep, valuep) } ) != API::ClientSendResult::LIVE)
                     this->checkClientLiveTime(ch);
+            }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
                 log->error("TheController", "Client notification failute due 'responsible API not found.");
             else
