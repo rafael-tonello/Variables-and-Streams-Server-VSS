@@ -12,12 +12,14 @@ VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim)
  
 void VarSystemLibStorage::set(string name, DynamicVar v)
 {
+    v = escape(v);
     db->set(name, v.getString());
 }
 
 DynamicVar VarSystemLibStorage::get(string name, DynamicVar defaultValue)
 {
-    return DynamicVar(db->get(name, defaultValue.getString()).AsString());
+
+    return DynamicVar(unescape(db->get(name, defaultValue.getString()).AsString()));
 }
 
 vector<string> VarSystemLibStorage::getChilds(string parentName)
@@ -55,19 +57,41 @@ void VarSystemLibStorage::forEachChilds(string parentName, function<void(string,
 future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
 {
     auto names = this->getChilds(parentName);
-    vector<future<void>> pendingTasks;
+    vector<future<void>> *pendingTasks = new vector<future<void>>;
     for (auto &c: names)
     {
-        pendingTasks.push_back(taskerForParallel->enqueue([&](string name){
+        pendingTasks->push_back(taskerForParallel->enqueue([&](string name){
             f(name, this->get(name, ""));
         }, c));
     }
 
-    return taskerForParallel->enqueue([&](vector<future<void>> pendingTasks2){
-        for (auto &c: pendingTasks2)
+    auto ret = taskerForParallel->enqueue([&](){
+        for (auto &c: *pendingTasks)
             c.wait();
 
-        return;
-    }, std::move(pendingTasks));
+        pendingTasks->clear();
+        delete pendingTasks;
+    });
+
+    return ret;
     
+}
+
+string VarSystemLibStorage::escape(string text)
+{
+    text = Utils::stringReplace(text, {
+        std::make_tuple<string, string>("*", "__wildcard__")
+    });
+
+    return text;
+
+}
+
+string VarSystemLibStorage::unescape(string text)
+{
+    text = Utils::stringReplace(text, {
+        std::make_tuple<string, string>("__wildcard__", "*")
+    });
+
+    return text;
 }

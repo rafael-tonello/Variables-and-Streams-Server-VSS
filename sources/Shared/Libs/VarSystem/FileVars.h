@@ -49,9 +49,12 @@ namespace Shared
             pthread_t __Thread_syncToFsPointer;
 			bool debugMode = false;
 
+			bool running = true;
+
 			bool containsKey(string key);
 		public:
 			FileVars(string dirBase, bool isToUseCache);
+			~FileVars();
 			void set(string varName, string value);
 			void append(string varName, string value);
 			void setDouble(string varName, double value);

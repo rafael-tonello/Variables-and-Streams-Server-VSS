@@ -10,6 +10,9 @@
 #include <ThreadPool.h>
 #include <sys/wait.h>
 #include <sstream>
+#include <algorithm>
+#include <ranges>
+#include <iostream>
 
 using namespace std;
     using named_lock_f = function<void()>;
@@ -20,7 +23,7 @@ using namespace std;
     private: 
     #endif
         static mutex names_locks_mutexes_mutex;
-        static map<string, mutex*> names_locks_mutexes;
+        static map<string, timed_mutex*> names_locks_mutexes;
         static int idCount;
         static bool srandOk;
 
@@ -31,13 +34,18 @@ using namespace std;
         static vector <string> validProxies;
         static char proxyListInitializedState;
     public:
-        static void named_lock(string session_name, named_lock_f f);
+        static void named_lock(string session_name, named_lock_f f, int timeout_ms = -1);
+        static void named_lock_forceunlock(string session_name);
+        static int64_t getCurrentTimeMicroseconds();
         static int64_t getCurrentTimeMilliseconds();
         static int64_t getCurrentTimeSeconds();
 
+        static string StringToHex(string& input, size_t size);
         static string StringToHex(string& input);
-        static string ssystem (string, bool removeTheTheLastLF = true);
-        static future<string> asystem(string, bool removeTheTheLastLF = true);
+        static string charVecToHex(char* data, size_t size);
+        static string charVecToHex(const char* data, size_t size);
+        static string ssystem (string, bool removeTheLastLF = true);
+        static future<string> asystem(string, bool removeTheLastLF = true);
         static future<string> httpGet(string url, map<string, string> headers = {});
         static future<string> httpPost(string url, string body, string contentType = "application/json", map<string, string> headers = {});
         static void process_mem_usage(double& vm_usage, double& resident_set);
@@ -49,9 +57,23 @@ using namespace std;
         static void writeTextFileContent(string fileName, string content);
         static void appendTextFileContent(string fileName, string content);
 
-        static string findAndReplaceAll(std::string data, std::string toSearch, std::string replaceStr);
+        // static string findAndReplaceAll(std::string data, std::string toSearch, std::string replaceStr);
 
         static string downloadWithRandomProxy(string url, string destFileName, int maxTries = 5);
+
+        static string stringReplace(string source, string replace, string by);
+        static string stringReplace(string source, vector<tuple<string, string>> replaceAndByTuples);
+        static string sr(string source, string replace, string by){return stringReplace(source, replace, by);};
+        static string sr(string source, vector<tuple<string, string>> replaceAndByTuples){return stringReplace(source, replaceAndByTuples);};
+        
+        static bool isNumber(string source);
+
+        static map<void*, string> getANameDB;
+        enum NameType{ALGORITHM_GENERATED, REAL_NAME_COMBINATION};
+        static string getAName(int number, NameType typeOfName = ALGORITHM_GENERATED, int AlgoGenMaxSyllables = 3);
+        static string getAName(void* p, NameType typeOfName = ALGORITHM_GENERATED, int AlgoGenMaxSyllables = 3);
+
+        static string getNestedExceptionText(exception &e, string prefix ="", int level = 0);
 
 
         template<typename T>

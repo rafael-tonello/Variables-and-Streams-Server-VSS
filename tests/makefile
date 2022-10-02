@@ -12,7 +12,7 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Controller"
 CUSTOM_INCLUDE_PATH += -I"../sources/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis"
-CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis/PHOMAU"
+CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis/VSTP"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Misc"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs"
@@ -34,7 +34,7 @@ C_SOURCE=$(wildcard ./sources/*.cpp)
 C_SOURCE+=$(wildcard ./sources/mocks/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/Internal/*.cpp)
-C_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
@@ -44,7 +44,7 @@ C_SOURCE+=$(wildcard ../sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Apis/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Services/Apis/PHOMAU/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Services/Apis/VSTP/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Storage/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/*.cpp)
@@ -65,7 +65,7 @@ H_SOURCE=$(wildcard ./sources/*.h)
 H_SOURCE+=$(wildcard ./sources/mocks/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/Internal/*.h)
-H_SOURCE+=$(wildcard ./sources/Services/APIs/PHOMAU/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
@@ -75,7 +75,7 @@ H_SOURCE+=$(wildcard ../sources/Controller/*.h)
 H_SOURCE+=$(wildcard ../sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Apis/*.h)
-H_SOURCE+=$(wildcard ../sources/Services/Apis/PHOMAU/*.h)
+H_SOURCE+=$(wildcard ../sources/Services/Apis/VSTP/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Storage/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/*.h)
@@ -94,12 +94,12 @@ objFolder:
 	@ mkdir -p objects/tests/
 	@ mkdir -p objects/tests/Controller
 	@ mkdir -p objects/tests/Controller/Internal
-	@ mkdir -p objects/tests/Services/APIs/PHOMAU
+	@ mkdir -p objects/tests/Services/APIs/VSTP
 	@ mkdir -p objects/tests/Shared/Libs/DependencyInjectionManager
 	@ mkdir -p objects/tests/Shared/Libs/Confs
 	@ mkdir -p objects/tests/Shared/Libs/Confs/internal
 #	the main app directories
-	@ mkdir -p objects/main/Services/APIs/PHOMAU
+	@ mkdir -p objects/main/Services/APIs/VSTP
 	@ mkdir -p objects/main/Controller
 	@ mkdir -p objects/main/Controller/Internal
 	@ mkdir -p objects/main/Services

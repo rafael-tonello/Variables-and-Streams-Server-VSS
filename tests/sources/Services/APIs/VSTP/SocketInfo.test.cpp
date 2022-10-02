@@ -2,13 +2,13 @@
 
 vector<string> SocketInfoTester::getContexts()
 {
-    return {"APIs.PHOMAU"};
+    return {"APIs.VSTP"};
 
 }
 
 void SocketInfoTester::run(string context)
 {
-    if (context == "APIs.PHOMAU")
+    if (context == "APIs.VSTP")
     {
         this->yellowMessage("SocketInfo testes");
         long lastId = 0;

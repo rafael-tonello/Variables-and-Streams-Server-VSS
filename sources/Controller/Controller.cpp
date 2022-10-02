@@ -26,9 +26,9 @@ TheController::TheController(DependencyInjectionManager* dim)
 
     db = dim->get<StorageInterface>();
 
-    this->confs->observate("maxTimeWaitingClient", [&](DynamicVar newValue){
-        this->maxTimeWaitingClient = newValue.getInt64();
-    }, maxTimeWaitingClient);
+    this->confs->observate("maxTimeWaitingClient_seconds", [&](DynamicVar newValue){
+        this->maxTimeWaitingClient_seconds = newValue.getInt64();
+    }, maxTimeWaitingClient_seconds);
 
     srand(Utils::getCurrentTimeMilliseconds());
 }
@@ -288,7 +288,7 @@ void TheController::checkClientLiveTime(Controller_ClientHelper client)
 {
     if (!client.isConnected())
     {
-        if (!client.timeSinceLastLiveTime() >= maxTimeWaitingClient)
+        if (!client.timeSinceLastLiveTime() >= maxTimeWaitingClient_seconds)
         {
             deleteClient(client);
         }

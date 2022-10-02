@@ -5,7 +5,7 @@
 #include <regex>
 #include <tester.h>
 #include <unistd.h>
-#include "../../../../../sources/Services/APIs/PHOMAU/SocketInfo.h"
+#include "../../../../../sources/Services/APIs/VSTP/SocketInfo.h"
 #include "../../../../../sources/Shared/Libs/ThreadPool/ThreadPool.h"
 
 class SocketInfoTester: public Tester{

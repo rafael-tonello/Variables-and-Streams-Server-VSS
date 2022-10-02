@@ -8,15 +8,15 @@
 
 
 #include <Controller.h>
-#include "Services/APIs/PHOMAU/PHOMAU.h"
+#include "Services/APIs/VSTP/VSTP.h"
 #include <dependencyInjectionManager.h>
 #include <Confs.h>
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
 #include <SysLink.h>
 #include <logger.h>
-#include <logger/writers/LoggerConsoleWriter.h>
-#include <logger/writers/LoggerFileWriter.h>>
+#include <LoggerConsoleWriter.h>
+#include <LoggerFileWriter.h>>
 
 using namespace std;
 using namespace Controller;
@@ -32,6 +32,8 @@ void signalHandler( int signum ) {
 std::string getApplicationDirectory();
 std::string findConfigurationFile();
 std::string determinteLogFile();
+
+bool isRunningInPortableMode();
 void handleSignals();
 
 int main(){
@@ -41,23 +43,28 @@ int main(){
     DependencyInjectionManager dim;
     
     Shared::Config *conf = new Shared::Config(findConfigurationFile());
-    conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory()  + "/");
+    conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory());
 
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(true), new LoggerFileWriter(determinteLogFile())}));
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(), new LoggerFileWriter(determinteLogFile())}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(4));
     dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-    dim.addSingleton<PHOMAU>(new PHOMAU(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
+    dim.addSingleton<VSTP>(new VSTP(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
+
+
+    cout << "line 1" << endl;
+    cout << "line 2 " << endl;
+    cout << "line 2 ";
 
 
     auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */
         logger->info("", "the system is running");
-        logger->info("", "\tPHOMAU API port: 5021");
+        logger->info("", "\tVSTP API port: 5021");
     /* #endregion */
 
     //prevent program close (equivalent to while (true))
@@ -67,8 +74,8 @@ int main(){
     /* #region finalization of the program */
         logger->info("", "The program is exiting. Please wait...");
         //delete controller;
-        //delete phomau;
-        delete dim.get<PHOMAU>();
+        //delete vstp;
+        delete dim.get<VSTP>();
         delete dim.get<TheController>();
     /* #endregion */
 
@@ -83,24 +90,40 @@ std::string getApplicationDirectory()
     std::string appPath = std::string( result, (count > 0) ? count : 0 );
 
     std::size_t found = appPath.find_last_of("/\\");
-    return appPath.substr(0,found);
+    string directory = appPath.substr(0,found);
+
+    return directory;
+}
+
+
+bool isRunningInPortableMode()
+{
+    //use the conf file to check if app is runing in a portable mode
+    SysLink sl;
+    return sl.fileExists(getApplicationDirectory() + "/confs.conf");
 }
 
 std::string findConfigurationFile()
 {
     //determine the configuration file
-    SysLink sl;
+    
     string confFile = "/etc/vss/confs.conf";
-    if (sl.fileExists(getApplicationDirectory() + "/confs.confs"))
-        confFile = getApplicationDirectory() + "/confs.confs";
+
+    if (isRunningInPortableMode())
+        confFile = getApplicationDirectory() + "/confs.conf";
+
+    return confFile;
 }
 
 std::string determinteLogFile()
 {
-    SysLink sl;
-    string confFile = "/var/vss.log";
-    if (sl.fileExists(getApplicationDirectory() + "/vss.log"))
-        confFile = getApplicationDirectory() + "/vss.log";
+    string logFile = "/var/vss.log";
+
+    
+    if (isRunningInPortableMode())
+        logFile = getApplicationDirectory() + "/vss.log";
+
+    return logFile;
 }
 
 void handleSignals()

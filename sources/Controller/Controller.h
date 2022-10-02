@@ -53,7 +53,7 @@ namespace Controller{
         Shared::Config *confs;
         StorageInterface* db;
         ILogger *log;
-        int64_t maxTimeWaitingClient = 12*60*60;
+        int64_t maxTimeWaitingClient_seconds = 12*60*60;
 
         map<string, ApiInterface*> apis;
 

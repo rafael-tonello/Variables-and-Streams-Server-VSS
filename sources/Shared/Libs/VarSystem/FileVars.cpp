@@ -1,7 +1,8 @@
 #include "FileVars.h"
 
 namespace Shared
-{	void FileVars::append(string varName, string value)
+{	
+	void FileVars::append(string varName, string value)
 	{
 		string cacheName = this->getFileName(varName, false);
         varName += ".__value__";
@@ -45,11 +46,16 @@ namespace Shared
         pthread_create(&(this->__Thread_syncToFsPointer), NULL, ThreadFileVars_syncToFs, this);
 	}
 
+	FileVars::~FileVars()
+	{
+		running = false;
+	}
+
 	//change the value of a variable
 	void FileVars::set(string varName, string value)
 	{
-		string cacheName = this->getFileName(varName, false);
         varName += ".__value__";
+		string cacheName = this->getFileName(varName, false);
 
 		if (this->debugMode)
 			cout << "Set var "<<varName << endl << flush;
@@ -98,9 +104,9 @@ namespace Shared
 	//get a varlue of a variable
 	Var FileVars::get(string varName, string defaulValue)
 	{
+        varName += ".__value__";
 		string cacheName = this->getFileName(varName, false);
 
-        varName += ".__value__";
 		if (this->debugMode)
 			cout << "Get var "<<varName << endl << flush;
 		string result;
@@ -162,8 +168,8 @@ namespace Shared
             this->ramCache.erase(cacheName);
         }
 
-		varName = this->getFileName(varName, false);
         varName += ".__value__";
+		varName = this->getFileName(varName, false);
 		if (this->debugMode)
 			cout << "Del file "<<varName << endl << flush;
 		sysLink.deleteFile(varName);
@@ -221,15 +227,19 @@ namespace Shared
     {
         string varName;
 		size_t totalCacheSize = 0;
-        while (true)
+        while (running)
         {
             // for (int cont =0 ; cont < this->ramCache.size(); cont++)
             for (auto const& x : this->ramCache)
             {
                 if (x.second->varStateOnFs != AlreadySync)
                 {
-                    varName = this->getFileName(x.first, true);
+                    //varName = this->getFileName(x.first, true);
+					varName = x.first;
             		sysLink.waitAndLockFile(varName, 1000);
+
+					sysLink.createDirectory(sysLink.getDirectoryName(varName));
+
 					if (x.second->varStateOnFs == DataToBeSet)
 					{
             			sysLink.writeFile(varName, x.second->AsString());

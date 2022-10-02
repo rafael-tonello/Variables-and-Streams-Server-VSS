@@ -1,6 +1,3 @@
-[submodule "sources/Shared/Libs/Logger"]
-	path = sources/Shared/Libs/Logger
-	url = https://github.com/rafael-tonello/Logger.git
 [submodule "sources/Shared/Libs/DynamicVar"]
 	path = sources/Shared/Libs/DynamicVar
 	url = https://github.com/rafael-tonello/DynamicVar.git
@@ -10,3 +7,9 @@
 [submodule "sources/Shared/Libs/ThreadPool"]
 	path = sources/Shared/Libs/ThreadPool
 	url = https://github.com/rafael-tonello/ThreadPool.git
+[submodule "sources/Shared/Libs/DependencyInjection"]
+	path = sources/Shared/Libs/DependencyInjection
+	url = https://github.com/rafael-tonello/DependencyInjection.git
+[submodule "sources/Shared/Libs/Logger"]
+	path = sources/Shared/Libs/Logger
+	url = https://github.com/rafael-tonello/Logger.git

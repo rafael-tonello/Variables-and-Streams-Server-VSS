@@ -1,10 +1,10 @@
 Description: |
               this  protocol  was projected to be more easy to understanding and
-              implement  than PHOMAU. Is it based in a text file, i.e., commands 
+              implement  than PHOMAU. It is based in a text file, i.e., commands 
               are separated by a new line (\n).
-              Variables  and  values are separeted by a '=' char and command, is 
-              put  in  the  start  of  each 'line'. To better understand, take a
-              look in  the example bellow:
+              Variables  and  values are separeted by a '=' char, and the command
+              is  inserted in  the  start  of  each 'line'. To better understand, 
+              take a look in  the example bellow:
               
               vc:variable.name=newvalue\n
 

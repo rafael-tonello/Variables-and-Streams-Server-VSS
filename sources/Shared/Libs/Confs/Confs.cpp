@@ -51,7 +51,7 @@ DynamicVar Shared::Config::get(string varName, DynamicVar defaultValue)
 
 void Shared::Config::observate(string varName, ObserveFunction onVarChanged, DynamicVar defaultValueIfVarNotExists, bool forceFirstCall)
 {
-    defaultValueIfVarNotExists =  DynamicVar(applyPlaceHolders(defaultValueIfVarNotExists.getString()));
+    defaultValueIfVarNotExists =  DynamicVar(defaultValueIfVarNotExists.getString());
     //check if variable already exists. If not, creates them
     if (this->vars.count(varName) == 0)
         this->vars[varName] = {.lastValue = defaultValueIfVarNotExists};
@@ -61,12 +61,24 @@ void Shared::Config::observate(string varName, ObserveFunction onVarChanged, Dyn
 
     //cals by the first time
     if (forceFirstCall)
-        onVarChanged(this->vars[varName].lastValue);
+        onVarChanged(applyPlaceHolders(this->vars[varName].lastValue));
 }
 
 void Shared::Config::createPlaceHolder(string placeHolder, string value)
 {
     placeHolders.push_back(std::make_tuple(placeHolder, value));
+
+    for (auto &c : vars)
+    {
+        auto tmpName = c.first;
+
+        if (c.second.lastValue.getString().find(placeHolder) != string::npos)
+        {
+            auto tmpValue = applyPlaceHolders(c.second.lastValue);
+            for (auto &currObserver: c.second.observers)
+                currObserver(tmpValue);
+        }
+    }
 }
 
 string Shared::Config::applyPlaceHolders(string value)

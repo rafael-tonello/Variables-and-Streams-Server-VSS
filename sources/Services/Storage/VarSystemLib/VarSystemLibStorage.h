@@ -7,6 +7,7 @@
 #include <dependencyInjectionManager.h>
 #include <Confs.h>
 #include <ThreadPool.h>
+#include <utils.h>
  
 using namespace std;
 using namespace Shared;
@@ -17,6 +18,9 @@ class VarSystemLibStorage: public StorageInterface {
 private:
     shared_ptr<FileVars> db;
     Shared::Config *confs;
+
+    string escape(string text);
+    string unescape(string text);
 public: 
     VarSystemLibStorage(DependencyInjectionManager* dim);
     void set(string name, DynamicVar v);

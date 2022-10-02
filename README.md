@@ -26,16 +26,16 @@
 # things to do..
   When i wrote this app, I reused ancient codes, that was not very well structured. So some things should be refactored.
 
-  -> Dismember PHOMAU service/module in the following structure (just a suggestion):
+  -> Dismember VSTP service/module in the following structure (just a suggestion):
       serviceController - Orchestrate the workflow
-      phomau read and writer - recieve and write data to web sockets, puttin headers, sizes and checksums
-      pack processor and generator - interprete and create packs in the PHOMAU format (command + data)
+      VSTP read and writer - recieve and write data to web sockets, puttin headers, sizes and checksums
+      pack processor and generator - interprete and create packs in the VSTP format (command + data)
 
 
 # Task lists
 ## Main task List
     charaters to be used ✔ ✘
-    [x] Change folder 'source' name to 'sources' (look in the 'rastreio correios' project to see the makefile)
+    [✔] Change folder 'source' name to 'sources' (look in the 'rastreio correios' project to see the makefile)
     [✔] Alias is realy needed ? Remove alias system
     [✔] Very important: Mutex variables (lock and u \nlock). 'lock' o(setAndUnlock) and 'unlock' (setVar can't change this variables when locked). An ideia: lock can return an token that can be used by an special setLockedVar to change this value (this allow just one client to change a locked variable).
     [✔] Variables started with '_' are internal fla \gs. Do not allothis names
@@ -57,12 +57,13 @@
     [✔] Analyse the possibility of write var files  \in paralel (to besperformance/best latency)
     [ ] Import new Logger lib repository
     [ ] Import the TCPServer repo
+    [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
     [2] ControllerVarHelper
-    [✔] Services->APis->PHomau
-    [✔] Services->APis->Phomau->socketInfo
+    [✔] Services->APis->VSTP
+    [✔] Services->APis->VSTP->socketInfo
     [ ] Services->Storage->VarSystemLib
     [✔] Shared->Libs->Confs
     [✔] Shared->Libs->Confs->SimpleConfFileProvider

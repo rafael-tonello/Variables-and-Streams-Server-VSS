@@ -1,34 +1,34 @@
-#ifndef PHOMAU_TEST_H
-#define PHOMAU_TEST_H
+#ifndef VSTP_TEST_H
+#define VSTP_TEST_H
 
 #include <string>
 #include <regex>
 #include <tester.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "../../../../../sources/Services/APIs/PHOMAU/PHOMAU.h"
+#include "../../../../../sources/Services/APIs/VSTP/VSTP.h"
 #include "../../../../../sources/Services/APIs/ApiMediatorInterface.h"
 #include "../../../../../sources/Shared/Libs/ThreadPool/ThreadPool.h"
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 
 using namespace API;
-class  PhomauTester: public Tester, public API::ApiMediatorInterface{
+class  VstpTester: public Tester, public API::ApiMediatorInterface{
 private:
     ThreadPool th;
-    PHOMAU *ph;
+    VSTP *ph;
     int clientSocket = -1;
 
 
-    future<int> connectToPHOMAU();
+    future<int> connectToVSTP();
     void testeWriteFunction();
     void testTCPEndPoint();
     void testeProcessPackFunction();
 
     string convertStringToByteList(string s, size_t i = 0);
 public:
-    PhomauTester(){
-        ph = new PHOMAU(5100, this, new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_DEBUG)}));
+    VstpTester(){
+        ph = new VSTP(5100, this, new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_DEBUG)}));
     };
     vector<string> getContexts();
     void run(string context);

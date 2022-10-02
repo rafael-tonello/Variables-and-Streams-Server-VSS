@@ -1,14 +1,14 @@
-#include "PHOMAU.test.h"
+#include "VSTP.test.h"
 
-vector<string> PhomauTester::getContexts()
+vector<string> VstpTester::getContexts()
 {
-    return {"APIs.PHOMAU"};
+    return {"APIs.VSTP"};
 
 }
 
-void PhomauTester::run(string context)
+void VstpTester::run(string context)
 {
-    if (context == "APIs.PHOMAU")
+    if (context == "APIs.VSTP")
     {
 
         this->testeWriteFunction();
@@ -23,7 +23,7 @@ void PhomauTester::run(string context)
     }
 }
 
-void PhomauTester::testeProcessPackFunction()
+void VstpTester::testeProcessPackFunction()
 {
     this->yellowMessage("PROCESS_PACK function tests");
     //process pack function tests
@@ -34,7 +34,7 @@ void PhomauTester::testeProcessPackFunction()
         
         SocketInfo s;
         s.socket = 0;
-        this->ph->__PROCESS_PACK(PHOMAU_ACTIONS::SET_VAR, "var", "value", 5, s);
+        this->ph->__PROCESS_PACK(VSTP_ACTIONS::SET_VAR, "var", "value", 5, s);
 
         string received = this->getTag("setVar.lastCall.name") + "=" + this->getTag("setVar.lastCall.value");
 
@@ -55,7 +55,7 @@ void PhomauTester::testeProcessPackFunction()
         SocketInfo s;
         s.socket = 0;
         string expected = "vName:'var', defValue:'', result: 'gvr:var=value'";
-        this->ph->__PROCESS_PACK(PHOMAU_ACTIONS::GET_VAR, "var", "", 0, s);
+        this->ph->__PROCESS_PACK(VSTP_ACTIONS::GET_VAR, "var", "", 0, s);
 
         //"2 2 17 0 0 0 0 0 0 17 22 v a r = s a m p l e  v a l u e 0 0"
         string received = "vName:'"+this->getTag("getVar.lastCall.name") + "', defValue:'" + getTag("getVar.lastCall.value") + "', result: '"+Tester::global_test_result+"'";
@@ -70,11 +70,11 @@ void PhomauTester::testeProcessPackFunction()
 
 
 //this is an integration test
-void PhomauTester::testTCPEndPoint()
+void VstpTester::testTCPEndPoint()
 {
     this->yellowMessage("General tests in the TCP Server");
-    this->test("Connection to PHOMAU Server should result in a valid socket (>0)",[&](){
-        clientSocket = this->connectToPHOMAU().get();
+    this->test("Connection to VSTP Server should result in a valid socket (>0)",[&](){
+        clientSocket = this->connectToVSTP().get();
         return TestResult {
             clientSocket > 0,
             ">0",
@@ -88,7 +88,7 @@ void PhomauTester::testTCPEndPoint()
         this->setTag("setVar.lastCall.value", "");
         //prepare the buffer to be sent
 
-        string bytes = PHOMAU_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpointTestValue\n";
+        string bytes = VSTP_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpointTestValue\n";
         //write the buffer to the socket
         send(clientSocket, bytes.c_str(), bytes.size(), 0);
         //wait the response
@@ -113,7 +113,7 @@ void PhomauTester::testTCPEndPoint()
         this->setTag("setVar.lastCall.value", "");
         //prepare the buffer to be sent
 
-        string bytes = PHOMAU_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpoint\\nTestValue\n";
+        string bytes = VSTP_ACTIONS::SET_VAR + ":tcpEndpointTestVar=tcpEndpoint\\nTestValue\n";
         //write the buffer to the socket
         send(clientSocket, bytes.c_str(), bytes.size(), 0);
         //wait the response
@@ -133,22 +133,22 @@ void PhomauTester::testTCPEndPoint()
     });
 }
 
-void PhomauTester::testeWriteFunction()
+void VstpTester::testeWriteFunction()
 {
-    this->yellowMessage("PROTOCOL_PHOMAU_WRITE function tests");
+    this->yellowMessage("PROTOCOL_VSTP_WRITE function tests");
     //write pack function
-    this->test("PHOMAU::PROTOCOL_PHOMAU_WRITE(1, VAR_CHANGED, 'var=value', 9)", [&](){
+    this->test("VSTP::PROTOCOL_VSTP_WRITE(1, VAR_CHANGED, 'var=value', 9)", [&](){
         //need observate function output through the Tester::msgBus system
-        //string r = Tester::msgBusWaitNext("API::PHOMAU::__PROTOCOL_PHOMAU_WRITE output signal", [&](){
-            //interactc with function __PROTOCOL_PHOMAU_WRIET
+        //string r = Tester::msgBusWaitNext("API::VSTP::__PROTOCOL_VSTP_WRITE output signal", [&](){
+            //interactc with function __PROTOCOL_VSTP_WRIET
 
         //});
 
         global_test_result = "";
-        //interactc with function __PROTOCOL_PHOMAU_WRIET
+        //interactc with function __PROTOCOL_VSTP_WRIET
         SocketInfo si;
         si.socket = 0;
-        this->ph->__PROTOCOL_PHOMAU_WRITE(si, PHOMAU_ACTIONS::VAR_CHANGED, "var=value", 9);
+        this->ph->__PROTOCOL_VSTP_WRITE(si, VSTP_ACTIONS::VAR_CHANGED, "var=value", 9);
 
 
         return TestResult{
@@ -162,7 +162,7 @@ void PhomauTester::testeWriteFunction()
     });
 }
 
-future<int> PhomauTester::connectToPHOMAU()
+future<int> VstpTester::connectToVSTP()
 {
     return th.enqueue([&](){
         int sock = 0;
@@ -193,7 +193,7 @@ future<int> PhomauTester::connectToPHOMAU()
     });
 }
 
-string PhomauTester::convertStringToByteList(string s, size_t i){
+string VstpTester::convertStringToByteList(string s, size_t i){
     string r;
     if (i == 0)
         i = s.size();
@@ -205,7 +205,7 @@ string PhomauTester::convertStringToByteList(string s, size_t i){
 
 /*ApiMediatorInterface*/
 
-future<vector<tuple<string, DynamicVar>>> PhomauTester::getVar(string name, DynamicVar defaultValue)
+future<vector<tuple<string, DynamicVar>>> VstpTester::getVar(string name, DynamicVar defaultValue)
 {
     this->setTag("getVar.lastCall.name", name);
     this->setTag("getVar.lastCall.value", defaultValue.getString());
@@ -219,7 +219,7 @@ future<vector<tuple<string, DynamicVar>>> PhomauTester::getVar(string name, Dyna
     return prom.get_future(); 
 }
 
-future<void> PhomauTester::setVar(string name, DynamicVar value)
+future<void> VstpTester::setVar(string name, DynamicVar value)
 {
     this->setTag("vars."+name, value.getString());
 
@@ -234,7 +234,7 @@ future<void> PhomauTester::setVar(string name, DynamicVar value)
     return prom.get_future();
 }
 
-future<void> PhomauTester::delVar(string varname)
+future<void> VstpTester::delVar(string varname)
 {
     varname = "";
     promise<void> p;
@@ -242,41 +242,41 @@ future<void> PhomauTester::delVar(string varname)
     return p.get_future();
 }
 
-future<vector<string>> PhomauTester::getChildsOfVar(string parentName)
+future<vector<string>> VstpTester::getChildsOfVar(string parentName)
 {
     promise<vector<string>> p;
     p.set_value({});
     return p.get_future();
 }
 
-void PhomauTester::apiStarted(ApiInterface *api)
+void VstpTester::apiStarted(ApiInterface *api)
 {
 }
 
-string PhomauTester::clientConnected(string clientId, ApiInterface* api)
+string VstpTester::clientConnected(string clientId, ApiInterface* api)
 {
     
     return "";
 }
 
-void PhomauTester::observeVar(string varName, string clientId, ApiInterface* api)
+void VstpTester::observeVar(string varName, string clientId, ApiInterface* api)
 {
      
 }
 
-void PhomauTester::stopObservingVar(string varName, string clientId, ApiInterface* api)
+void VstpTester::stopObservingVar(string varName, string clientId, ApiInterface* api)
 {
 
 }
 
-future<void> PhomauTester::lockVar(string varName)
+future<void> VstpTester::lockVar(string varName)
 {
     promise<void> p;
     p.set_value();
     return p.get_future();
 }
 
-future<void> PhomauTester::unlockVar(string varName)
+future<void> VstpTester::unlockVar(string varName)
 {
     promise<void> p;
     p.set_value();
