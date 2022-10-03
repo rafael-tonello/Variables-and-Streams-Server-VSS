@@ -47,7 +47,7 @@
     [✔] Create a logger library
     [✔] Create the configuration system (observable \ configuratiosystem)
     [ ] Paralel project (app server)
-    [ ] Create the Controller_VarHelper to isolate v \ars logic forController
+    [✔] Create the Controller_VarHelper to isolate v \ars logic forController
     [ ] Move all code of main.cpp to a class
   
     [ ] Convert configs to a repository
@@ -55,13 +55,13 @@
   
     [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
     [✔] Analyse the possibility of write var files  \in paralel (to besperformance/best latency)
-    [ ] Import new Logger lib repository
-    [ ] Import the TCPServer repo
+    [✔] Import new Logger lib repository
+    [✔] Import the TCPServer repo
     [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
-    [2] ControllerVarHelper
+    [✔] ControllerVarHelper
     [✔] Services->APis->VSTP
     [✔] Services->APis->VSTP->socketInfo
     [ ] Services->Storage->VarSystemLib
@@ -77,8 +77,10 @@
     [ ] Shared->Misc->Observable
     [ ] Shared->Misc->TaggedObject
 
+    19/38
+
 # Project Progress
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░ ~47%
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░ ~50%
 
 ```
 +---------+           +------------ server -----------+
