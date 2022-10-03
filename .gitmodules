@@ -13,3 +13,6 @@
 [submodule "sources/Shared/Libs/Logger"]
 	path = sources/Shared/Libs/Logger
 	url = https://github.com/rafael-tonello/Logger.git
+[submodule "sources/Shared/Libs/TCPServer"]
+	path = sources/Shared/Libs/TCPServer
+	url = https://github.com/rafael-tonello/TCPServer.git

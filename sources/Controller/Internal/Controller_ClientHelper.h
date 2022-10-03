@@ -1,11 +1,11 @@
 #ifndef __CLIENTINFO__H__ 
-#define __CLIENTINFO__H__ ]
+#define __CLIENTINFO__H__
 
 #include <StorageInterface.h>
 #include <ApiInterface.h>
 #include <string>
 #include <DynamicVar.h>
-#include <Utils.h>
+#include <utils.h>
 #include <logger.h>
 #include "Controller_VarHelper.h"
 

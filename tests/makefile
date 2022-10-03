@@ -11,8 +11,8 @@ CUSTOM_INCLUDE_PATH = -I"./sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Controller"
 CUSTOM_INCLUDE_PATH += -I"../sources/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services"
-CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis"
-CUSTOM_INCLUDE_PATH += -I"../sources/Services/Apis/VSTP"
+CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs"
+CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs/VSTP"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Misc"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs"
@@ -20,10 +20,10 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DynamicVar/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/json_maker/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Confs"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Confs/internal"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DependencyInjectionManager"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger/sources"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/logger/sources/writers"
-CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/TCPServer"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DependencyInjection/sources"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Logger/sources"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Logger/sources/writers"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/TCPServer/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/VarSystem"
 
@@ -43,8 +43,8 @@ C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Services/Apis/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Services/Apis/VSTP/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Services/APIs/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Storage/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/*.cpp)
@@ -52,10 +52,10 @@ C_SOURCE+=$(wildcard ../sources/Shared/Libs/DynamicVar/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/json_maker/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/internal/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjectionManager/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/writers/*.cpp)
-C_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjection/sources/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/writers/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.cpp)
   
@@ -74,8 +74,8 @@ H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
 H_SOURCE+=$(wildcard ../sources/Controller/*.h)
 H_SOURCE+=$(wildcard ../sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/*.h)
-H_SOURCE+=$(wildcard ../sources/Services/Apis/*.h)
-H_SOURCE+=$(wildcard ../sources/Services/Apis/VSTP/*.h)
+H_SOURCE+=$(wildcard ../sources/Services/APIs/*.h)
+H_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Storage/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/*.h)
@@ -83,10 +83,10 @@ H_SOURCE+=$(wildcard ../sources/Shared/Libs/json_maker/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/DynamicVar/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/Confs/internal/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjectionManager/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/logger/sources/writers/*.h)
-H_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/DependencyInjection/sources/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/writers/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.h)
 
@@ -108,9 +108,9 @@ objFolder:
 	@ mkdir -p objects/main/Shared/Libs/DynamicVar/sources
 	@ mkdir -p objects/main/Shared/Libs/json_maker/sources
 	@ mkdir -p objects/main/Shared/Libs/Confs/internal
-	@ mkdir -p objects/main/Shared/Libs/DependencyInjectionManager
-	@ mkdir -p objects/main/Shared/Libs/logger/sources/writers
-	@ mkdir -p objects/main/Shared/Libs/TCPServer
+	@ mkdir -p objects/main/Shared/Libs/DependencyInjection/sources
+	@ mkdir -p objects/main/Shared/Libs/Logger/sources/writers
+	@ mkdir -p objects/main/Shared/Libs/TCPServer/sources
 	@ mkdir -p objects/main/Shared/Libs/ThreadPool
 	@ mkdir -p objects/main/Shared/Libs/VarSystem
 	
@@ -136,8 +136,6 @@ CC_FLAGS=-D__TESTING__ \
 		 -c			\
          -ansi      \
 		 -pthread   \
-		 -lssl		\
-		 -lcrypto	\
 		 -g			\
 		 -std=c++17 \
 		 -I"./sources/" \
@@ -152,8 +150,6 @@ CC_FLAGS=-D__TESTING__ \
 LK_FLAGS=-D__TESTING__\
          -ansi      \
 		 -pthread   \
-		 -lssl		\
-		 -lcrypto	\
 		 -g			\
 		 -std=c++17 \
 		 -I"./sources/" \

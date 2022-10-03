@@ -77,9 +77,9 @@
     [ ] Shared->Misc->Observable
     [ ] Shared->Misc->TaggedObject
 
-    19/38
+    
 
-# Project Progress
+# Project Progress (19/38)
     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░ ~50%
 
 ```

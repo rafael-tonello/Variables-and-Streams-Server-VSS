@@ -6,7 +6,6 @@
 
 #include "tester.h"
 
-#include "./Services/APIs/VSTP/SocketInfo.test.h"
 #include "./Services/APIs/VSTP/VSTP.test.h"
 #include "./Controller/Controller.test.h"
 #include "./Shared/Libs/DependencyInjectionManager/DependencyInjectionManager.test.h"
@@ -26,7 +25,6 @@ int main(int argc, char* argv[]){
 
     //***** testers instances
     //***** make your changes only here
-        testers.push_back(new SocketInfoTester());
         testers.push_back(new VstpTester());
         testers.push_back(new DependencyInjectionManagerTester());
         testers.push_back(new SimpleConfFileProviderTester());
