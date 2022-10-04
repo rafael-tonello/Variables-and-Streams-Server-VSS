@@ -22,7 +22,7 @@ main()
             if [ "$?" == "0" ]; then
                 updateBinariesAndRun
                 if [ "$?" == "0" ]; then                    
-                    sendTelegram "🙏😄😄 Ok, all right with the deploy 😄😄🙏"
+                    sendTelegram "🙏😄😄 Ok! The deployment was successful! 😄😄🙏"
                     make_stage_failure_chart "sucess"
                     sendTelegram "$_return"
                 else
@@ -155,20 +155,23 @@ build()
 
 updateBinariesAndRun()
 {
-    "Updating binaries"
+    echo "Updating binaries"
     kill $(pgrep $binaryName)
     rm -rf $rundir.bak
     cp -r $rundir $rundir.bak
     
     cp -f "$workdir/build/"* "$rundir/"
-    cd $rundir
     echo "Running main App"
+    cd $rundir
     ./$binaryName &
     sleep 10
     pgrep $binaryName
-    if [ "$?" == "0" ]; then
+    pgr=$?
+    echo "pgr=$pgr"
+    if [ "$pgr" == "0" ]; then
         return 0
     else
+        return 1
         revertBinaryBackup &
         rbbPid=$!
         sendTelegram "⚠ The new binary version ran with failure ⚠" &

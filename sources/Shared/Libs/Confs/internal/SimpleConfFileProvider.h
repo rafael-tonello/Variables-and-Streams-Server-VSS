@@ -26,7 +26,7 @@ namespace Shared{
     #ifdef __TESTING__
         public:
     #endif
-        const string separatorChars = "=: ";
+        const string separatorChars = "=:";
         string filename;
         IConfigurationProvider_onData _onData;
 
