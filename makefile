@@ -8,7 +8,7 @@ CUSTOM_INCLUDE_PATH = -I"./sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Controller"
 CUSTOM_INCLUDE_PATH += -I"./sources/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services"
-CUSTOM_INCLUDE_PATH += -I"./sources/Services/Apis"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/APIs"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Misc"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs"
@@ -103,10 +103,8 @@ CC_FLAGS=-c			\
          -ansi      \
          -pedantic  \
 		 -pthread   \
-		 -lssl		\
-		 -lcrypto	\
 		 -g			\
-		 -std=c++11 \
+		 -std=c++17 \
 		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
 
@@ -116,10 +114,8 @@ LK_FLAGS=-W         \
          -ansi      \
          -pedantic  \
 		 -pthread   \
-		 -lssl		\
-		 -lcrypto	\
 		 -g			\
-		 -std=c++11 \
+		 -std=c++17 \
 		 -I"./sources/" \
 		 $(CUSTOM_INCLUDE_PATH)
  

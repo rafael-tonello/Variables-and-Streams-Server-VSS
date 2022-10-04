@@ -6,7 +6,7 @@
 #include <vector>
 #include <mutex>
 #include <functional>
-#include  <DynamicVar.h>
+#include <DynamicVar.h>
 #include <ThreadPool.h>
 #include <ApiMediatorInterface.h>
 #include <Confs.h>
