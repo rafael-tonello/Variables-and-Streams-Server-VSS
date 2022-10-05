@@ -180,6 +180,7 @@ updateBinariesAndRun()
     
     cp -f "$workdir/build/"* "$rundir/"
     echo "Running main App"
+    cd /
     cd $rundir
     ./$binaryName &
     sleep 10
