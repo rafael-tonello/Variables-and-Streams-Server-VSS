@@ -78,7 +78,7 @@ waitNextChange()
 {
     while [ true ]; do
         #check if $binaryName exists (first deploy)
-        if [ ! -f "$rundir/$binaryName"]; then
+        if [ ! -f "$rundir/$binaryName" ]; then
             sendTelegram "Binary file not found. Starting first deploy"
             return 0
         fi
