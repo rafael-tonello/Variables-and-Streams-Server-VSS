@@ -22,6 +22,8 @@ CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/DependencyInjection/sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/TCPServer/sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/VarSystem"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/ServerDiscovery"
+
 
 # .c files
 C_SOURCE=$(wildcard ./sources/*.cpp)
@@ -45,7 +47,8 @@ C_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/sources/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Misc/*.cpp)
- 
+C_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.cpp)
+
 # .h files
 H_SOURCE=$(wildcard ./sources/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/*.h)
@@ -68,6 +71,7 @@ H_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/sources/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Misc/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.h)
 
 objFolder:
 	@ mkdir -p objects/Controller/Internal
@@ -83,6 +87,7 @@ objFolder:
 	@ mkdir -p objects/Shared/Libs/ThreadPool
 	@ mkdir -p objects/Shared/Libs/TCPServer/sources
 	@ mkdir -p objects/Shared/Libs/VarSystem
+	@ mkdir -p objects/Services/ServerDiscovery
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.

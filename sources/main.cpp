@@ -16,7 +16,8 @@
 #include <SysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
-#include <LoggerFileWriter.h>>
+#include <LoggerFileWriter.h>
+#include <ServerDiscovery.h>
 
 using namespace std;
 using namespace Controller;
@@ -53,6 +54,7 @@ int main(){
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
+    dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim));
 
 
     auto logger = dim.get<ILogger>();

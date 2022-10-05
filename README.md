@@ -107,8 +107,3 @@
   |                    |    |                     |<-+
   |                    |    |                     |
 ```
-
-
-
-
-broadcast upd: https://www.cs.ubbcluj.ro/~dadi/compnet/labs/lab3/udp-broadcast.html
