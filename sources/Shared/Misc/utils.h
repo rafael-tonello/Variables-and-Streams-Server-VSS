@@ -11,7 +11,6 @@
 #include <sys/wait.h>
 #include <sstream>
 #include <algorithm>
-#include <ranges>
 #include <iostream>
 
 using namespace std;

@@ -171,7 +171,6 @@ updateBinariesAndRun()
     if [ "$pgr" == "0" ]; then
         return 0
     else
-        return 1
         revertBinaryBackup &
         rbbPid=$!
         sendTelegram "⚠ The new binary version ran with failure ⚠" &
