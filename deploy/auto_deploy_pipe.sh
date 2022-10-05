@@ -77,13 +77,19 @@ sendTelegramFile()
 waitNextChange()
 {
     while [ true ]; do
+        #check if $binaryName exists (first deploy)
+        if [ ! -f "$rundir/$binaryName"]; then
+            sendTelegram "Binary file not found. Starting first deploy"
+            return 0
+        fi
+
         cd $workdir
         local c1=$(git log -n 1 main --pretty=format:"%H")
         git pull
         local c2=$(git log -n 1 main --pretty=format:"%H")
 
         if [ "$c1" != "$c2" ]; then
-            return
+            return 0
         fi
 
         sleep $versionCheckInteval_seconds
