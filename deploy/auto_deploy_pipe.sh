@@ -37,15 +37,20 @@ deploy()
                 sendTelegram "🙏😄😄 Ok! The deployment was successful! 😄😄🙏"
                 make_stage_failure_chart "sucess"
                 sendTelegram "$_return"
+                return 0
             else
                 sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
+                return 1
             fi
         else
             sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
+            return 2
         fi
     else
         sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
+        return 3
     fi
+    return 4
 }
 
 make_stage_failure_chart()
