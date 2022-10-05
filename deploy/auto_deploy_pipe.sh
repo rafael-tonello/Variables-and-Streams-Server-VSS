@@ -5,7 +5,7 @@ binaryName=VarServer
 workdir=/root/homeaut2_workdir
 telegramSender=/root/sendToTelegram.sh
 clearObjectsBeforeMake=true
-versionCheckInteval_seconds=10
+versionCheckInteval_seconds=60
 
 _return=""
 nl=$'\n'
