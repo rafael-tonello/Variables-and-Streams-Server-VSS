@@ -12,29 +12,40 @@ nl=$'\n'
 
 main()
 {
+    #check if $binaryName exists (first deploy)
+    if [ ! -f "$rundir/$binaryName" ]; then
+        sendTelegram "Binary file not found. Starting first deploy"
+        deploy
+    fi
+
     while [ true ]; do
         waitNextChange
         sendTelegram "Hey! A new VSS deploy pipeline was started!"
-        tests
+        deploy
+    done
+}
+
+deploy()
+{
+    tests
+    if [ "$?" == "0" ]; then
+        echo "building app"
+        build
         if [ "$?" == "0" ]; then
-            echo "building app"
-            build
-            if [ "$?" == "0" ]; then
-                updateBinariesAndRun
-                if [ "$?" == "0" ]; then                    
-                    sendTelegram "🙏😄😄 Ok! The deployment was successful! 😄😄🙏"
-                    make_stage_failure_chart "sucess"
-                    sendTelegram "$_return"
-                else
-                    sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
-                fi
+            updateBinariesAndRun
+            if [ "$?" == "0" ]; then                    
+                sendTelegram "🙏😄😄 Ok! The deployment was successful! 😄😄🙏"
+                make_stage_failure_chart "sucess"
+                sendTelegram "$_return"
             else
                 sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
             fi
         else
             sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
         fi
-    done
+    else
+        sendTelegram "🆘🆘🆘🆘🆘😕😕😕😕🆘🆘🆘🆘🆘$nl👀Unfortunately the deploy process can't be completed👀"
+    fi
 }
 
 make_stage_failure_chart()
@@ -77,11 +88,7 @@ sendTelegramFile()
 waitNextChange()
 {
     while [ true ]; do
-        #check if $binaryName exists (first deploy)
-        if [ ! -f "$rundir/$binaryName" ]; then
-            sendTelegram "Binary file not found. Starting first deploy"
-            return 0
-        fi
+        
 
         cd $workdir
         local c1=$(git log -n 1 main --pretty=format:"%H")
