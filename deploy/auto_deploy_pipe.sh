@@ -1,9 +1,9 @@
 #!/bin/bash
 
-rundir=/root/bin
+rundir=/home/orangepi/vss/run
 binaryName=VarServer
-workdir=/root/homeaut2_workdir
-telegramSender=/root/sendToTelegram.sh
+workdir=/home/orangepi/vss/workdir
+telegramSender=/home/orangepi/scripts/sendToTelegram.sh
 clearObjectsBeforeMake=true
 versionCheckInteval_seconds=60
 
