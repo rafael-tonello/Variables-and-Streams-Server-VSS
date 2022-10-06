@@ -97,10 +97,10 @@ string ServerDiscovery::getServerInfo(string clientIp)
     //detect the most problame ip
     string tmp = getMostProbaleIp(ips, clientIp);
     if (tmp != "")
-        info += " vss main ip:"+tmp + "\n";
+        info += " vss main ip: "+tmp + "\n";
 
     for (auto &c: ips)
-        info += " vss ip:"+c + "\n";
+        info += " vss ip: "+c + "\n";
 
     info += "}";
     return info;
