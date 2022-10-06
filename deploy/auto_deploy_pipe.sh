@@ -2,6 +2,7 @@
 
 rundir=/home/orangepi/vss/run
 binaryName=VarServer
+mainLogFile=/home/orangepi/vss/run/vss.log
 workdir=/home/orangepi/vss/workdir
 telegramSender=/home/orangepi/scripts/sendToTelegram.sh
 clearObjectsBeforeMake=true
@@ -9,6 +10,7 @@ versionCheckInteval_seconds=60
 
 _return=""
 nl=$'\n'
+currAppState="running"
 
 main()
 {
@@ -17,6 +19,8 @@ main()
         sendTelegram "Binary file not found. Starting first deploy"
         deploy
     fi
+
+    checkAppRunning &
 
     while [ true ]; do
         waitNextChange
@@ -53,47 +57,9 @@ deploy()
     return 4
 }
 
-make_stage_failure_chart()
-{
-    legend="  1) Build tests$nl  2) Run tests$nl  3) Build app$nl  4) Update binaries$nl  5) Run new binary version"
-#    err=✕
-    err=x
-    sus=✓
-#    err=⛔️
-#    sus=✅
-    if [ "$1" == "buildTests" ]; then
-        _return="[$err]-->[2]-->[3]-->[4]-->[5]$nl$legend"
-    elif [ "$1" == "runTests" ]; then
-        _return="[$sus]==>[$err]-->[3]-->[4]-->[5]$nl$legend"
-    elif [ "$1" == "buildApp" ]; then
-        _return="[$sus]==>[$sus]==>[$err]-->[4]-->[5]$nl$legend"
-    elif [ "$1" == "updateBinaries" ]; then
-        _return="[$sus]==>[$sus]==>[$sus]==>[$err]-->[5]$nl$legend"
-    elif [ "$1" == "run" ]; then
-        _return="[$sus]==>[$sus]==>[$sus]==>[$sus]==>[$err]$nl$legend"
-    else
-        _return="[$sus]==>[$sus]==>[$sus]==>[$sus]==>[$sus]$nl$legend"
-    fi
-}
-
-sendTelegram()
-{
-    echo "Sending to Telegram: $1"
-    $telegramSender "$1" > /dev/null 2>&1
-    sleep 5
-}
-
-sendTelegramFile()
-{
-    echo "Sending file '$1' to Telegram"
-    $telegramSender sendFile "$1" > /dev/null 2>&1
-    sleep 5
-}
-
 waitNextChange()
 {
     while [ true ]; do
-        
 
         cd $workdir
         local c1=$(git log -n 1 main --pretty=format:"%H")
@@ -174,6 +140,7 @@ build()
 updateBinariesAndRun()
 {
     echo "Updating binaries"
+    currAppState="updating"
     kill $(pgrep $binaryName)
     rm -rf $rundir.bak
     cp -r $rundir $rundir.bak
@@ -188,6 +155,7 @@ updateBinariesAndRun()
     pgr=$?
     echo "pgr=$pgr"
     if [ "$pgr" == "0" ]; then
+    	currAppState="running"
         return 0
     else
         revertBinaryBackup &
@@ -220,8 +188,10 @@ revertBinaryBackup()
         
     if [ "$?" == "0" ]; then
     	sendTelegram "Rollback done with sucess"
+    	currAppState="running"
         return 0
     else
+    	currAppState="stopped"
         sendTelegram "⚠⚠⚠⚠⚠⚠⚠ The rollback failed ⚠⚠⚠⚠⚠⚠⚠"
 #        sendTelegram "⚠⚠⚠⚠⚠⚠⚠ The rollback failed ⚠⚠⚠⚠⚠⚠⚠"
 #        sendTelegram "⚠⚠⚠⚠⚠⚠⚠ The rollback failed ⚠⚠⚠⚠⚠⚠⚠"
@@ -240,6 +210,88 @@ waitPid()
         fi
         sleep 0.5
     done
+}
+
+make_stage_failure_chart()
+{
+    legend="  1) Build tests$nl  2) Run tests$nl  3) Build app$nl  4) Update binaries$nl  5) Run new binary version"
+#    err=✕
+    err=x
+    sus=✓
+#    err=⛔️
+#    sus=✅
+    if [ "$1" == "buildTests" ]; then
+        _return="[$err]-->[2]-->[3]-->[4]-->[5]$nl$legend"
+    elif [ "$1" == "runTests" ]; then
+        _return="[$sus]==>[$err]-->[3]-->[4]-->[5]$nl$legend"
+    elif [ "$1" == "buildApp" ]; then
+        _return="[$sus]==>[$sus]==>[$err]-->[4]-->[5]$nl$legend"
+    elif [ "$1" == "updateBinaries" ]; then
+        _return="[$sus]==>[$sus]==>[$sus]==>[$err]-->[5]$nl$legend"
+    elif [ "$1" == "run" ]; then
+        _return="[$sus]==>[$sus]==>[$sus]==>[$sus]==>[$err]$nl$legend"
+    else
+        _return="[$sus]==>[$sus]==>[$sus]==>[$sus]==>[$sus]$nl$legend"
+    fi
+}
+
+sendTelegram()
+{
+    echo "Sending to Telegram: $1"
+    $telegramSender "$1" > /dev/null 2>&1
+    sleep 5
+}
+
+sendTelegramFile()
+{
+    echo "Sending file '$1' to Telegram"
+    $telegramSender sendFile "$1" > /dev/null 2>&1
+    sleep 5
+}
+
+checkAppRunning()
+{
+    
+
+    #at first moment, just rum app if it is not running
+    pgrep $binaryName
+    pgr=$?
+    echo "checkAppRunning pid=$pgr"
+    if [ "$pgr" != "0" ]; then
+        sendTelegram "App $binaryName is not running, starting it now!"
+        cd $rundir
+        ./$binaryName &
+        sleep 10
+        pgrep $binaryName
+        if [ "$?" != "0" ]; then
+            sendTelegram "⚠Hey! Failed to start app $binaryName⚠"
+            currAppState="stopped"
+        fi
+    fi;
+
+    while [ true ]; do
+        pgrep $binaryName >/dev/null
+        if [ "$?" == "0" ]; then
+            #running
+            if [ "$currAppState" == "stopped" ]; then
+            	sendTelegram "👀the app $binaryName is running again !!👀" &
+            	currAppState="running"
+            fi
+        else
+            #stopped
+            if [ "$currAppState" == "running" ]; then
+                currAppState="stopped"
+                sendTelegram "🆘the app $binaryName stopped running!!🆘\n👀" &
+                sleep 1
+                sendTelegram "Here go the last 100 lines of main log file" &
+                sleep 1
+                cat $mainLogFile | tail -n 100 > /tmp/last100logLines.log
+                sendTelegramFile /tmp/last100logLines.log
+            fi
+        fi
+
+        sleep 5;
+    done;
 }
 
 main
