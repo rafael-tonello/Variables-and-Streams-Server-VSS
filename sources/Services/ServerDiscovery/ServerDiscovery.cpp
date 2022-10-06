@@ -2,9 +2,9 @@
 
 
 
-ServerDiscovery::ServerDiscovery(DependencyInjectionManager &dim)
+ServerDiscovery::ServerDiscovery(DependencyInjectionManager &dim, string version)
 {
-    auto ips = getServerInfo();
+    this->serverVersion = version;
     this->log = dim.get<ILogger>()->getNamedLoggerP("ServerDiscovery");
     thread th([&](){ this->run();});
     th.detach();
@@ -55,12 +55,14 @@ void ServerDiscovery::run()
                 int readCount = recvfrom(listener, buffer, 255, 0, (struct sockaddr *) &cli_addr, &cliLen);
                 if (readCount > 0)
                 {             
-                    log->info("Received "+to_string(readCount) + " bytes from "+string(inet_ntoa(cli_addr.sin_addr))+".");
+                    string cliIp = string(inet_ntoa(cli_addr.sin_addr));
+                    log->info("Received "+to_string(readCount) + " bytes from "+cliIp+".");
                     
                     if (IsAServerSearchMessage(string(buffer, readCount)))
                     {
-                        log->info("Received a valid message from "+ string(inet_ntoa(cli_addr.sin_addr)) +": "+string(buffer, readCount));
-                        string response = getServerInfo();
+                        log->info("Received a valid message from "+ cliIp +": "+string(buffer, readCount));
+                        string response = getServerInfo(cliIp);
+                        response += "\n";
                         sendto(listener, response.c_str(), response.size(), 0, (struct sockaddr*) &cli_addr, cliLen);
                     }
 
@@ -86,13 +88,21 @@ bool ServerDiscovery::IsAServerSearchMessage(string message)
     return message.find("where is vss?") != string::npos || message.find("wiv") != string::npos;
 }
 
-string ServerDiscovery::getServerInfo()
+string ServerDiscovery::getServerInfo(string clientIp)
 {
     auto ips = getServerIps();
-    string info = "Vss ips:\n";
-    for (auto &c: ips)
-        info += c + "\n";
+    string info = "Vss server info:{\n";
+    info += " version: "+ this->serverVersion + "\n";
 
+    //detect the most problame ip
+    string tmp = getMostProbaleIp(ips, clientIp);
+    if (tmp != "")
+        info += " vss main ip:"+tmp + "\n";
+
+    for (auto &c: ips)
+        info += " vss ip:"+c + "\n";
+
+    info += "}";
     return info;
 }
  
@@ -127,6 +137,34 @@ vector<string> ServerDiscovery::getServerIps()
 
     return result;
 }
+
+int ServerDiscovery::getStringCompatibility(string string1 , string string2)
+{
+    size_t ret =0;
+    while (ret< string1.size() && ret < string2.size() && string1[ret] == string2[ret])
+        ret++;
+
+    return (int)ret;
+}
+
+string ServerDiscovery::getMostProbaleIp(vector<string> ips, string clientIp)
+{
+    string ret = "";
+    int bestCompatibility = 0;
+
+    for (auto &c: ips)
+    {
+        int currCompatibility = getStringCompatibility(c, clientIp);
+        if (currCompatibility > bestCompatibility)
+        {
+            bestCompatibility = currCompatibility;
+            ret = c;
+        }
+    }
+
+    return ret;
+}
+
 
 string ServerDiscovery::ssystem (string command, bool removeTheLastLF) {
     //todo:change it to use popen (https://stackoverflow.com/questions/45202379/how-does-popen-work-and-how-to-implement-it-into-c-code-on-linux)

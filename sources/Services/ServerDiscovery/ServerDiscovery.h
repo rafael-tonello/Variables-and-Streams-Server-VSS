@@ -27,17 +27,20 @@ private:
     int port = 5022;
     NLogger *log;
     bool running = true;
+    string serverVersion = "";
 
     bool SetSocketBlockingEnabled(int fd, bool blocking);
     void run();
     bool IsAServerSearchMessage(string message);
-    string getServerInfo();
+    string getServerInfo(string clientIp);
     vector<string> getServerIps();
 
     //the ssystem inside Utils.h  is not working weel with '&>>' pipe redirect and must be tested
     string ssystem (string, bool removeTheLastLF = true);
+    int getStringCompatibility(string string1 , string string2);
+    string getMostProbaleIp(vector<string> ips, string clientIp);
 public: 
-    ServerDiscovery(DependencyInjectionManager &dim); 
+    ServerDiscovery(DependencyInjectionManager &dim, string version); 
     ~ServerDiscovery(); 
 }; 
  

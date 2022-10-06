@@ -37,8 +37,13 @@ std::string determinteLogFile();
 bool isRunningInPortableMode();
 void handleSignals();
 
+
+//semantic versioning
+string INFO_VERSION = "1.0.0";
+
 int main(){
     
+
     handleSignals();  
     
     DependencyInjectionManager dim;
@@ -54,7 +59,7 @@ int main(){
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(5021, dim.get<ApiMediatorInterface>(), dim.get<ILogger>()));
-    dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim));
+    dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 
     auto logger = dim.get<ILogger>();
