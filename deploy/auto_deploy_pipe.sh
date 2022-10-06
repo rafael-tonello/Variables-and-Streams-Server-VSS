@@ -11,6 +11,7 @@ versionCheckInteval_seconds=60
 _return=""
 nl=$'\n'
 currAppState="running"
+makeAndTestNiceness=19
 
 main()
 {
@@ -87,12 +88,12 @@ tests()
 	echo "Building tests"
     rm -rf ./build
 	
-	make all > /tmp/mkTestsResult.log 2>&1
+	nice -$makeAndTestNiceness make all > /tmp/mkTestsResult.log 2>&1
 	if [ "$?" == "0" ]
 	then
 		cd build
 		echo "Running tests"
-		./tests > /tmp/testsResult.log 2>&1
+		nice -$makeAndTestNiceness ./tests > /tmp/testsResult.log 2>&1
 		if [ "$?" == "0" ]
 		then
 		    return 0
@@ -125,7 +126,7 @@ build()
 	echo "Building main project"
     rm -rf ./build
 	
-	make all > /tmp/mkResult.log 2>&1
+	nice -$makeAndTestNiceness make all > /tmp/mkResult.log 2>&1
 	if [ "$?" == "0" ]
 	then
 	    return 0
