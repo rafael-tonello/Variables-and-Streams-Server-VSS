@@ -31,6 +31,7 @@ main()
 
 deploy()
 {
+    currAppState="deploying"
     tests
     if [ "$?" == "0" ]; then
         echo "building app"

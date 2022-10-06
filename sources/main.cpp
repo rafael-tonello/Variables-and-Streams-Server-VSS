@@ -39,7 +39,7 @@ void handleSignals();
 
 
 //semantic versioning
-string INFO_VERSION = "1.0.0";
+string INFO_VERSION = "1.0.1";
 
 int main(){
     
