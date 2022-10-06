@@ -13,6 +13,7 @@ ServerDiscovery::ServerDiscovery(DependencyInjectionManager &dim)
 ServerDiscovery::~ServerDiscovery() 
 { 
     running = false;
+    usleep(10000);
     delete this->log;
 }
 
@@ -21,7 +22,7 @@ void ServerDiscovery::run()
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
 
-    socklen_t cliLen = sizeof(cli_addr);
+    socklen_t cliLen = sizeof(serv_addr);
 
     char buffer[255] = {0};
 
@@ -33,10 +34,14 @@ void ServerDiscovery::run()
     {
         int reuse = 1;
         if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0)
-            cout << "setsockopt(SO_REUSEADDR) failed" << endl;
+            log->error("setsockopt(SO_REUSEADDR) failed");
+
+        /*int broadcastEnable=1;
+        if(setsockopt(listener, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) <0)
+            log->error("setsockopt(SO_BROADCAST) failed");*/
 
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr = INADDR_ANY; //htonl(INADDR_ANY)
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //htonl(INADDR_BROADCAST); //htonl(INADDR_ANY)
         serv_addr.sin_port = htons(port);
 
         int status = bind(listener, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
@@ -47,12 +52,14 @@ void ServerDiscovery::run()
             log->info("Server discovery is running on UDP port " + to_string(port));
             while (running)
             {
-
                 int readCount = recvfrom(listener, buffer, 255, 0, (struct sockaddr *) &cli_addr, &cliLen);
                 if (readCount > 0)
-                {
+                {             
+                    log->info("Received "+to_string(readCount) + " bytes from "+string(inet_ntoa(cli_addr.sin_addr))+".");
+                    
                     if (IsAServerSearchMessage(string(buffer, readCount)))
                     {
+                        log->info("Received a valid message from "+ string(inet_ntoa(cli_addr.sin_addr)) +": "+string(buffer, readCount));
                         string response = getServerInfo();
                         sendto(listener, response.c_str(), response.size(), 0, (struct sockaddr*) &cli_addr, cliLen);
                     }
@@ -76,13 +83,13 @@ void ServerDiscovery::run()
 
 bool ServerDiscovery::IsAServerSearchMessage(string message)
 {
-    return message == "where is vss?" || message == "wiv";
+    return message.find("where is vss?") != string::npos || message.find("wiv") != string::npos;
 }
 
 string ServerDiscovery::getServerInfo()
 {
     auto ips = getServerIps();
-    string info = "I'm here. Ips:\n";
+    string info = "Vss ips:\n";
     for (auto &c: ips)
         info += c + "\n";
 
@@ -183,3 +190,8 @@ string ServerDiscovery::ssystem (string command, bool removeTheLastLF) {
 
     return result;
 }
+
+//for tests
+//echo 'wiv' | socat - udp-datagram:192.168.100.255:5022,bind=:5022,broadcast,reuseaddr
+//echo 'wiv' | socat -t 5 - udp-datagram:192.168.100.255:5022,bind=:5022,broadcast,reuseaddr
+//https://superuser.com/questions/1473729/send-udp-packet-and-listen-for-replies
