@@ -38,6 +38,7 @@ C_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Misc/TaggedObject/*.cpp)
 
 #main app files
 C_SOURCE+=$(wildcard ../sources/Controller/*.cpp)
@@ -69,6 +70,7 @@ H_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Misc/TaggedObject/*.h)
 
 #main app files
 H_SOURCE+=$(wildcard ../sources/Controller/*.h)
@@ -98,6 +100,7 @@ objFolder:
 	@ mkdir -p objects/tests/Shared/Libs/DependencyInjectionManager
 	@ mkdir -p objects/tests/Shared/Libs/Confs
 	@ mkdir -p objects/tests/Shared/Libs/Confs/internal
+	@ mkdir -p objects/tests/Shared/Misc/TaggedObject
 #	the main app directories
 	@ mkdir -p objects/main/Services/APIs/VSTP
 	@ mkdir -p objects/main/Controller
