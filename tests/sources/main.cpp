@@ -14,6 +14,7 @@
 #include "./Controller/Internal/Controller_ClientHelper.test.h"
 #include "./Controller/Internal/Controller_VarHelper.test.h"
 #include "./Controller/Controller.test.h"
+#include "./Shared/Misc/TaggedObject/TaggedObject.test.h"
 
 using namespace std;
 int main(int argc, char* argv[]){
@@ -32,6 +33,7 @@ int main(int argc, char* argv[]){
         testers.push_back(new Controller_ClientHelperTester());
         testers.push_back(new Controller_VarHelperTester());
         testers.push_back(new ControllerTester());
+        testers.push_back(new TaggedObjectTester());
 
         //logger
         //  LoggerFileWriter

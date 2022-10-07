@@ -72,7 +72,7 @@
     [ ] Shared->Libs->TcpServer
     [ ] Shared->Misc->DynamicVar
     [ ] Shared->Misc->Observable
-    [ ] Shared->Misc->TaggedObject
+    [✔] Shared->Misc->TaggedObject
     [ ] Services->ServerDiscovery
 
 ## sugests and things to analyze    
@@ -82,8 +82,9 @@
     - Move all code of main.cpp to a class
     - Convert configs to a repository
 
-# Project Progress (21/34)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░ ~61.7%
+# Project Progress (22/34)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░ ~64.7%
+
 
 ```
 +---------+           +------------ server -----------+
