@@ -75,7 +75,7 @@
     [ ] Shared->Libs->TcpServer
     [ ] Shared->Misc->DynamicVar
     [ ] Shared->Misc->Observable
-    [ ] Shared->Misc->TaggedObject
+    [✔] Shared->Misc->TaggedObject
 
     
 
