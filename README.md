@@ -42,22 +42,19 @@
     [✔] Variable persistency
     [✔] Configuration system (to specify)
     [✔] UDP replay to server search
-    [ ] Restfull and WebSocket API
-    [ ] Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
+    
     [✔] Create a logger library
     [✔] Create the configuration system (observable \ configuratiosystem)
-    [ ] Paralel project (app server)
     [✔] Create the Controller_VarHelper to isolate v \ars logic forController
-    [ ] Move all code of main.cpp to a class
   
-    [ ] Convert configs to a repository
+    
     [✔] Convert TCP server to a repository
   
-    [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
     [✔] Analyse the possibility of write var files  \in paralel (to besperformance/best latency)
     [✔] Import new Logger lib repository
     [✔] Import the TCPServer repo
     [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
+    [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
@@ -78,10 +75,15 @@
     [ ] Shared->Misc->TaggedObject
     [ ] Services->ServerDiscovery
 
-    
+## sugests and things to analyze    
+    - Restfull and WebSocket API
+    - Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
+    - Paralel project (app server)
+    - Move all code of main.cpp to a class
+    - Convert configs to a repository
 
-# Project Progress (19/38)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░ ~50%
+# Project Progress (21/34)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░ ~61.7%
 
 ```
 +---------+           +------------ server -----------+
