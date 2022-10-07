@@ -41,7 +41,7 @@
     [✔] Variables started with '_' are internal fla \gs. Do not allothis names
     [✔] Variable persistency
     [✔] Configuration system (to specify)
-    [ ] UDP replay to server search
+    [✔] UDP replay to server search
     [ ] Restfull and WebSocket API
     [ ] Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
     [✔] Create a logger library
@@ -76,6 +76,7 @@
     [ ] Shared->Misc->DynamicVar
     [ ] Shared->Misc->Observable
     [ ] Shared->Misc->TaggedObject
+    [ ] Services->ServerDiscovery
 
     
 
