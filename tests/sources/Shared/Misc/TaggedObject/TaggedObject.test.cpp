@@ -8,7 +8,8 @@ TaggedObjectTester::TaggedObjectTester()
 TaggedObjectTester::~TaggedObjectTester() 
 { 
      
-} 
+}
+
  
 vector<string> TaggedObjectTester::getContexts()
 {
