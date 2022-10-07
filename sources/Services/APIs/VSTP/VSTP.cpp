@@ -18,11 +18,11 @@ string API::VSTP_ACTIONS::UNLOCK_VAR = "uv";
 string API::VSTP_ACTIONS::LOCK_VAR_DONE = "lvd";
 string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "uvd";
 
-API::VSTP::VSTP(int port, ApiMediatorInterface *ctr, ILogger* log)
+API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
 {
-    this->log = log->getNamedLoggerP("API::VSTP");
-    this->ctrl = ctr;
-    this->initServer(port);
+    this->log =   dim.get<ILogger>()->getNamedLoggerP("API::VSTP");
+    this->ctrl = dim.get<ApiMediatorInterface>();
+    this->initServer(port, dim.get<ThreadPool>());
 
     //this->log.log(LOGGER_LOGLEVEL_INFO2, (DVV){"VSTP service started with port: ", port});
 
@@ -34,10 +34,17 @@ API::VSTP::~VSTP()
     delete this->server;
 }
 
-void API::VSTP::VSTP::initServer(int port)
+void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 {
     bool sucess;
-    this->server = new TCPServer(port, sucess);
+
+    this->server = new TCPServer(port, sucess, tasker);
+    this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
+        if (event == CONN_EVENT::CONNECTED)
+            this->onClientConnected(client);
+        else
+            this->onClientDisconnected(client);
+    });
 
     if (sucess)
     {
