@@ -14,6 +14,7 @@
 #include <TCPServer.h>
 
 #include <utils.h>
+#include <dependencyInjectionManager.h>
  
 //#define MSG_DONTWAIT 0x40
 
@@ -71,7 +72,7 @@ namespace API {
             char scape_char = 0x1B;
             string apiId = "VSTPAPI";
 
-            void initServer(int port);
+            void initServer(int port, ThreadPool *tasker);
 
             void onClientConnected(ClientInfo *cli);
             void onClientDisconnected(ClientInfo *cli);
@@ -114,7 +115,7 @@ namespace API {
 
         public:
 
-            VSTP(int port, ApiMediatorInterface *ctr, ILogger *log);
+            VSTP(int port, DependencyInjectionManager &dim);
             virtual ~VSTP();
 
         public:
