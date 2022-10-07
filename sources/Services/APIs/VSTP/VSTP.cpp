@@ -24,8 +24,6 @@ API::VSTP::VSTP(int port, ApiMediatorInterface *ctr, ILogger* log)
     this->ctrl = ctr;
     this->initServer(port);
 
-
-    this->log->info((DVV){"VSTP service started with port: ", port});
     //this->log.log(LOGGER_LOGLEVEL_INFO2, (DVV){"VSTP service started with port: ", port});
 
     ctrl->apiStarted(this);
@@ -38,17 +36,29 @@ API::VSTP::~VSTP()
 
 void API::VSTP::VSTP::initServer(int port)
 {
-    this->server = new TCPServer(port);
-    this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
-        if (event == CONN_EVENT::CONNECTED)
-            this->onClientConnected(client);
-        else
-            this->onClientDisconnected(client);
-    });
+    bool sucess;
+    this->server = new TCPServer(port, sucess);
 
-    this->server->addReceiveListener([&](ClientInfo *client, char* data,  size_t size){
-        this->onDataReceived(client, data, size);
-    });
+    if (sucess)
+    {
+        this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
+            if (event == CONN_EVENT::CONNECTED)
+                this->onClientConnected(client);
+            else
+                this->onClientDisconnected(client);
+        });
+
+        this->server->addReceiveListener([&](ClientInfo *client, char* data,  size_t size){
+            this->onDataReceived(client, data, size);
+        });
+
+        this->log->info("VSTP API is running and listen at the port "+to_string(port));
+    }
+    else
+    {
+        this->log->error("Cannot start the tcp server at port "+to_string(port)+". VSTP API service is not running");
+        return;
+    }
 }
 
 void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)

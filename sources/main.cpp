@@ -65,8 +65,7 @@ int main(){
     auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */
-        logger->info("", "the system is running");
-        logger->info("", "\tVSTP API port: 5021");
+        logger->info("", "The VSS has been started");
     /* #endregion */
 
     //prevent program close (equivalent to while (true))
@@ -74,7 +73,7 @@ int main(){
     exitMutex.lock();
 
     /* #region finalization of the program */
-        logger->info("", "The program is exiting. Please wait...");
+        logger->info("", "VSS is exiting. Please wait...");
         //delete controller;
         //delete vstp;
         delete dim.get<VSTP>();

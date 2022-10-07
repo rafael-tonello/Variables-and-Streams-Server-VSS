@@ -73,11 +73,11 @@ void ServerDiscovery::run()
             }
         }
         else
-            log->error("Error binding socket");
+            log->error("Error binding socket. The Server Discovery service is not running");
     }
     else
     {
-        log->error("Error starting socket");
+        log->error("Error starting socket. The Server Discovery service is not running");
     }
 
 	close(listener);
