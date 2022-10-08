@@ -285,9 +285,6 @@ bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output)
 
 void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
 {
-    log->warning("removing \\r from the message for tests using telent");
-    message = message.substr(0, message.size()-1);
-
     log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
     string command = "";
     string payload = "";
