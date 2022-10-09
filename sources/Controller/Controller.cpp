@@ -88,7 +88,10 @@ future<void> TheController::unlockVar(string varName)
 //start to observate a variable
 void TheController::observeVar(string varName, string clientId, ApiInterface* api)
 {
+    //NOTE: enclosure the code ins a ThreadPool tasker
     log->info("TheController", {"::observeVar called. varName: '",varName,"', clientId:: '",clientId,"', api(id): '",api->getApiId(),"'"});
+
+    
     Controller_VarHelper varHelper(log, db, varName);
     if (!varHelper.isClientObserving(clientId))
     {
@@ -98,7 +101,7 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
         client.registerNewObservation(varName);
 
         //upate client about the var
-        auto varsResult = this->getVar(varName, "");
+        auto varsResult = this->getVar(varName, "").get();
         
 
         if (client.notify(varsResult) != API::ClientSendResult::LIVE)
