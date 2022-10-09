@@ -266,25 +266,26 @@ string TheController::clientConnected(string clientId, ApiInterface* api)
 
 void TheController::updateClientAboutObservatingVars(Controller_ClientHelper controller_ClientHelper)
 {
-    //For all variabels observed by this client, sent the current value
-    atomic<bool> *mustCheckClientLiveTime = new atomic<bool>(false);
-    auto task = Utils::parallel_foreach<string>(controller_ClientHelper.getObservingVars(), [&](string currVarName)
-    {
-        auto currVarsAndValues = this->getVar(currVarName, "").get();
 
-        if (*mustCheckClientLiveTime == false)
+    tasker->enqueue([&](Controller_ClientHelper controller_ClientHelperP){
+        //For all variabels observed by this client, sent the current value
+        bool mustCheckClientLiveTime = false;
+        auto observingVars = controller_ClientHelperP.getObservingVars();
+
+        for (auto &curr : observingVars)
         {
-            if (controller_ClientHelper.notify(currVarsAndValues) != API::ClientSendResult::LIVE)
-                *mustCheckClientLiveTime = true;
+            auto currVarsAndValues = this->getVar(curr, "").get();
+
+            if (controller_ClientHelperP.notify(currVarsAndValues) != API::ClientSendResult::LIVE)
+            {
+                mustCheckClientLiveTime = true;
+                break;
+            }
         }
-    }, this->tasker);
 
-    task.wait();
-
-    if (*mustCheckClientLiveTime)
-        this->checkClientLiveTime(controller_ClientHelper);
-
-    delete mustCheckClientLiveTime;
+        if (mustCheckClientLiveTime)
+            this->checkClientLiveTime(controller_ClientHelperP);
+    }, controller_ClientHelper);
 }
 
 void TheController::checkClientLiveTime(Controller_ClientHelper client)

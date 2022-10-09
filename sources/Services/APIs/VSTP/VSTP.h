@@ -33,8 +33,8 @@ namespace API {
         static string SEND_SERVER_INFO_AND_CONFS;
         static string PING;
         static string PONG;
-        static string INFORM_CLI_ID;
-        static string CHANGE_CLI_ID;
+        static string SUGGEST_NEW_CLI_ID;
+        static string CHANGE_OR_CONFIRM_CLI_ID;
         static string SET_VAR;
         static string GET_VAR;
         static string GET_VAR_RESPONSE;

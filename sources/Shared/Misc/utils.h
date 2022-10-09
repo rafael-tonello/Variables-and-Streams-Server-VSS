@@ -76,14 +76,14 @@ using namespace std;
 
 
         template<typename T>
-        static future<void> parallel_foreach(vector<T> items, function<void(T)> f, ThreadPool *tasker)
+        static future<void> parallel_foreach(vector<T> items, function<void(T, void* additionalArgs)> f, ThreadPool *tasker, void* additionalArgs = NULL)
         {
             vector<future<void>> pendingTasks = {};
             for (auto &c: items)
             {
-                pendingTasks.push_back(tasker->enqueue([&](T &item){
-                    f(item);
-                }, c));
+                pendingTasks.push_back(tasker->enqueue([&](T &item, void* argsp){
+                    f(item, argsp);
+                }, c, additionalArgs));
             };
 
             /*return tasker->enqueue([&](auto pendingTasks2){

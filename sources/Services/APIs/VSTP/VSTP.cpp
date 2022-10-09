@@ -3,8 +3,8 @@
 string API::VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS = "sci";
 string API::VSTP_ACTIONS::PING = "ping";
 string API::VSTP_ACTIONS::PONG = "pong";
-string API::VSTP_ACTIONS::INFORM_CLI_ID = "nid";
-string API::VSTP_ACTIONS::CHANGE_CLI_ID = "cid";
+string API::VSTP_ACTIONS::SUGGEST_NEW_CLI_ID = "nid";
+string API::VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID = "cid";
 string API::VSTP_ACTIONS::SET_VAR = "sv";
 string API::VSTP_ACTIONS::GET_VAR = "gv";
 string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "gvr";
@@ -70,15 +70,22 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 
 void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
 {
-    //create an unique id and sent id to the client
+    //create an unique id and sent id to updateClientAboutObservatingVarsthe client
     cli->tags["id"] = Utils::createUniqueId();
     sendInfoAndConfToClient(cli);
     updateClientsByIdList(cli, cli->tags["id"]);
     incomingDataBuffers[cli] = "";
-
+    
     sendIdToClient(cli, cli->tags["id"]);
 
     log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id '",cli->tags["id"],"'"});
+    
+    //NOTE:Do not notify controller about the new client id, becasuse it can be only a temporary connection or
+    //client can ignore this id and send a new one. 
+    //Controller will automatically register it when it observates a variable
+    //
+    //Threrefore, when client send its id, is very importante that controller be notiyed about its reconnection, to update it about observating vars.
+
 }
 
 void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
@@ -109,7 +116,7 @@ void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
 
 void API::VSTP::VSTP::sendIdToClient(ClientInfo* cli, string id)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::INFORM_CLI_ID, id);
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SUGGEST_NEW_CLI_ID, id);
 }
 
 
@@ -213,7 +220,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     {
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::PONG, "");
     }
-    else if (command == VSTP_ACTIONS::CHANGE_CLI_ID)
+    else if (command == VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID)
     {
         string oldId = clientSocket.tags["id"];
         if (oldId != payload)
@@ -225,6 +232,9 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         {
             log->info((DVV){"The client", clientSocket.address, "(remote port",clientSocket.port,") requested an id change with its actual id (", oldId,")"});
         }
+
+        //event if client do not change its id, notify the controller so it can update the client about its observing vars.
+        this->ctrl->clientConnected(payload, this);
     }
 }
 
