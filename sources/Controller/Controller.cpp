@@ -96,6 +96,13 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
 
         varHelper.addClientToObservers(clientId);
         client.registerNewObservation(varName);
+
+        //upate client about the var
+        auto varsResult = this->getVar(varName, "");
+        
+
+        if (client.notify(varsResult) != API::ClientSendResult::LIVE)
+            this->checkClientLiveTime(client);
     };
 }
 
