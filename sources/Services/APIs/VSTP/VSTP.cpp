@@ -65,6 +65,7 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     else
     {
         this->log->error("Cannot start the tcp server at port "+to_string(port)+". VSTP API service is not running");
+        this->port = -1;
         return;
     }
 }
@@ -355,7 +356,10 @@ API::ClientSendResult API::VSTP::checkAlive(string clientId)
     return ClientSendResult::DISCONNECTED;
 }
 
-string API::VSTP::getRunningPort()
+string API::VSTP::getRunningPortInfo()
 {
-    return "TCP/"+to_string(port);
+    if (this->port > -1)
+        return "TCP/"+to_string(port);
+    else
+        return "Error - No opened port";
 }

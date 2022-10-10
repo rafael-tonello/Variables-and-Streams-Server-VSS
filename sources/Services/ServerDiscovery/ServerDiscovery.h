@@ -42,7 +42,7 @@ private:
 public: 
     ServerDiscovery(DependencyInjectionManager &dim, string version); 
     ~ServerDiscovery(); 
-    string getRunningPort();
+    string getRunningPortInfo();
 }; 
  
 #endif 

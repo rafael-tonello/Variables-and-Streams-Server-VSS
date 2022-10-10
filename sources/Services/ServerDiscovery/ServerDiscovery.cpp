@@ -73,11 +73,15 @@ void ServerDiscovery::run()
             }
         }
         else
+        {
             log->error("Error binding socket. The Server Discovery service is not running");
+            this->port = -1;
+        }
     }
     else
     {
         log->error("Error starting socket. The Server Discovery service is not running");
+        this->port = -1;
     }
 
 	close(listener);
@@ -165,9 +169,12 @@ string ServerDiscovery::getMostProbaleIp(vector<string> ips, string clientIp)
     return ret;
 }
 
-string ServerDiscovery::getRunningPort()
+string ServerDiscovery::getRunningPortInfo()
 {
-    return "UDP/"+to_string(this->port);
+    if (this->port > -1)
+        return "UDP/"+to_string(port);
+    else
+        return "Error - No opened port";
 }
 
 

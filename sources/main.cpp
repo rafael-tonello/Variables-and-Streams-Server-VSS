@@ -24,8 +24,10 @@ using namespace Controller;
 using namespace API;
 
 mutex exitMutex;
+int exitSignal = -1;
 
 void signalHandler( int signum ) {
+    exitSignal = signum;
    cout << "Interrupt signal (" << signum << ") received.\n";
    exitMutex.unlock();
 }
@@ -72,14 +74,22 @@ int main(){
             string("|   +-- log file: "+determinteLogFile()+"\n")+
             string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
             string("+-- Services\n")+
-            string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPort() + "\n") + 
-            string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPort() + "\n")
+            string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPortInfo() + "\n") + 
+            string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPortInfo() + "\n")
         );
     /* #endregion */
 
     //prevent program close (equivalent to while (true))
     exitMutex.lock();
     exitMutex.lock();
+
+    //log additional informabation about signals
+    if (exitSignal == 4)
+        logger->critical("", "Illegal instruction signal received");
+    else if (exitSignal == 11)
+        logger->critical("", "Segmentation fault signal received");
+    else if (exitSignal == 16)
+        logger->critical("", "Stack fault signal received");
 
     /* #region finalization of the program */
         logger->info("", "VSS is exiting. Please wait...");
