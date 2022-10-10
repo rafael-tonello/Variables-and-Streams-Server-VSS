@@ -37,6 +37,7 @@ API::VSTP::~VSTP()
 void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 {
     bool sucess;
+    this->port = port;
 
     this->server = new TCPServer(port, sucess, tasker);
     this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
@@ -352,4 +353,9 @@ API::ClientSendResult API::VSTP::checkAlive(string clientId)
     }
     
     return ClientSendResult::DISCONNECTED;
+}
+
+string API::VSTP::getRunningPort()
+{
+    return "TCP/"+to_string(port);
 }

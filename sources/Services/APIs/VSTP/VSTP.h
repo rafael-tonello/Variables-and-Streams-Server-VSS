@@ -63,6 +63,7 @@ namespace API {
             //ILogger *log;
             NLogger* log;
             TCPServer *server;
+            int port;
 
             //TODO: use mutex to prevent conflict with clientsById
             map<string, ClientInfo*> clientsById;
@@ -117,6 +118,7 @@ namespace API {
 
             VSTP(int port, DependencyInjectionManager &dim);
             virtual ~VSTP();
+            string getRunningPort();
 
         public:
         /* ApiInterface */

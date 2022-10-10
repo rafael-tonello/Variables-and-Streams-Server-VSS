@@ -3,9 +3,12 @@
 VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim) 
 { 
     this->confs = dim->get<Config>();
+    this->log = dim->get<ILogger>()->getNamedLoggerP("VarSystemLibStorage");
 
     confs->observate("varsDbDirectory", [&](DynamicVar value)
     {
+        this->log->info("Database directory: " + value.getString());
+        this->databaseLocation = value.getString();
         db = shared_ptr<FileVars>(new FileVars(value.getString(), true));
     }, "~/.local/VSS/varsDb");
 } 
@@ -98,4 +101,9 @@ string VarSystemLibStorage::unescape(string text)
     });
 
     return text;
+}
+
+string VarSystemLibStorage::getDatabseFolder()
+{
+    return databaseLocation;
 }

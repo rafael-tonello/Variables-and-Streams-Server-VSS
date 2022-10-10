@@ -39,7 +39,7 @@ void handleSignals();
 
 
 //semantic versioning
-string INFO_VERSION = "1.2.1";
+string INFO_VERSION = "1.3.0";
 
 int main(){
     
@@ -65,7 +65,17 @@ int main(){
     auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */
-        logger->info("", "The VSS has been started");
+        logger->info("", 
+            string("The VSS has been started\n") +
+            string("+-- Version: "+ INFO_VERSION + "\n")+
+            string("+-- Portable mode: ")+ string(isRunningInPortableMode() ? "Yes":"No")+ "\n" + 
+            string("|   +-- conf file: "+findConfigurationFile()+"\n")+
+            string("|   +-- log file: "+determinteLogFile()+"\n")+
+            string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
+            string("+-- Services\n")+
+            string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPort() + "\n") + 
+            string("    +-- Server discovery port: UDP"+dim.get<ServerDiscovery>()->getRunningPort() + "\n")
+        );
     /* #endregion */
 
     //prevent program close (equivalent to while (true))
@@ -131,7 +141,7 @@ std::string findConfigurationFile()
 
 std::string determinteLogFile()
 {
-    string logFile = "/var/vss.log";
+    string logFile = "/var/log/vss.log";
 
     
     if (isRunningInPortableMode())

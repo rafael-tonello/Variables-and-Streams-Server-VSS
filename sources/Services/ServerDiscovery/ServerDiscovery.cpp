@@ -165,6 +165,11 @@ string ServerDiscovery::getMostProbaleIp(vector<string> ips, string clientIp)
     return ret;
 }
 
+string ServerDiscovery::getRunningPort()
+{
+    return "UDP/"+to_string(this->port);
+}
+
 
 string ServerDiscovery::ssystem (string command, bool removeTheLastLF) {
     //todo:change it to use popen (https://stackoverflow.com/questions/45202379/how-does-popen-work-and-how-to-implement-it-into-c-code-on-linux)

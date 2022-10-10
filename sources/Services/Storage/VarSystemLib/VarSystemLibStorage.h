@@ -8,6 +8,7 @@
 #include <Confs.h>
 #include <ThreadPool.h>
 #include <utils.h>
+#include <logger.h>
  
 using namespace std;
 using namespace Shared;
@@ -21,6 +22,8 @@ private:
 
     string escape(string text);
     string unescape(string text);
+    NLogger *log;
+    string databaseLocation;
 public: 
     VarSystemLibStorage(DependencyInjectionManager* dim);
     void set(string name, DynamicVar v);
@@ -30,6 +33,8 @@ public:
     void deleteValue(string name, bool deleteChildsInACascade = false);
     void forEachChilds(string parentName, function<void(string, DynamicVar)> f);
     future<void> forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel);
+
+    string getDatabseFolder();
 }; 
  
 #endif 
