@@ -73,7 +73,7 @@ int main(){
             string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
             string("+-- Services\n")+
             string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPort() + "\n") + 
-            string("    +-- Server discovery port: UDP"+dim.get<ServerDiscovery>()->getRunningPort() + "\n")
+            string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPort() + "\n")
         );
     /* #endregion */
 
