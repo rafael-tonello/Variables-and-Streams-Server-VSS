@@ -37,9 +37,8 @@ std::string determinteLogFile();
 bool isRunningInPortableMode();
 void handleSignals();
 
-
 //semantic versioning
-string INFO_VERSION = "1.3.0";
+string INFO_VERSION = "1.4.0";
 
 int main(){
     
