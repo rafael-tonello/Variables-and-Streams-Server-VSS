@@ -22,6 +22,7 @@ CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/DependencyInjection/sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/TCPServer/sources"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/VarSystem"
+CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Libs/MessageBus"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services/ServerDiscovery"
 
 
@@ -46,6 +47,7 @@ C_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/writers/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/sources/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Shared/Libs/MessageBus/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.cpp)
 
@@ -70,6 +72,7 @@ H_SOURCE+=$(wildcard ./sources/Shared/Libs/Logger/sources/writers/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/TCPServer/sources/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/VarSystem/*.h)
+H_SOURCE+=$(wildcard ./sources/Shared/Libs/MessageBus/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.h)
 
@@ -87,6 +90,7 @@ objFolder:
 	@ mkdir -p objects/Shared/Libs/ThreadPool
 	@ mkdir -p objects/Shared/Libs/TCPServer/sources
 	@ mkdir -p objects/Shared/Libs/VarSystem
+	@ mkdir -p objects/Shared/Libs/MessageBus
 	@ mkdir -p objects/Services/ServerDiscovery
 
 prebuild:
