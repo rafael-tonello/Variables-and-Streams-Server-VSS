@@ -17,6 +17,8 @@
 #include <logger.h>
 #include "Internal/Controller_ClientHelper.h"
 #include "Internal/Controller_VarHelper.h"
+#include <messagebus.h>
+#include <JSON.h>
 
 #ifdef __TESTING__
     #include <tester.h>
@@ -73,6 +75,7 @@ namespace Controller{
         void notifyVarModification(string varName, DynamicVar value);
         void notifyParentGenericObservers(string varName, string changedVarName, DynamicVar value);
         void notifyClientsAboutVarChange(vector<string> clients, string changedVarName, DynamicVar value);
+        MessageBus<JsonMaker::JSON> *bus;
     public:
         TheController(DependencyInjectionManager* dim);
         ~TheController();

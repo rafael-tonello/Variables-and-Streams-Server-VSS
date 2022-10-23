@@ -6,8 +6,8 @@ TheController::TheController(DependencyInjectionManager* dim)
 {
     
     this->log = dim->get<ILogger>();
-
     this->confs = dim->get<Config>();
+    this->bus = dim->get<MessageBus<JsonMaker::JSON>>();
 
     if (dim->contains<ThreadPool>())
     {
@@ -41,6 +41,25 @@ TheController::~TheController()
 //creates or change a variable
 future<void> TheController::setVar(string name, DynamicVar value)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setStrign("name", name);
+        args.setString("value", value.getString());
+        auto busResult = bus->post("hooking.TheController.setVar", args);
+        if (busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'setVar' execution was aborted by an interceptor (via MessageBus)");
+                return tasker.enqueue([](){});
+            }
+            name = busResult[0].getString("name", name);
+            value = DynamicVar(busResult[0].getString("value", name));
+        }
+    }
+    #pragma endregion
+
     Controller_VarHelper varHelper(log, this->db, name);
     //check if name isn't a internal flag var
 
@@ -71,6 +90,22 @@ future<void> TheController::setVar(string name, DynamicVar value)
 
 future<void> TheController::lockVar(string varName)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setString("varName", varName);
+        if (auto busResult = bus->post("hooking.TheController.lockVar", args); busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'lockVar' execution was aborted by an interceptor (via MessageBus)");
+                return tasker.enqueue([](){});
+            }
+            varName = busResult[0].getString("varName", varName);
+        }
+    }
+    #pragma endregion
+
     return tasker->enqueue([this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         varHelper.lock();
@@ -79,6 +114,22 @@ future<void> TheController::lockVar(string varName)
 
 future<void> TheController::unlockVar(string varName)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setString("varName", varName);
+        if (auto busResult = bus->post("hooking.TheController.unlockVar", args); busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'unlockVar' execution was aborted by an interceptor (via MessageBus)");
+                return tasker.enqueue([](){});
+            }
+            varName = busResult[0].getString("varName", varName);
+        }
+    }
+    #pragma endregion
+
     return tasker->enqueue([this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         varHelper.unlock();
@@ -88,6 +139,27 @@ future<void> TheController::unlockVar(string varName)
 //start to observate a variable
 void TheController::observeVar(string varName, string clientId, ApiInterface* api)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setString("varName", varName);
+        args.setString("clientId", clientId);
+        args.setString("api", to_string((uint64_t)((void*)api))+"}");
+        auto busResult = bus->post("hooking.TheController.observeVar", args);
+        if (busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'observeVar' execution was aborted by an interceptor (via MessageBus)");
+                return;
+            }
+            varName = busResult[0].getString("varName", name);
+            clientId = DynamicVar(busResult[0].getString("clientId", name));
+            api = (ApiInterface*)((uint64_t)std::stoull(busResult[0].getString("api", to_string((uint64_t)((void*)api)))));
+        }
+    }
+    #pragma endregion
+
     //NOTE: enclosure the code ins a ThreadPool tasker
     log->info("TheController", {"::observeVar called. varName: '",varName,"', clientId:: '",clientId,"', api(id): '",api->getApiId(),"'"});
 
@@ -160,6 +232,27 @@ void TheController::notifyClientsAboutVarChange(vector<string> clients, string c
 //stop observate variable
 void TheController::stopObservingVar(string varName, string clientId, ApiInterface* api)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setString("varName", varName);
+        args.setString("clientId", clientId);
+        args.setString("api", to_string((uint64_t)((void*)api))+"}");
+        auto busResult = bus->post("hooking.TheController.stopObservingVar", args);
+        if (busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'stopObservingVar' execution was aborted by an interceptor (via MessageBus)");
+                return;
+            }
+            varName = busResult[0].getString("varName", name);
+            clientId = DynamicVar(busResult[0].getString("clientId", name));
+            api = (ApiInterface*)((uint64_t)std::stoull(busResult[0].getString("api", to_string((uint64_t)((void*)api)))));
+        }
+    }
+    #pragma endregion
+
     Controller_VarHelper varHelper(log, db, varName);
     Controller_ClientHelper clienthelper(db, clientId, api);
 
@@ -182,6 +275,36 @@ string TheController::_createUniqueId()
 future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, DynamicVar defaultValue)
 {
     return tasker->enqueue([this](string namep, DynamicVar defaultValuep){
+        #pragma region hooking 
+        {
+            JSON args;
+            args.setString("name", name);
+            args.setString("defaultValue", defaultValue);
+            auto busResult = bus->post("hooking.TheController.getVar", args);
+            if (busResult.size() >0)
+            {
+                if (!busResult[0].getBoolean("continue", true))
+                {
+                    log->info2("'getVar' execution was aborted by an interceptor (via MessageBus)");
+                    vector<tuple<string, DynamicVar>> result;
+                    for (auto &c: busResult[0].getChildsNames("result"))
+                    {
+                        resutl.push_back({
+                            busResult[0].getString("result."+c+".key", "");
+                            busResult[0].getString("result."+c+".value", "");
+                        });
+
+                    }
+
+                    return result;
+                }
+                name = busResult[0].getString("name", name);
+                defaultValue = DynamicVar(busResult[0].getString("defaultValue", name));
+                api = (ApiInterface*)((uint64_t)std::stoull(busResult[0].getString("api", to_string((uint64_t)((void*)api)))));
+            }
+        }
+        #pragma endregion
+
 
         function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
         readFromDb = [&](string nname, bool childsToo)        
@@ -245,6 +368,23 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
 
 future<void> TheController::delVar(string varname)
 {
+    #pragma region hooking 
+    {
+        JSON args;
+        args.setString("varname", varname);
+        if (auto busResult = bus->post("hooking.TheController.delVar", args); busResult.size() >0)
+        {
+            if (!busResult[0].getBoolean("continue", true))
+            {
+                log->info2("'delVar' execution was aborted by an interceptor (via MessageBus)");
+                return tasker.enqueue([](){});
+            }
+            varname = busResult[0].getString("varname", varname);
+        }
+    }
+    #pragma endregion
+
+
     return tasker->enqueue([this](string varnamep)
     {
         Controller_VarHelper varHelper(log, db, varnamep);
