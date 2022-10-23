@@ -23,6 +23,7 @@ API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
     this->log =   dim.get<ILogger>()->getNamedLoggerP("API::VSTP");
     this->ctrl = dim.get<ApiMediatorInterface>();
     this->initServer(port, dim.get<ThreadPool>());
+    this->startListenMessageBus(dim.get<MessageBus<JsonMaker::JSON>>());
 
     //this->log.log(LOGGER_LOGLEVEL_INFO2, (DVV){"VSTP service started with port: ", port});
 
@@ -362,4 +363,15 @@ string API::VSTP::getRunningPortInfo()
         return "TCP/"+to_string(port);
     else
         return "Error - No opened port";
+}
+
+void API::VSTP::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
+{
+    bus->listen("discover.startedApis", [&](string message, JsonMaker::JSON args, JsonMaker::JSON &result){
+        if (this->port > -1)
+        {
+            result.setString("name", "VSTP - Var stream protocol");
+            result.setString("access", getRunningPortInfo());
+        }
+    });
 }

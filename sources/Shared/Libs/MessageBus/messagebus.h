@@ -22,10 +22,10 @@ class MessageBus
         uint currId = 0;
         map<uint, tuple<string, OnMessageF<T>>> observers;
         
-        function<bool(T item)> isEmpty;
+        function<bool(T &item)> isEmpty;
         ThreadPool *scheduler;
     public:
-        MessageBus(ThreadPool *scheduler, function<bool(T item)> isEmpty): isEmpty(isEmpty), scheduler(scheduler){}
+        MessageBus(ThreadPool *scheduler, function<bool(T &item)> isEmpty): isEmpty(isEmpty), scheduler(scheduler){}
         
         vector<T> post(string message, T args)
         {
@@ -36,7 +36,7 @@ class MessageBus
             vector<future<void>> pending;
             for (auto &c: tmpObservers)
             {
-                pending.push_back(scheduler->enqueue, [&](OnMessageF<T> observer)
+                pending.push_back(scheduler->enqueue([&](OnMessageF<T> observer)
                 {
                     T tmpResult;
                     observer(message, args, tmpResult);
@@ -46,7 +46,7 @@ class MessageBus
                         result.push_back(tmpResult);
                         resultLock.unlock();
                     }
-                }, c);
+                }, c));
             }
             
             for (auto &currPending: pending)

@@ -56,7 +56,7 @@ int main(){
 
     dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(), new LoggerFileWriter(determinteLogFile())}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(4));
-    dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON item){ return item.getChildsNames("").size(); }));
+    dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
     dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
