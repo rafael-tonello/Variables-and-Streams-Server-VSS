@@ -26,6 +26,7 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/Logger/sources/writers"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/TCPServer/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/VarSystem"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/MessageBus"
 
 
 
@@ -59,6 +60,7 @@ C_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/writers/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/MessageBus/*.cpp)
   
 # .h files
 #test app files
@@ -91,6 +93,7 @@ H_SOURCE+=$(wildcard ../sources/Shared/Libs/Logger/sources/writers/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/MessageBus/*.h)
 
 objFolder:
 	@ mkdir -p objects/tests/
@@ -116,6 +119,7 @@ objFolder:
 	@ mkdir -p objects/main/Shared/Libs/TCPServer/sources
 	@ mkdir -p objects/main/Shared/Libs/ThreadPool
 	@ mkdir -p objects/main/Shared/Libs/VarSystem
+	@ mkdir -p objects/main/Shared/Libs/MessageBus
 	
 	
 

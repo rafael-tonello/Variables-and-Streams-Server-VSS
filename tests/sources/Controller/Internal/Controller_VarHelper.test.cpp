@@ -21,7 +21,7 @@ void Controller_VarHelperTester::run(string context)
 
     db = new TmpDBInMemory();
     logger = new Logger({ 
-        new LoggerLambdaWriter([](Logger* sender, string msg, int level, string name)
+        new LoggerLambdaWriter([](Logger* sender, string msg, int level, string name, std::time_t dateTime)
         {
             
             cout << "\t\t\t\t[" << name << "] " << msg << endl;

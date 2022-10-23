@@ -4,7 +4,7 @@ ControllerTester::ControllerTester()
 {
 
     auto logger = new Logger({ 
-        new LoggerLambdaWriter([&](Logger* sender, string msg, int level, string name)
+        new LoggerLambdaWriter([&](Logger* sender, string msg, int level, string name, std::time_t dateTime)
         {
             this->lastLogInfo = {sender, msg, level, name};
             cout << "\t\t\t\t[" << name << "] " << msg << endl;
