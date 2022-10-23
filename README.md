@@ -55,7 +55,7 @@
     [✔] Import the TCPServer repo
     [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
     [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
-    [ ] When a client reconnects, the server needs to update it on all the variables it is looking at
+    [✔] When a client reconnects, the server needs to update it on all the variables it is looking at
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
@@ -66,10 +66,6 @@
     [✔] Shared->Libs->Confs
     [✔] Shared->Libs->Confs->SimpleConfFileProvider
     [✔] Shared->Libs->DependencyInjectionManager
-    [ ] Shared->Libs->logger
-    [ ] Shared->Libs->logger->LoggerConsoleWriter
-    [ ] Shared->Libs->logger->LoggerFileWriter
-    [ ] Shared->Libs->logger->LoggerLambdaWriter
     [ ] Shared->Libs->TcpServer
     [ ] Shared->Misc->DynamicVar
     [ ] Shared->Misc->Observable
@@ -83,8 +79,8 @@
     - Move all code of main.cpp to a class
     - Convert configs to a repository
 
-# Project Progress (22/34)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░ ~64.7%
+# Project Progress (23/30)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░ ~76.6%
 
 
 ```
@@ -100,8 +96,8 @@
   |                    |--->|--+  paralel process |
   |                    |-------|--------'-------->|
   |                    |    |  |                  |--+
-  |                    |    |<-+                  |  |
-  |  var set response  |<---|                     |  |
+  |  var set notifi-   |    |<-+                  |  |
+  |  cations           |<---|                     |  |
   |<---------'---------|    |                     |  |
   |                    |    |                     |  | Write to disk
   |                    |    |                     |  | process may
