@@ -4,8 +4,10 @@
 
 ServerDiscovery::ServerDiscovery(DependencyInjectionManager &dim, string version)
 {
+    this->dim = &dim;
     this->serverVersion = version;
     this->log = dim.get<ILogger>()->getNamedLoggerP("ServerDiscovery");
+    
     thread th([&](){ this->run();});
     th.detach();
 }
@@ -95,19 +97,30 @@ bool ServerDiscovery::IsAServerSearchMessage(string message)
 string ServerDiscovery::getServerInfo(string clientIp)
 {
     auto ips = getServerIps();
-    string info = "Vss server info:{\n";
-    info += " version: "+ this->serverVersion + "\n";
+    auto apis = getApisInfo();
+
+    JSON js;
+    js.setString("vssServerInfo.version", this->serverVersion);
+
 
     //detect the most problame ip
     string tmp = getMostProbaleIp(ips, clientIp);
     if (tmp != "")
-        info += " vss main ip: "+tmp + "\n";
+        js.setString("vssServerInfo.mainIp", tmp);
 
+    int i = 0;
     for (auto &c: ips)
-        info += " vss ip: "+c + "\n";
+        js.setString(Utils::sr("vssServerInfo.ips[$i]", "$i", to_string(i++)), c);
 
-    info += "}";
-    return info;
+    i = 0;
+    for (auto &c: apis)
+    {
+        js.setString(Utils::sr("vssServerInfo.apis[$i].name", "$i", to_string(i)), c["name"]);
+        js.setString(Utils::sr("vssServerInfo.apis[$i].access", "$i", to_string(i)), c["access"]);
+        i++;
+    }
+
+    return js.ToJson(true);
 }
  
 bool ServerDiscovery::SetSocketBlockingEnabled(int fd, bool blocking)
@@ -137,6 +150,22 @@ vector<string> ServerDiscovery::getServerIps()
 
         result.push_back(currIp);
         pos = cmdResult.find("src ");
+    }
+
+    return result;
+}
+
+vector<map<string, string>> ServerDiscovery::getApisInfo()
+{
+    vector<map<string, string>> result;
+    auto ret = dim->get<MessageBus<JsonMaker::JSON>>()->post("discover.startedApis", JSON());
+    for (auto &c: ret)
+    {
+        map<string, string> tmp;
+        tmp["name"] = c.getString("name", "");
+        tmp["access"] = c.getString("access", "");
+
+        result.push_back(tmp);
     }
 
     return result;

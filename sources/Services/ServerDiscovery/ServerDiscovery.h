@@ -19,15 +19,21 @@
 #include <logger.h>
 #include <utils.h>
 #include <dependencyInjectionManager.h>
+#include <JSON.h>
+#include <messagebus.h>
 
 
 using namespace std;
+using namespace JsonMaker;
+
 class ServerDiscovery { 
 private:
     int port = 5022;
     NLogger *log;
     bool running = true;
     string serverVersion = "";
+    DependencyInjectionManager *dim;
+
 
     bool SetSocketBlockingEnabled(int fd, bool blocking);
     void run();
@@ -39,6 +45,7 @@ private:
     string ssystem (string, bool removeTheLastLF = true);
     int getStringCompatibility(string string1 , string string2);
     string getMostProbaleIp(vector<string> ips, string clientIp);
+    vector<map<string, string>> getApisInfo();
 public: 
     ServerDiscovery(DependencyInjectionManager &dim, string version); 
     ~ServerDiscovery(); 

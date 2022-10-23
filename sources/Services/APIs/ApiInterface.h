@@ -19,6 +19,16 @@ namespace API
         virtual ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues) = 0;
         virtual ClientSendResult checkAlive(string clientId) = 0;
 
+        /*
+            SOme rules (change to implement via interfaces)
+            1) notify controller by use of 'apiStarted' method
+            2) reply the message 'discover.startedApis'. This message will come via MessageBus.
+                {
+                    "name":"api name",
+                    "access": "TCP/port"
+                }
+        */
+
     };
 };
 #endif

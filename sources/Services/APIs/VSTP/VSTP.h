@@ -15,6 +15,8 @@
 
 #include <utils.h>
 #include <dependencyInjectionManager.h>
+#include <messagebus.h>
+#include <JSON.h>
  
 //#define MSG_DONTWAIT 0x40
 
@@ -112,6 +114,8 @@ namespace API {
 
             string byteEscape(string originalText);
             string byteUnescape(string text);
+
+            void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
 
 
         public:
