@@ -23,7 +23,7 @@ void ServerDiscovery::run()
 {
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
-
+ 
     socklen_t cliLen = sizeof(serv_addr);
 
     char buffer[255] = {0};
@@ -58,13 +58,15 @@ void ServerDiscovery::run()
                 if (readCount > 0)
                 {             
                     string cliIp = string(inet_ntoa(cli_addr.sin_addr));
-                    log->info("Received "+to_string(readCount) + " bytes from "+cliIp+".");
+                    log->info2("Received "+to_string(readCount) + " bytes from "+cliIp+".");
                     
                     if (IsAServerSearchMessage(string(buffer, readCount)))
                     {
                         log->info("Received a valid message from "+ cliIp +": "+string(buffer, readCount));
                         string response = getServerInfo(cliIp);
                         response += "\n";
+
+                        log->info("Sending a server info message to "+cliIp+": "+response);
                         sendto(listener, response.c_str(), response.size(), 0, (struct sockaddr*) &cli_addr, cliLen);
                     }
 
