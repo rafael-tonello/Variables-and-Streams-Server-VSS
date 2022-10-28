@@ -31,6 +31,7 @@ public:
     void updateLiveTime();
     bool isConnected();
     vector<string> getObservingVars();
+    int getObservingVarsCount();
     API::ClientSendResult notify(vector<tuple<string, DynamicVar>> varsAndValues);
     void registerNewObservation(string varName);
     void unregisterObservation(string varName);

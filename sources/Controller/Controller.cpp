@@ -262,12 +262,13 @@ future<vector<string>> TheController::getChildsOfVar(string parentName)
 
 }
 
-string TheController::clientConnected(string clientId, ApiInterface* api)
+string TheController::clientConnected(string clientId, ApiInterface* api, int &observingVarsCount)
 {
     if (clientId == "")
         clientId = _createUniqueId();
 
     Controller_ClientHelper client = Controller_ClientHelper(db, clientId, api);
+    observingVarsCount = client.getObservingVarsCount();
 
     updateClientAboutObservatingVars(client);
 

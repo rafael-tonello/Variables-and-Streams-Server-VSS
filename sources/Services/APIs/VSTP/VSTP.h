@@ -37,6 +37,7 @@ namespace API {
         static string PONG;
         static string SUGGEST_NEW_CLI_ID;
         static string CHANGE_OR_CONFIRM_CLI_ID;
+        static string TOTAL_VARIABLES_ALREADY_BEING_OBSERVED;
         static string SET_VAR;
         static string GET_VAR;
         static string GET_VAR_RESPONSE;
@@ -83,6 +84,7 @@ namespace API {
             void updateClientsByIdList(ClientInfo* cli, string newId = "");
             void sendInfoAndConfToClient(ClientInfo* cli);
             void sendIdToClient(ClientInfo* cli, string id);
+            void sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varCount);
 
             void onDataReceived(ClientInfo* cli, char* data, size_t size);
             bool detectAndTakeACompleteMessage(string &text, string &output);

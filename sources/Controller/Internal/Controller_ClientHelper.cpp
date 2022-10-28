@@ -18,8 +18,8 @@ void Controller_ClientHelper::initialize()
 
 
         }
-        //update client keepAlive and apiId
         db->set("internal.clients.byId."+clientId+".apiId", api->getApiId());    
+        //update client keepAlive and apiId
         this->updateLiveTime();
     });
 }
@@ -62,6 +62,11 @@ bool Controller_ClientHelper::isConnected()
         this->updateLiveTime();
 
     return ret;
+}
+
+int Controller_ClientHelper::getObservingVarsCount()
+{
+    return db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
 }
 
 vector<string> Controller_ClientHelper::getObservingVars()

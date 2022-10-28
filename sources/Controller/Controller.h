@@ -81,7 +81,7 @@ namespace Controller{
     public: 
 
         void apiStarted(ApiInterface *api);
-        string clientConnected(string clientId, ApiInterface* api);
+        string clientConnected(string clientId, ApiInterface* api, int &observingVarsCount);
         void observeVar(string varName, string clientId, ApiInterface* api);
         void stopObservingVar(string varName, string clientId, ApiInterface* api);
 

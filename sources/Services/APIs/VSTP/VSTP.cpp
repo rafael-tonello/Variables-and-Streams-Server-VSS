@@ -5,6 +5,7 @@ string API::VSTP_ACTIONS::PING = "ping";
 string API::VSTP_ACTIONS::PONG = "pong";
 string API::VSTP_ACTIONS::SUGGEST_NEW_CLI_ID = "nid";
 string API::VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID = "cid";
+string API::VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED = "aoc";
 string API::VSTP_ACTIONS::SET_VAR = "sv";
 string API::VSTP_ACTIONS::GET_VAR = "gv";
 string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "gvr";
@@ -80,6 +81,7 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     incomingDataBuffers[cli] = "";
     
     sendIdToClient(cli, cli->tags["id"]);
+    sentTotalVarsAlreadyBeingObserved(cli, 0);
 
     log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id '",cli->tags["id"],"'"});
     
@@ -120,6 +122,11 @@ void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
 void API::VSTP::VSTP::sendIdToClient(ClientInfo* cli, string id)
 {
     __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SUGGEST_NEW_CLI_ID, id);
+}
+
+void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varsCount)
+{
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED, to_string(varsCount));
 }
 
 
@@ -237,7 +244,9 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
 
         //event if client do not change its id, notify the controller so it can update the client about its observing vars.
-        this->ctrl->clientConnected(payload, this);
+        int varsAlreadyBeingObserved = 0;
+        this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
+        sentTotalVarsAlreadyBeingObserved(&clientSocket, varsAlreadyBeingObserved);
     }
 }
 
