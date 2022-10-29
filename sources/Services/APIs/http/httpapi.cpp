@@ -10,6 +10,8 @@ API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
         }),
         {}
     );
+
+    startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
 }
 
 
