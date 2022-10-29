@@ -124,7 +124,7 @@ namespace API {
 
             VSTP(int port, DependencyInjectionManager &dim);
             virtual ~VSTP();
-            string getRunningPortInfo();
+            string getListeningInfo();
 
         public:
         /* ApiInterface */

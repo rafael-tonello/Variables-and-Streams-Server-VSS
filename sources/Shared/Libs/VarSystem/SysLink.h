@@ -1,5 +1,5 @@
-#ifndef SYSLINK_H
-#define SYSLINK_H
+#ifndef _VARSYSTEM_SYSLINK_H
+#define _VARSYSTEM_SYSLINK_H
 
 #define plataform_autoreplaced_by_command_line
 

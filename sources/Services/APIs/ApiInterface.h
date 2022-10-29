@@ -18,6 +18,7 @@ namespace API
         virtual string getApiId() = 0;
         virtual ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues) = 0;
         virtual ClientSendResult checkAlive(string clientId) = 0;
+        virtual string getListeningInfo() = 0;
 
         /*
             SOme rules (change to implement via interfaces)

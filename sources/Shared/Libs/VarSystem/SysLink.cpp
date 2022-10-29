@@ -209,7 +209,7 @@ namespace Shared {
 		//prepre a command to be executed
 		string command = "ls --full-time -Gg ''"+directoryName+lsFilter+"'' | grep "+grepArguments+" >\""+tmpFile+"\"";
 
-		cout << "vai executar o comando " << command << endl << flush;
+		//cout << "vai executar o comando " << command << endl << flush;
 
 		string textResult;
 

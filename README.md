@@ -56,6 +56,7 @@
     [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
     [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
     [✔] When a client reconnects, the server needs to update it on all the variables it is looking at
+    [ ] Add HTTP Api
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
@@ -71,6 +72,7 @@
     [ ] Shared->Misc->Observable
     [✔] Shared->Misc->TaggedObject
     [ ] Services->ServerDiscovery
+    [ ] Services->APIs->Http
 
 ## sugests and things to analyze    
     - Restfull and WebSocket API
@@ -79,8 +81,8 @@
     - Move all code of main.cpp to a class
     - Convert configs to a repository
 
-# Project Progress (23/30)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░ ~76.6%
+# Project Progress (23/32)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░ ~71.8%
 
 
 ```

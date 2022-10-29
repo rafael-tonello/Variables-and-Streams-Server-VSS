@@ -9,11 +9,12 @@
 
 #include <Controller.h>
 #include "Services/APIs/VSTP/VSTP.h"
+#include <httpapi.h>
 #include <dependencyInjectionManager.h>
 #include <Confs.h>
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
-#include <SysLink.h>
+#include <VarSystem/SysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
@@ -64,6 +65,7 @@ int main(){
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(5021, dim));
+    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(5023, &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 
@@ -78,7 +80,8 @@ int main(){
             string("|   +-- log file: "+determinteLogFile()+"\n")+
             string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
             string("+-- Services\n")+
-            string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPortInfo() + "\n") + 
+            string("    +-- VSTP port: "+dim.get<VSTP>()->getListeningInfo() + "\n") + 
+            string("    +-- HTTP port: "+dim.get<HTTP::HttpAPI>()->getListeningInfo() + "\n") + 
             string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPortInfo() + "\n")
         );
     /* #endregion */
@@ -136,7 +139,7 @@ std::string getApplicationDirectory()
 bool isRunningInPortableMode()
 {
     //use the conf file to check if app is runing in a portable mode
-    SysLink sl;
+    Shared::SysLink sl;
     return sl.fileExists(getApplicationDirectory() + "/confs.conf");
 }
 
