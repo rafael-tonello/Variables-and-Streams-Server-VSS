@@ -10,7 +10,18 @@ string API::HTTP::PlainTextExporter::toString()
     return s.str();
 }
 
-string API::HTTP::PlainTextExporter::getMimeType()
+string API::HTTP::PlainTextExporter::sGetMimeType()
 {
     return "text/plain";
+}
+
+
+string API::HTTP::PlainTextExporter::getMimeType()
+{
+    return sGetMimeType();
+}
+
+bool API::HTTP::PlainTextExporter::checkMimeType(string mimeType)
+{
+    return API::HTTP::IVarsExporter::checkMimeType(mimeType, sGetMimeType());
 }

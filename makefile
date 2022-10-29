@@ -122,9 +122,9 @@ OBJ=$(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
 CC= g++
  
 # Flags for compiler
+#		 -W         
+#         -Wall      
 CC_FLAGS=-c			\
-		 -W         \
-         -Wall      \
          -ansi      \
          -pedantic  \
 		 -pthread   \
@@ -136,9 +136,9 @@ CC_FLAGS=-c			\
 		 $(CUSTOM_INCLUDE_PATH)
 
 # Flags for linker
-LK_FLAGS=-W         \
-         -Wall      \
-         -ansi      \
+#		 -W         
+#         -Wall      
+LK_FLAGS=-ansi      \
          -pedantic  \
 		 -pthread   \
 		 -g			\

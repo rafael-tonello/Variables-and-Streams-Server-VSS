@@ -28,17 +28,16 @@ namespace API::HTTP{
             this->vars.clear();
         }
 
-        virtual bool checkMymeType(string mimeType)
-        {
-            string tmp = this->getMimeType();
-            std::transform(mimeType.begin(), mimeType.end(), mimeType.begin(), [](unsigned char c){ return std::tolower(c); });
-            std::transform(tmp.begin(), tmp.end(), tmp.begin(), [](unsigned char c){ return std::tolower(c); });
-
-            return tmp == mimeType;
-        }
-
         virtual operator string(){return toString(); }
         virtual operator const char*(){return toString().c_str(); }
+
+        static bool checkMimeType(string mimeType1, string mimeType2)
+        {
+            std::transform(mimeType1.begin(), mimeType1.end(), mimeType1.begin(), [](unsigned char c){ return std::tolower(c); });
+            std::transform(mimeType2.begin(), mimeType2.end(), mimeType2.begin(), [](unsigned char c){ return std::tolower(c); });
+
+            return mimeType1 == mimeType2;
+        }
     public:
         virtual string toString() = 0;
         virtual string getMimeType() = 0;

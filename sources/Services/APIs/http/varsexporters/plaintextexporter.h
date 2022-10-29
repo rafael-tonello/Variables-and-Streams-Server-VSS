@@ -12,6 +12,9 @@ namespace API::HTTP {
     public: 
         string toString();
         string getMimeType();
+
+        static string sGetMimeType();
+        static bool checkMimeType(string mimeType);
     };
 } 
  
