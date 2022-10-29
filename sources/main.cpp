@@ -78,7 +78,7 @@ int main(){
             string("|   +-- log file: "+determinteLogFile()+"\n")+
             string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
             string("+-- Services\n")+
-            string("    +-- VSTP port: "+dim.get<VSTP>()->getRunningPortInfo() + "\n") + 
+            string("    +-- VSTP port: "+dim.get<VSTP>()->getListeningInfo() + "\n") + 
             string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPortInfo() + "\n")
         );
     /* #endregion */

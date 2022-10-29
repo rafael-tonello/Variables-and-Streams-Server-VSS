@@ -366,7 +366,7 @@ API::ClientSendResult API::VSTP::checkAlive(string clientId)
     return ClientSendResult::DISCONNECTED;
 }
 
-string API::VSTP::getRunningPortInfo()
+string API::VSTP::getListeningInfo()
 {
     if (this->port > -1)
         return "TCP/"+to_string(port);
@@ -380,7 +380,7 @@ void API::VSTP::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
         if (this->port > -1)
         {
             result.setString("name", "VSTP - Var stream protocol");
-            result.setString("access", getRunningPortInfo());
+            result.setString("access", getListeningInfo());
         }
     });
 }

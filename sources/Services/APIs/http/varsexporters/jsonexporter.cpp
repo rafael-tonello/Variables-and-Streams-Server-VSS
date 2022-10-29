@@ -1,7 +1,7 @@
 #include  "jsonexporter.h" 
  
 
-string JsonExporter::toString()
+string API::HTTP::JsonExporter::toString()
 {
     JSON result;
     for (auto &c: vars)
@@ -10,7 +10,7 @@ string JsonExporter::toString()
     return result.ToJson();
 }
 
-string JsonExporter::getMimeType()
+string API::HTTP::JsonExporter::getMimeType()
 {
     return "application/json";
 }

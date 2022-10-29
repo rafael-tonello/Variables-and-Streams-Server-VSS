@@ -1,6 +1,6 @@
 #include  "plaintextexporter.h" 
 
-string PlainTextExporter::toString()
+string API::HTTP::PlainTextExporter::toString()
 {
     stringstream s;
     for (auto &c: vars)
@@ -10,7 +10,7 @@ string PlainTextExporter::toString()
     return s.str();
 }
 
-string PlainTextExporter::getMimeType()
+string API::HTTP::PlainTextExporter::getMimeType()
 {
     return "text/plain";
 }

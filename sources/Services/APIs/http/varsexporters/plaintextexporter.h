@@ -6,11 +6,13 @@
 #include <string>
 
 using namespace std;
- 
-class PlainTextExporter: public IVarsExporter { 
-public: 
-    string toString();
-    string getMimeType();
-}; 
+
+namespace API::HTTP { 
+    class PlainTextExporter: public IVarsExporter { 
+    public: 
+        string toString();
+        string getMimeType();
+    };
+} 
  
 #endif 

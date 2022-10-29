@@ -11,11 +11,12 @@
 
 using namespace std;
 using namespace JsonMaker;
- 
-class JsonExporter: public IVarsExporter { 
-public: 
-    string toString();
-    string getMimeType();
-}; 
+namespace API::HTTP {
+    class JsonExporter: public IVarsExporter { 
+    public: 
+        string toString();
+        string getMimeType();
+    }; 
+}
  
 #endif 
