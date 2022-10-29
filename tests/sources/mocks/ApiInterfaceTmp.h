@@ -36,6 +36,12 @@ public:
         return getApiIdFunction();
     }
 
+    string getListeningInfo()
+    {
+        return "This api does not provide an external access";
+
+    }
+
     ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
     {
         return notifyClientFunction(clientId, varsAndValues);

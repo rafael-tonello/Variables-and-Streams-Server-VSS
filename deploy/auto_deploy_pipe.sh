@@ -65,7 +65,7 @@ waitNextChange()
 
         cd $workdir
         local c1=$(git log -n 1 main --pretty=format:"%H")
-        git pull
+        git pull --recurse-submodules
         local c2=$(git log -n 1 main --pretty=format:"%H")
 
         if [ "$c1" != "$c2" ]; then
