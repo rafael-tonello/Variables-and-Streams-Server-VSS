@@ -27,6 +27,8 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/TCPServer/sources"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/ThreadPool"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/VarSystem"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/MessageBus"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/KwWebServer/sources"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/KwWebServer/sources/Workers"
 
 
 
@@ -61,6 +63,8 @@ C_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/MessageBus/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/KwWebServer/sources/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/Libs/KwWebServer/sources/Workers/*.cpp)
   
 # .h files
 #test app files
@@ -94,6 +98,8 @@ H_SOURCE+=$(wildcard ../sources/Shared/Libs/TCPServer/sources/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/ThreadPool/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/VarSystem/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/MessageBus/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/KwWebServer/sources/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/Libs/KwWebServer/sources/Workers/*.h)
 
 objFolder:
 	@ mkdir -p objects/tests/
@@ -120,6 +126,7 @@ objFolder:
 	@ mkdir -p objects/main/Shared/Libs/ThreadPool
 	@ mkdir -p objects/main/Shared/Libs/VarSystem
 	@ mkdir -p objects/main/Shared/Libs/MessageBus
+	@ mkdir -p objects/main/Shared/Libs/KwWebServer/sources/Workers
 	
 	
 
@@ -146,6 +153,8 @@ CC_FLAGS=-D__TESTING__ \
 		 -g			\
 		 -std=c++17 \
 		 -I"./sources/" \
+		 -lssl      \
+		 -lcrypto   \
 		 $(CUSTOM_INCLUDE_PATH)
 		 
 
@@ -160,6 +169,8 @@ LK_FLAGS=-D__TESTING__\
 		 -g			\
 		 -std=c++17 \
 		 -I"./sources/" \
+		 -lssl      \
+		 -lcrypto   \
 		 $(CUSTOM_INCLUDE_PATH)
  
 # Command used at clean target

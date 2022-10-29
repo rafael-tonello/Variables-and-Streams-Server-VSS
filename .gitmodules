@@ -16,3 +16,6 @@
 [submodule "sources/Shared/Libs/ThreadPool"]
 	path = sources/Shared/Libs/ThreadPool
 	url = https://github.com/rafael-tonello/ThreadPool.git
+[submodule "sources/Shared/Libs/KwWebServer"]
+	path = sources/Shared/Libs/KwWebServer
+	url = https://github.com/rafael-tonello/KwWebServer
