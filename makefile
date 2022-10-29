@@ -9,6 +9,9 @@ CUSTOM_INCLUDE_PATH += -I"./sources/Controller"
 CUSTOM_INCLUDE_PATH += -I"./sources/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services/APIs"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/APIs/VSTP"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/APIs/http"
+CUSTOM_INCLUDE_PATH += -I"./sources/Services/APIs/http/varsexporters"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"./sources/Services/ServerDiscovery"
 CUSTOM_INCLUDE_PATH += -I"./sources/Shared/Misc"
@@ -35,6 +38,8 @@ C_SOURCE+=$(wildcard ./sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/APIs/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/http/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/http/varsexporters/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/Storage/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.cpp)
@@ -62,6 +67,8 @@ H_SOURCE+=$(wildcard ./sources/Controller/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/APIs/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/http/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/http/varsexporters/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/Storage/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/Storage/VarSystemLib/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/ServerDiscovery/*.h)
@@ -86,6 +93,7 @@ H_SOURCE+=$(wildcard ./sources/Shared/Libs/KwWebServer/sources/Workers/*.h)
 objFolder:
 	@ mkdir -p objects/Controller/Internal
 	@ mkdir -p objects/Services/APIs/VSTP
+	@ mkdir -p objects/Services/APIs/http/varsexporters
 	@ mkdir -p objects/Services/Storage/VarSystemLib
 	@ mkdir -p objects/Services/ServerDiscovery
 	@ mkdir -p objects/Shared/Misc
