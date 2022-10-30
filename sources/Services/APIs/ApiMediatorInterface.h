@@ -31,5 +31,5 @@ namespace API
         virtual void stopObservingVar(string varName, string clientId, ApiInterface* api) = 0;
 
     };
-};
+}
 #endif
