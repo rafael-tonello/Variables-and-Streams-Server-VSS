@@ -9,8 +9,8 @@ string API::VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED = "aoc";
 string API::VSTP_ACTIONS::SET_VAR = "sv";
 string API::VSTP_ACTIONS::GET_VAR = "gv";
 string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "gvr";
-string API::VSTP_ACTIONS::OBSERVE_VAR = "ov";
-string API::VSTP_ACTIONS::STOP_OBSERVER_VAR = "sov";
+string API::VSTP_ACTIONS::SUBSCRIBE_VAR = "sv";
+string API::VSTP_ACTIONS::UNSUBSCRIBE_VAR = "usv";
 string API::VSTP_ACTIONS::VAR_CHANGED = "vc";
 string API::VSTP_ACTIONS::GET_CHILDS = "gc";
 string API::VSTP_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
@@ -192,12 +192,12 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         lockFuture.get();
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::UNLOCK_VAR_DONE, varName);
     }
-    else if (command == VSTP_ACTIONS::OBSERVE_VAR)
+    else if (command == VSTP_ACTIONS::SUBSCRIBE_VAR)
     {
         ctrl->observeVar(varName, clientSocket.tags["id"], this);
         log->info({"Client", clientSocket.tags["id"], "is now observing the variable", varName});
     }
-    else if (command == VSTP_ACTIONS::STOP_OBSERVER_VAR)
+    else if (command == VSTP_ACTIONS::UNSUBSCRIBE_VAR)
     {
         ctrl->stopObservingVar(varName, clientSocket.tags["id"], this);
         log->info({"Client", clientSocket.tags["id"], "stop watching the variable", varName});

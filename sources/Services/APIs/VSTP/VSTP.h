@@ -41,8 +41,8 @@ namespace API {
         static string SET_VAR;
         static string GET_VAR;
         static string GET_VAR_RESPONSE;
-        static string OBSERVE_VAR;
-        static string STOP_OBSERVER_VAR;
+        static string SUBSCRIBE_VAR;
+        static string UNSUBSCRIBE_VAR;
         static string VAR_CHANGED;
         static string GET_CHILDS;
         static string GET_CHILDS_RESPONSE;
