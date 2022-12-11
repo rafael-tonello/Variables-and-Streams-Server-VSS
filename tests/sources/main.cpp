@@ -35,21 +35,21 @@ int main(int argc, char* argv[]){
         testers.push_back(new ControllerTester());
         testers.push_back(new TaggedObjectTester());
 
-        //logger
-        //  LoggerFileWriter
-        //  LoggerLambdaWriter
-        //  LoggerConsoleWriter
-        //Confs
-        //Controller
-        //Controller_ClientHelper
-        //Controller_VarHelper
-        //FileVars
-        //SysLink
-        //ThreadPool
-        //DynamicVar
-        //Observable
-        //TaggedObject
-        //Utils
+        //[ ]logger
+        //[ ]  LoggerFileWriter
+        //[ ]  LoggerLambdaWriter
+        //[ ]  LoggerConsoleWriter
+        //[ ]Confs
+        //[ ]Controller
+        //[ ]Controller_ClientHelper
+        //[ ]Controller_VarHelper
+        //[ ]FileVars
+        //[ ]SysLink
+        //[ ]ThreadPool
+        //[ ]DynamicVar
+        //[ ]Observable
+        //[ ]TaggedObject
+        //[ ]Utils
     //*****
 
     return Tester::runTests(testers, argc, argv);
