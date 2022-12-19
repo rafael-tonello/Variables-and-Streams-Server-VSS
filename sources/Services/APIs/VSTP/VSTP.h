@@ -50,6 +50,8 @@ namespace API {
         static string UNLOCK_VAR;
         static string LOCK_VAR_DONE;
         static string UNLOCK_VAR_DONE;
+        static string SERVER_BEGIN_HEADERS;
+        static string SERVER_END_HEADERS;
     };
     #define VSTP_PROTOCOL_VERSION "1"
     
@@ -82,6 +84,8 @@ namespace API {
             void onClientDisconnected(ClientInfo *cli);
 
             void updateClientsByIdList(ClientInfo* cli, string newId = "");
+            void sendBeginHeaderToClient(ClientInfo* cli);
+            void sendEndHeaderToClient(ClientInfo* cli);
             void sendInfoAndConfToClient(ClientInfo* cli);
             void sendIdToClient(ClientInfo* cli, string id);
             void sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varCount);
