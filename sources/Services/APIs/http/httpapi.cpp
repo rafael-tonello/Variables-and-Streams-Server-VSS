@@ -45,6 +45,8 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
 
     out->contentType = exporter->getMimeType();
     out->setContentString(exporter->toString());
+    out->httpStatus = 200;
+    out->httpMessage = "OK";
 
     delete exporter;
 }
