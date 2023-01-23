@@ -23,10 +23,17 @@ API::HTTP::HttpAPI::~HttpAPI()
 
 void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
 {
-    string varName = in->resource;
-    if (varName.size() > 0 && varName[0] == '/')
-        varName = varName.substr(1);
-    varName = Utils::sr(varName, "/", ".");
+    if (in->method == "GET")
+        getVars(in, out);
+    else if (in->method == "POST")
+        postVar(in, out);
+    
+
+}
+
+void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
+{
+    string varName = getVarName(in);
     
     auto varsResult = ctrl->getVar(varName, "").get();
 
@@ -40,7 +47,26 @@ void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
     out->setContentString(exporter->toString());
 
     delete exporter;
+}
 
+void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
+{
+    string varName = getVarName(in);
+
+    ctrl->setVar(varName, in->getContentString());
+
+    out->httpStatus = 204;
+    out->httpMessage = "No content";
+}
+
+string API::HTTP::HttpAPI::getVarName(HttpData* in)
+{
+    string varName = in->resource;
+    if (varName.size() > 0 && varName[0] == '/')
+        varName = varName.substr(1);
+    varName = Utils::sr(varName, "/", ".");
+    
+    return varName;
 }
 
 API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(HttpData *request)

@@ -26,6 +26,10 @@ namespace API::HTTP{
         void onServerRequest(HttpData* in, HttpData* out);
         IVarsExporter *detectExporter(HttpData *request);
 
+        string getVarName(HttpData* in);
+        void getVars(HttpData* in, HttpData* out);
+        void postVar(HttpData* in, HttpData* out);
+
     public: 
         HttpAPI(int port, DependencyInjectionManager *dim); 
         ~HttpAPI(); 
