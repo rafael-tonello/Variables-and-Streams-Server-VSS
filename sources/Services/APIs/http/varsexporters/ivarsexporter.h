@@ -36,7 +36,7 @@ namespace API::HTTP{
             std::transform(mimeType1.begin(), mimeType1.end(), mimeType1.begin(), [](unsigned char c){ return std::tolower(c); });
             std::transform(mimeType2.begin(), mimeType2.end(), mimeType2.begin(), [](unsigned char c){ return std::tolower(c); });
 
-            return mimeType1 == mimeType2;
+            return mimeType1.find(mimeType2) != string::npos || mimeType2.find(mimeType1) != string::npos;
         }
     public:
         virtual string toString() = 0;

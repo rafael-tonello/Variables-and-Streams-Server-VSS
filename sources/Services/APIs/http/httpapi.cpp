@@ -73,7 +73,7 @@ string API::HTTP::HttpAPI::getVarName(HttpData* in)
 
 API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(HttpData *request)
 {
-    if (PlainTextExporter::checkMimeType(request->contentType))
+    if (PlainTextExporter::checkMimeType(request->accept))
         return new PlainTextExporter();
 
     return new JsonExporter();
