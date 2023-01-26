@@ -11,7 +11,7 @@
 
 
   I Used to use the 'tests' project during the development to make unity and integrations tests. Eventually I compile the main project.
-  Whena new version is done, i run the deploy scripts (inside 'deploy' folder).
+  When a new version is done, I run the deploy scripts (inside 'deploy' folder).
 
 # compiling and installing 
   The simplest way to compile the VSS (Var Stream Server) is just run 'make' command in the project root folder. The project will be compiled and, if no error occurs, a portable version of the VSS will appear in the 'build' folder.
