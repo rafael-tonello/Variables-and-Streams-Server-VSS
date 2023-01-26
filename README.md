@@ -119,7 +119,7 @@
 
   ```bash
   #setting a variable
-  curl -X post -d "the value of the variable" http://192.168.100.2:5023/n0/tests/testvariable
+  curl -X POST -d "the value of the variable" http://192.168.100.2:5023/n0/tests/testvariable
 
   #in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
   ```
@@ -133,4 +133,5 @@
 
   #you can also request the data in the format of a plain text, adding the header 'accept' to the request:
   curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
+  #result: n0.tests.testvariable=the value of the variable
   ```
