@@ -4,9 +4,7 @@ string API::HTTP::PlainTextExporter::toString()
 {
     stringstream s;
     for (auto &c: vars)
-    {
         s << c.first << "=" << c.second.getString() << endl;
-    }
     return s.str();
 }
 

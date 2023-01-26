@@ -40,7 +40,7 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
     auto exporter = detectExporter(in);
     
     for (auto &currVar: varsResult)
-        exporter->add(std::get<0>(currVar) + "._value", std::get<1>(currVar));
+        exporter->add(std::get<0>(currVar), std::get<1>(currVar));
     
 
     out->contentType = exporter->getMimeType();

@@ -110,3 +110,27 @@
   |                    |    |                     |<-+
   |                    |    |                     |
 ```
+# Compiling
+
+# Using VSS from terminal
+
+  ## setting and getting a variable
+  You can set and get variables on terminal by use of curl command. See the examples bellow:
+
+  ```bash
+  #setting a variable
+  curl -X post -d "the value of the variable" http://192.168.100.2:5023/n0/tests/testvariable
+
+  #in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
+  ```
+
+  ```bash
+  #getting a variable value
+  curl http://192.168.100.2:5023/n0/tests/testvariable
+  #result: {"n0":{"tests":{"testvariable":{"_value":""}}}}
+
+  #this command will get the value of 'n0/tests/testvariable' in a json (the default result format for the HTTP API).
+
+  #you can also request the data in the format of a plain text, adding the header 'accept' to the request:
+  curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
+  ```
