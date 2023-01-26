@@ -18,6 +18,8 @@ string API::VSTP_ACTIONS::LOCK_VAR = "lv";
 string API::VSTP_ACTIONS::UNLOCK_VAR = "uv";
 string API::VSTP_ACTIONS::LOCK_VAR_DONE = "lvd";
 string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "uvd";
+string API::VSTP_ACTIONS::SERVER_BEGIN_HEADERS = "sbh";
+string API::VSTP_ACTIONS::SERVER_END_HEADERS = "seh";
 
 API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
 {
@@ -76,6 +78,11 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
 {
     //create an unique id and sent id to updateClientAboutObservatingVarsthe client
     cli->tags["id"] = Utils::createUniqueId();
+
+    sendBeginHeaderToClient(cli);
+
+
+
     sendInfoAndConfToClient(cli);
     updateClientsByIdList(cli, cli->tags["id"]);
     incomingDataBuffers[cli] = "";
@@ -84,6 +91,8 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     sentTotalVarsAlreadyBeingObserved(cli, 0);
 
     log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id '",cli->tags["id"],"'"});
+
+    sendEndHeaderToClient(cli);
     
     //NOTE:Do not notify controller about the new client id, becasuse it can be only a temporary connection or
     //client can ignore this id and send a new one. 
@@ -106,6 +115,16 @@ void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
         clientsById[cli->tags["id"]] = NULL;
         clientsById.erase(cli->tags["id"]);
     }
+}
+
+void API::VSTP::VSTP::sendBeginHeaderToClient(ClientInfo* cli)
+{
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SERVER_BEGIN_HEADERS, "");
+}
+
+void API::VSTP::VSTP::sendEndHeaderToClient(ClientInfo* cli)
+{
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SERVER_END_HEADERS, "");
 }
 
 void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
