@@ -1,36 +1,106 @@
 # About VSS
-  "Vss is a variable server. It means you can write and read variables from it". This is simplest way to describe the VSS. Vss is a server that provides some APIs to manage variables from multiple clients. 
-  All variables are shared between clients, that means you can write a variable in any client and read it in any client.
-  In addition to being read and written, variables are also streams, meaning you can watch them and be notified when their values ​​change.
-
-  These variables can be write with object notation. For instance, you can set a variable named "parent.child.child2". It allow a beter organization and allow some aditional features, like read a lot of varibales usina the * character and observe a lot of variables (also by use of * character).
-
-# General information
-  I wrote this code in the Visual Studio Code, so , some functions will be documented using a notation
-  that can be used by this IDE.
-
-
-  I Used to use the 'tests' project during the development to make unity and integrations tests. Eventually I compile the main project.
-  When a new version is done, I run the deploy scripts (inside 'deploy' folder).
-
-# compiling and installing 
-  The simplest way to compile the VSS (Var Stream Server) is just run 'make' command in the project root folder. The project will be compiled and, if no error occurs, a portable version of the VSS will appear in the 'build' folder.
+  Vss is a variable server. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
   
-  If you want to a more integrated installation than the 'portable version', you can 'run make install' after the 'make' command, and the vss will be installed in you server. Doing this the program will be installed in the /usr/bin folder. Configuration files will be moved to /etc/VSS folder and the data folder will be /var/VSS/data. Also a systemd daemon will be created with the name VSS.service and, then, this service will be enabled and started.
-
-  Inside the folder 'delploy', you will find more complete installation scripts, which before compiling and installing, will run unity tests.
+  Vss is a server that provides some APIs to manage variables from multiple clients. All variables are shared between these clients, that means you can write a variable in any client and read it in any client.
   
-  OBS.: If you want to run unity testes, run the 'make' command inside the './tests' folder. After the build, enter in the folder './tests/build' and run the 'tests' binary
+  Vss treats variables as streams, allowing you to watch for changes and be notified when the value of the variables are changed.
+  
+  Vss uses a combination of memory cache and disk persistce for data. You can use the VSS as a key-value dataabse.
 
+  The variables are write with object notation. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
 
-# things to do..
-  When i wrote this app, I reused ancient codes, that was not very well structured. So some things should be refactored.
+# Compiling and running
+  First of wall, clone the project:
 
-  -> Dismember VSTP service/module in the following structure (just a suggestion):
-      serviceController - Orchestrate the workflow
-      VSTP read and writer - recieve and write data to web sockets, puttin headers, sizes and checksums
-      pack processor and generator - interprete and create packs in the VSTP format (command + data)
+  ```bash
+  git clone --recurse-submodules "http://vss repo path"
+  ```
 
+  After getting the sources using the git clone, enter in the  VSS folder and run the 'make all' command:
+
+  ```bash
+  cd VSS
+  make all
+  ```
+
+  The comands above, if no error occurs, will generate a binary of the vss in the 'build' folder. The build folder will be populated with some aditional files that allow vss to run in a portable installation (more about installations modes will be discussed above).
+
+  Now, you can enter in the build folder and run the VSS.
+  ```bash
+  cd build
+  ./VarServer
+  ```
+
+  The VSS will startup and show some util information:
+
+  
+# Portable and integrated Modes
+  
+  A portable installation means vss have all it needs to work inside a unique folder. You can move this folder and rename it however you want and vss will be able to resume its work when started.
+
+  Integrated installation means the vss will work with files inside system folders (/etc, /var, ...).
+
+  Vss uses its configuration file to detect if it is running in a "portable mode" or in "integrated mode". If yout delete the file confs.conf, the VSS will understant that it should work in integrated mode.
+
+  ## Portable mode
+  in portable mode, the vss will use these files and folders:
+
+    [VSS_BIN_FOLDER]/confs.conf -> configuration folder
+    [VSS_BIN_FOLDER]/vss.log    -> log file
+    [VSS_BIN_FOLDER]/data       -> data used and stored by THE vss
+
+  ## Integrated mode
+  in portable mode, the vss will use these files and folders:
+
+    /etc/vss/confs.conf         -> configuration folder
+    /var/log/vss.log            -> log file
+    [VSS_BIN_FOLDER]/data       -> data used and stored by THE vss
+
+  when running VSS in integrated mode, note the following:
+
+    * The data folder is the same of the 'portable mode'
+    * You must run VSS as a root (or as a user that have permissions to read from /etc and write to /var/log)
+    
+
+# Compiling and running the tests
+  To run the tests, just enter in the 'test' folder and run the command 'make all':
+
+  ```bash
+  cd VSS/tests
+  make all
+  ```
+
+  after compilation of tests, enter in the build folder (inside tests folder) and run the generated binary:
+
+  ```bash
+  cd build
+  ./tets
+  ```
+
+# Using VSS from terminal
+
+  ## setting and getting a variable
+  You can set and get variables on terminal by use of curl command. See the examples bellow:
+
+  ```bash
+  #setting a variable
+  curl -X POST -d "the value of the variable" \
+  http://192.168.100.2:5023/n0/tests/testvariable
+
+  #in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
+  ```
+
+  ```bash
+  #getting a variable value
+  curl http://192.168.100.2:5023/n0/tests/testvariable
+  #result: {"n0":{"tests":{"testvariable":{"_value":"The value of the variable"}}}}
+
+  #this command will get the value of 'n0/tests/testvariable' in a json (the default result format of the HTTP API).
+
+  #you can also request the data in the format of a plain text, adding the header 'accept' to the request:
+  curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
+  #result: n0.tests.testvariable=the value of the variable
+  ```
 
 # Task lists
 ## Main task List
@@ -54,9 +124,8 @@
     [✔] Import new Logger lib repository
     [✔] Import the TCPServer repo
     [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
-    [ ] Create mirror service (to mirror current ser \ver in a anotheserver - a parent server). This mirror server should prevent 'back notification' from the remote server.
     [✔] When a client reconnects, the server needs to update it on all the variables it is looking at
-    [ ] Add HTTP Api
+    [✔] Add HTTP Api
 ## Tests
     [ ] Controller
     [✔] ControllerClientHelper
@@ -81,10 +150,14 @@
     - Move all code of main.cpp to a class
     - Convert configs to a repository
 
-# Project Progress (23/32)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░ ~71.8%
+# Project Progress (24/32)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░ ~75%
 
 
+
+# Further information
+
+An overview on how VSS work with data when a 'var set' in requested
 ```
 +---------+           +------------ server -----------+
 | client  |           |  +-----+            +------+  |
@@ -110,28 +183,11 @@
   |                    |    |                     |<-+
   |                    |    |                     |
 ```
-# Compiling
 
-# Using VSS from terminal
+# things to study and other information
+When i wrote this app, I reused ancient codes, that was not very well structured. So some things should be refactored.
 
-  ## setting and getting a variable
-  You can set and get variables on terminal by use of curl command. See the examples bellow:
-
-  ```bash
-  #setting a variable
-  curl -X POST -d "the value of the variable" http://192.168.100.2:5023/n0/tests/testvariable
-
-  #in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
-  ```
-
-  ```bash
-  #getting a variable value
-  curl http://192.168.100.2:5023/n0/tests/testvariable
-  #result: {"n0":{"tests":{"testvariable":{"_value":""}}}}
-
-  #this command will get the value of 'n0/tests/testvariable' in a json (the default result format for the HTTP API).
-
-  #you can also request the data in the format of a plain text, adding the header 'accept' to the request:
-  curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
-  #result: n0.tests.testvariable=the value of the variable
-  ```
+-> Dismember VSTP service/module in the following structure (just a suggestion):
+    serviceController - Orchestrate the workflow
+    VSTP read and writer - recieve and write data to web sockets, puttin headers, sizes and checksums
+    pack processor and generator - interprete and create packs in the VSTP format (command + data)
