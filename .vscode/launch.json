@@ -47,6 +47,19 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Orangepi debug",
+            "gdbpath": "/usr/bin/gdb-multiarch",
+            "executable": "./VarServer",
+            "target": "192.168.100.2:5099",
+            "remote": true,
+            "printCalls": true,
+            "cwd": "${workspaceFolder}",
+            "valuesFormatting": "parseText",
+            "autorun": []
+        },
+        {
             "type": "bashdb",
             "request": "launch",
             "name": "Bash-Debug (select script from list of sh files)",
