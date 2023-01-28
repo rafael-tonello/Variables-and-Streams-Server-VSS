@@ -43,7 +43,7 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     bool sucess;
     this->port = port;
 
-    this->server = new TCPServer(port, sucess, tasker);
+    this->server = new TCPServer(port, sucess);
     this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
         if (event == CONN_EVENT::CONNECTED)
             this->onClientConnected(client);
