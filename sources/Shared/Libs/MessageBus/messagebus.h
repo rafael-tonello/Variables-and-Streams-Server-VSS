@@ -61,9 +61,11 @@ class MessageBus
         {
             auto observerId = currId++;
             observers[observerId] = {message, f};
+
+            return observerId;
         }
 
-        void stopListen(int observerId)
+        void stopListen(uint observerId)
         {
             if (observers.count(observerId))
                 observers.erase(observerId);
