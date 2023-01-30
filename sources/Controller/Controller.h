@@ -17,6 +17,7 @@
 #include <logger.h>
 #include "Internal/Controller_ClientHelper.h"
 #include "Internal/Controller_VarHelper.h"
+#include <errors.h>
 
 #ifdef __TESTING__
     #include <tester.h>
@@ -87,11 +88,14 @@ namespace Controller{
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
-        future<void> setVar(string name, DynamicVar value);
-        future<void> delVar(string varname);
+        future<Errors::Error> setVar(string name, DynamicVar value);
+        future<Errors::Error> delVar(string varname);
+
+        
+        future<Errors::Error> lockVar(string varName);
+        future<Errors::Error> unlockVar(string varName);
         future<vector<string>> getChildsOfVar(string parentName);
-        future<void> lockVar(string varName);
-        future<void> unlockVar(string varName);
+        
     };
 }
 #endif

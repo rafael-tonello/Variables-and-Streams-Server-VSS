@@ -39,49 +39,55 @@ TheController::~TheController()
 }
 
 //creates or change a variable
-future<void> TheController::setVar(string name, DynamicVar value)
+future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 {
     Controller_VarHelper varHelper(log, this->db, name);
     //check if name isn't a internal flag var
 
     if (name.find('_') == 0 || name.find("._") != string::npos)
     {
-        log->warning("TheController", "Variabls started with underscorn (_) are just for internal flags and can't be setted by clients");
-        promise<void> p;
-        p.set_value();
+        log->warning("TheController", Errors::Error_VariablesStartedWithUnderscornAreJustForInternal);
+        promise<Errors::Error> p;
+        p.set_value(Errors::Error_VariablesStartedWithUnderscornAreJustForInternal);
         return p.get_future();
     }
 
     //checks if the variabel is locked
     if (varHelper.isLocked())
     {
-        log->warning("TheController", "The variable '"+ name + "' is locked and can't be changed by setVar");
-        promise<void> p;
-        p.set_value();
+        Errors::Error errMessage = Utils::sr(Errors::Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar, "vName", name);
+        log->warning("TheController", errMessage);
+        promise<Errors::Error> p;
+        p.set_value(errMessage);
         return p.get_future();
     }
 
     return tasker->enqueue([this](string namep, Controller_VarHelper varhelperp, DynamicVar valuep)
     {
-        varhelperp.setValue(valuep);
+        auto ret = varhelperp.setValue(valuep);
         this->notifyVarModification(namep, valuep);
+        return ret;
     }, name, varHelper, value);
 
 }
 
-future<void> TheController::lockVar(string varName)
+future<Errors::Error> TheController::lockVar(string varName)
 {
     return tasker->enqueue([this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         varHelper.lock();
+
+        return Errors::NoError;
     }, varName);
 }
 
-future<void> TheController::unlockVar(string varName)
+future<Errors::Error> TheController::unlockVar(string varName)
 {
     return tasker->enqueue([this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         varHelper.unlock();
+
+        return Errors::NoError;
     }, varName);
 }
 
@@ -243,12 +249,13 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
 
 }
 
-future<void> TheController::delVar(string varname)
+future<Errors::Error> TheController::delVar(string varname)
 {
     return tasker->enqueue([this](string varnamep)
     {
         Controller_VarHelper varHelper(log, db, varnamep);
         varHelper.deleteValueFromDB();
+        return Errors::NoError;
     }, varname);
 }
 

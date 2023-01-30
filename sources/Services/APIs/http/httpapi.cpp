@@ -55,10 +55,25 @@ void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
 {
     string varName = getVarName(in);
 
-    ctrl->setVar(varName, in->getContentString());
+    auto result = ctrl->setVar(varName, in->getContentString()).get();
 
-    out->httpStatus = 204;
-    out->httpMessage = "No content";
+    if (result == Errors::NoError)
+    {
+        out->httpStatus = 204;
+        out->httpMessage = "No content";
+    }
+    else if (result == Errors::Error_VariableWithWildCardCantBeSet || result == Errors::Error_VariablesStartedWithUnderscornAreJustForInternal)
+    {
+        out->httpStatus = 403;
+        out->httpMessage = "Forbidden";
+        out->setContentString(result.message);
+    }
+    else
+    {
+        out->httpStatus = 500;
+        out->httpMessage = "Internal server error";
+        out->setContentString(result.message);
+    }
 }
 
 string API::HTTP::HttpAPI::getVarName(HttpData* in)

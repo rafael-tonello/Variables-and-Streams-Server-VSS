@@ -42,23 +42,26 @@ DynamicVar Controller_VarHelper::getValue(DynamicVar defaultValue)
     return db->get(name, defaultValue);
 }
 
-void Controller_VarHelper::setValue(DynamicVar value)
+Errors::Error Controller_VarHelper::setValue(DynamicVar value)
 {
     vector<future<void>> pendingTasks;
 
     if (name.find('*') != string::npos)
     {
         #ifdef __TESTING__
-            Tester::global_test_result = "Invalid setVar parameter. A variable with '*' can't be setted";
+            Tester::global_test_result = Errors::Error_VariableWithWildCardCantBeSet;
         #endif
-        log->warning("TheController", "Invalid setVar parameter. A variable with '*' can't be set");
+        log->warning("TheController", Errors::Error_VariableWithWildCardCantBeSet);
         //throw "Invalid setVar parameter. A variable with '*' can't be setted";
-        return;
+
+        return Errors::Error_VariableWithWildCardCantBeSet;
     }
 
 
     //set the variable
     db->set(name, value.getString());
+
+    return Errors::NoError;
 }
 
 bool Controller_VarHelper::isLocked()

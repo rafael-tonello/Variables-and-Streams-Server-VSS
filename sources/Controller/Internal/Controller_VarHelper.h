@@ -8,6 +8,7 @@
 #include <utils.h>
 #include <logger.h>
 #include <functional>
+#include <errors.h>
 #ifdef __TESTING__
     #include <tester.h>
 #endif
@@ -33,7 +34,7 @@ public:
     void setFlag(string flagName, DynamicVar value);
     DynamicVar getFlag(string flagName, DynamicVar defaultValue = "");
     DynamicVar getValue(DynamicVar defaultValue = "");
-    void setValue(DynamicVar value);
+    Errors::Error setValue(DynamicVar value);
     bool isLocked();
     bool valueIsSetInTheDB();
     void lock();
