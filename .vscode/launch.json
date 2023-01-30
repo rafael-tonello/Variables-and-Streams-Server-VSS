@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Build debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/VarServer",
@@ -22,7 +22,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build",
+            "preLaunchTask": "buildDebug",
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
@@ -58,6 +58,27 @@
             "cwd": "${workspaceFolder}",
             "valuesFormatting": "parseText",
             "autorun": []
+        },
+        {
+            "name": "Build prod",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/VarServer",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "buildProd",
+            "miDebuggerPath": "/usr/bin/gdb"
         },
         {
             "type": "bashdb",

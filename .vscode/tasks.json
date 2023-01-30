@@ -4,7 +4,23 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "buildDebug",
+            "type": "shell",
+            "command": "make debug",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "buildProd",
             "type": "shell",
             "command": "make all",
             "args": [],

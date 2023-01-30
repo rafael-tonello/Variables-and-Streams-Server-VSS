@@ -29,39 +29,43 @@ prebuild:
 OBJ=$(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
  
 # Compiler and linker
-CC= g++
- 
-# Flags for compiler
-#		 -W         
-#         -Wall      
-CC_FLAGS=-c			\
-         -ansi      \
-         -pedantic  \
-		 -pthread   \
-		 -g			\
-		 -std=c++17 \
-		 -lssl      \
-		 -lcrypto   \
-		 $(CUSTOM_INCLUDE_PATH)
+#CC=g++
+CC=clang++
 
-# Flags for linker
-#		 -W         
-#         -Wall      
+
+CC_FLAGS=-c			\
+		-ansi      \
+		-pedantic  \
+		-pthread   \
+		-std=c++17 \
+		-lssl      \
+		-lcrypto   \
+		$(CUSTOM_INCLUDE_PATH)
+
+
 LK_FLAGS=-ansi      \
-         -pedantic  \
-		 -pthread   \
-		 -g			\
-		 -std=c++17 \
-		 -lssl      \
-		 -lcrypto   \
-		 $(CUSTOM_INCLUDE_PATH)
+		-pedantic  \
+		-pthread   \
+		-std=c++17 \
+		-lssl      \
+		-lcrypto   \
+		$(CUSTOM_INCLUDE_PATH)
+#
+# Compilation and linking
+#
+ 
+
  
 # Command used at clean target
 RM = rm -rf
  
-#
-# Compilation and linking
-#
+
+debug: CC_FLAGS += -g
+debug: LK_FLAGS += -g
+debug: prebuild $(PROJ_NAME)
+	
+all: CC_FLAGS += -O3   
+all: LK_FLAGS += -O3
 all: prebuild $(PROJ_NAME)
  
 $(PROJ_NAME): $(OBJ)
