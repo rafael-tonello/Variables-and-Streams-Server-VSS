@@ -9,6 +9,7 @@
 #include <fstream>
 #include "SysLink.h"
 #include <map>
+#include <thread>
 
 
 
@@ -69,7 +70,5 @@ namespace Shared
 
 			vector<string> getChilds(string parentName);
 	};
-
-    void *ThreadFileVars_syncToFs(void *thisPointer);
 }
 #endif

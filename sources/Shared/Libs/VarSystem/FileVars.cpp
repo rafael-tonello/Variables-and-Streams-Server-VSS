@@ -43,7 +43,10 @@ namespace Shared
 
 		this->directory = dirBase;
 
-        pthread_create(&(this->__Thread_syncToFsPointer), NULL, ThreadFileVars_syncToFs, this);
+		thread th([&](){
+			__Thread_syncToFs();
+		});
+        th.detach();
 	}
 
 	FileVars::~FileVars()
@@ -355,14 +358,6 @@ namespace Shared
 		return this->_data.size();
 	}
 	//#endregion
-
-
-    //non classed functions
-    void *ThreadFileVars_syncToFs(void *thisPointer)
-    {
-        FileVars *self = (FileVars*)thisPointer;
-        self->__Thread_syncToFs();
-    }
 
 	
 }
