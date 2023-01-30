@@ -69,12 +69,23 @@ waitNextChange()
         local c2=$(git log -n 1 main --pretty=format:"%H")
 
         if [ "$c1" != "$c2" ]; then
-            git pull --recurse-submodules
+            gitCompleteUpdate
             return 0
         fi
 
         sleep $versionCheckInteval_seconds
     done
+}
+
+gitCompleteUpdate()
+{
+    cd $workdir
+    repoUrl=$(git config remote.origin.url)
+    cd ..
+    rm -rf $workdir
+    git clone $repoUrl $workdir
+    cd $workdir
+    git submodule update --init
 }
 
 tests()
