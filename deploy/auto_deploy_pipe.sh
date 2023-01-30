@@ -1,8 +1,8 @@
 #!/bin/bash
 
-rundir=/home/orangepi/vss/run
+rundir=/home/orangepi/vss/bin
 binaryName=VarServer
-mainLogFile=/home/orangepi/vss/run/vss.log
+mainLogFile=/home/orangepi/vss/bin/vss.log
 workdir=/home/orangepi/vss/workdir
 telegramSender=/home/orangepi/scripts/sendToTelegram.sh
 clearObjectsBeforeMake=true
@@ -32,6 +32,7 @@ main()
 
 deploy()
 {
+    gitCompleteUpdate
     currAppState="deploying"
     tests
     if [ "$?" == "0" ]; then
@@ -69,7 +70,6 @@ waitNextChange()
         local c2=$(git log -n 1 main --pretty=format:"%H")
 
         if [ "$c1" != "$c2" ]; then
-            gitCompleteUpdate
             return 0
         fi
 
