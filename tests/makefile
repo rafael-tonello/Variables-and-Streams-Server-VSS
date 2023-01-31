@@ -16,6 +16,7 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs/VSTP"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/http"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/http/varsexporters"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Storage"
+CUSTOM_INCLUDE_PATH += -I"../sources/Shared"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Misc"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared/Libs/DynamicVar/sources"
@@ -54,6 +55,7 @@ C_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/http/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/http/varsexporters/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Storage/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Shared/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Misc/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Shared/Libs/DynamicVar/sources/*.cpp)
@@ -91,6 +93,7 @@ H_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/http/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/http/varsexporters/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Storage/*.h)
+H_SOURCE+=$(wildcard ../sources/Shared/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Misc/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Libs/json_maker/sources/*.h)
@@ -147,7 +150,8 @@ prebuild:
 OBJ=$(subst .cpp,.o,$(subst ./sources,./objects/tests,$(subst ../sources,./objects/main,$(C_SOURCE))))
  
 # Compiler and linker
-CC=g++
+#CC=g++
+CC=clang++
  
 # Flags for compiler
 #		 -W         

@@ -177,8 +177,8 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     string value;
     char* buffer;
 
-    future<vector<tuple<string, DynamicVar>>> get_var_fut;
-    vector<tuple<string, DynamicVar>> get_var_values;
+    future<GetVarResult> get_var_fut;
+    VarList get_var_values;
 
     separateKeyAndValue(payload, varName, value);
     if (command ==VSTP_ACTIONS::SET_VAR)
@@ -187,7 +187,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     {
         //store a clientSocket id in a variable
         get_var_fut = this->ctrl->getVar(varName, DynamicVar(string("")));
-        get_var_values = get_var_fut.get();
+        get_var_values = get_var_fut.get().result;
         
 
         for (auto &c : get_var_values)

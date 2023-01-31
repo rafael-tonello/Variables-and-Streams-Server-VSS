@@ -64,6 +64,99 @@ void ControllerTester::test_function__createUniqueId()
 
 void ControllerTester::test_function_setVar()
 {
+    this->test("setVar should not be able to create flags", [&](){
+        this->ctrl->setVar("sampleVar._flag", "the flag value").get();
+
+        auto result = dim.get<StorageInterface>()->get("vars.sampleVar._flag", "--not found--").getString();
+        return TestResult{
+            result == "--not found--", 
+            "--not found--", 
+            result
+        };
+    });
+
+    this->test("setVar should return erro when try to create flags", [&](){
+        auto result = this->ctrl->setVar("sampleVar._flag", "the flag value").get();
+
+        return TestResult{
+            result != Errors::NoError, 
+            "any error message ( != \"\")", 
+            result.message
+        };
+    });
+
+    this->test("setVar should not be able to create vars with '*' as a child name", [&](){
+        this->ctrl->setVar("sampleVar.*", "the var value").get();
+
+        auto result = dim.get<StorageInterface>()->get("vars.sampleVar.*", "--not found--").getString();
+        return TestResult{
+            result == "--not found--", 
+            "--not found--", 
+            result
+        };
+    });
+
+    this->test("setVar should return error when try to set '*' as a child name", [&](){
+        auto result = this->ctrl->setVar("sampleVar.*", "the var value").get();
+
+        return TestResult{
+            result != Errors::NoError, 
+            "any error message ( != \"\")", 
+            result.message
+        };
+    });
+    
+    
+    
+    this->test("setVar should not be able to create vars with '*' as part of name", [&](){
+        this->ctrl->setVar("sampleVar.var*name", "the var value").get();
+
+        auto result = dim.get<StorageInterface>()->get("vars.sampleVar.var*name", "--not found--").getString();
+        return TestResult{
+            result == "--not found--", 
+            "--not found--", 
+            result
+        };
+    });
+    
+
+    this->test("setVar should not be able to the var name '*'", [&](){
+        this->ctrl->setVar("*", "the var value").get();
+
+        auto result = dim.get<StorageInterface>()->get("vars.*", "--not found--").getString();
+        return TestResult{
+            result == "--not found--", 
+            "--not found--", 
+            result
+        };
+    });
+
+    this->test("setVar should return error when try to set '*'", [&](){
+        auto result = this->ctrl->setVar("*", "the var value").get();
+
+        return TestResult{
+            result != Errors::NoError, 
+            "any error message ( != \"\")", 
+            result.message
+        };
+    });
+
+    
+
+    this->test("setVar should return error when try to set '*'", [&](){
+        auto result = this->ctrl->setVar("sampleVar/var*name", "the var value").get();
+
+        return TestResult{
+            result != Errors::NoError, 
+            "any error message ( != \"\")", 
+            result.message
+        };
+    });
+
+
+
+
+
     this->test("setVar should create variable in the database", [&](){
         this->ctrl->setVar("sampleVar", "the variable value").get();
 
@@ -133,7 +226,7 @@ void ControllerTester::test_function_setVar()
 void ControllerTester::test_function_getVar()
 {
     this->test("getVar should default value for variables that not exist", [&](){
-        auto returnedValue = std::get<1>(this->ctrl->getVar("this.var.not.exists.in.the.database", "default value").get()[0]).getString();
+        auto returnedValue = std::get<1>(this->ctrl->getVar("this.var.not.exists.in.the.database", "default value").get().result[0]).getString();
 
         return TestResult{
             returnedValue == "default value", 
@@ -144,7 +237,7 @@ void ControllerTester::test_function_getVar()
 
     this->test("getVar should return correct value of a existing variable", [&](){
         this->ctrl->setVar("this.variable.exists", "exisisting value").wait();
-        auto returnedValue = std::get<1>(this->ctrl->getVar("this.variable.exists", "default value").get()[0]).getString();
+        auto returnedValue = std::get<1>(this->ctrl->getVar("this.variable.exists", "default value").get().result[0]).getString();
 
         return TestResult{
             returnedValue == "exisisting value",
@@ -168,7 +261,7 @@ void ControllerTester::test_function_getVar()
 
 
 
-        auto variables = this->ctrl->getVar("variables.*", "default value").get();
+        auto variables = this->ctrl->getVar("variables.*", "default value").get().result;
         auto varWasReturned = [&](string vName){
             for (auto &c: variables)
                 if (std::get<0>(c) == vName)
@@ -193,7 +286,7 @@ void ControllerTester::test_function_getVar()
         string v5name = "variables.var3.var3child";
 
 
-        auto variables = this->ctrl->getVar("variables.*", "default value").get();
+        auto variables = this->ctrl->getVar("variables.*", "default value").get().result;
         auto varWasReturned = [&](string vName){
             for (auto &c: variables)
                 if (std::get<0>(c) == vName)
@@ -211,7 +304,7 @@ void ControllerTester::test_function_getVar()
     });
 
     this->test("getVar should return a list of vars if only the '*' char is used", [&](){
-        auto variables = this->ctrl->getVar("*", "default value").get();
+        auto variables = this->ctrl->getVar("*", "default value").get().result;
         return variables.size() > 5;
     });
 
