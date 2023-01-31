@@ -225,6 +225,16 @@ void ControllerTester::test_function_setVar()
 
 void ControllerTester::test_function_getVar()
 {
+    this->test("getVar should result in error for empty names", [&](){
+        auto retValue = this->ctrl->getVar("", "default value").get();
+
+        return TestResult{
+            retValue.errorStatus != Errors::NoError, 
+            "Any error message", 
+            retValue.errorStatus.message
+        };
+    });
+
     this->test("getVar should default value for variables that not exist", [&](){
         auto returnedValue = std::get<1>(this->ctrl->getVar("this.var.not.exists.in.the.database", "default value").get().result[0]).getString();
 

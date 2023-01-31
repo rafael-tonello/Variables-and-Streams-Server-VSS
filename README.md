@@ -13,7 +13,9 @@
   First of wall, clone the project:
 
   ```bash
-  git clone --recurse-submodules "http://vss repo path"
+  git clone  "http://vss_repo_path VSS"
+  cd VSS
+  git submodule update --init
   ```
 
   After getting the sources using the git clone, enter in the  VSS folder and run the 'make all' command:
@@ -108,7 +110,7 @@
     [✔] Change folder 'source' name to 'sources' (look in the 'rastreio correios' project to see the makefile)
     [✔] Alias is realy needed ? Remove alias system
     [✔] Very important: Mutex variables (lock and u \nlock). 'lock' o(setAndUnlock) and 'unlock' (setVar can't change this variables when locked). An ideia: lock can return an token that can be used by an special setLockedVar to change this value (this allow just one client to change a locked variable).
-    [✔] Variables started with '_' are internal fla \gs. Do not allothis names
+    [✔] Variables started with '_' are internal fla \gs. Do not allow this in names
     [✔] Variable persistency
     [✔] Configuration system (to specify)
     [✔] UDP replay to server search
@@ -123,11 +125,11 @@
     [✔] Analyse the possibility of write var files  \in paralel (to besperformance/best latency)
     [✔] Import new Logger lib repository
     [✔] Import the TCPServer repo
-    [ ] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
+    [✔] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
     [✔] When a client reconnects, the server needs to update it on all the variables it is looking at
     [✔] Add HTTP Api
 ## Tests
-    [ ] Controller
+    [✔] Controller
     [✔] ControllerClientHelper
     [✔] ControllerVarHelper
     [✔] Services->APis->VSTP
@@ -136,12 +138,12 @@
     [✔] Shared->Libs->Confs
     [✔] Shared->Libs->Confs->SimpleConfFileProvider
     [✔] Shared->Libs->DependencyInjectionManager
-    [ ] Shared->Libs->TcpServer
-    [ ] Shared->Misc->DynamicVar
-    [ ] Shared->Misc->Observable
     [✔] Shared->Misc->TaggedObject
     [ ] Services->ServerDiscovery
     [ ] Services->APIs->Http
+
+## Project Progress (26/29)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░ ~89.6%
 
 ## sugests and things to analyze    
     - Restfull and WebSocket API
@@ -150,8 +152,6 @@
     - Move all code of main.cpp to a class
     - Convert configs to a repository
 
-# Project Progress (24/32)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░ ~75%
 
 
 
@@ -176,8 +176,8 @@ An overview on how VSS work with data when a 'var set' in requested
   |<---------'---------|    |                     |  |
   |                    |    |                     |  | Write to disk
   |                    |    |                     |  | process may
-  |                    |    |                     |  | take a long
-  |                    |    |                     |  | time
+  |                    |    |                     |  | take longer
+  |                    |    |                     |  | 
   |                    |    |                     |  |
   |                    |    |                     |  |
   |                    |    |                     |<-+
