@@ -35,20 +35,30 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
 {
     string varName = getVarName(in);
     
-    auto varsResult = ctrl->getVar(varName, "").get();
+    auto result = ctrl->getVar(varName, "").get();
 
-    auto exporter = detectExporter(in);
-    
-    for (auto &currVar: varsResult)
-        exporter->add(std::get<0>(currVar), std::get<1>(currVar));
-    
+    if (result.errorStatus == Errors::NoError)
+    {
 
-    out->contentType = exporter->getMimeType();
-    out->setContentString(exporter->toString());
-    out->httpStatus = 200;
-    out->httpMessage = "OK";
+        auto exporter = detectExporter(in);
+        
+        for (auto &currVar: result.result)
+            exporter->add(std::get<0>(currVar), std::get<1>(currVar));
+        
 
-    delete exporter;
+        out->contentType = exporter->getMimeType();
+        out->setContentString(exporter->toString());
+        out->httpStatus = 200;
+        out->httpMessage = "OK";
+
+        delete exporter;
+    }
+    else
+    {
+        out->httpStatus = 400;
+        out->httpMessage = "Bad request";
+        out->setContentString(result.errorStatus.message);
+    }
 }
 
 void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)

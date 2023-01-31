@@ -107,7 +107,7 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
         client.registerNewObservation(varName);
 
         //upate client about the var
-        auto varsResult = this->getVar(varName, "").get();
+        auto varsResult = this->getVar(varName, "").get().result;
         
 
         if (client.notify(varsResult) != API::ClientSendResult::LIVE)
@@ -185,9 +185,15 @@ string TheController::_createUniqueId()
     return Utils::StringToHex(tmp);
 }
 
-future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, DynamicVar defaultValue)
+future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
 {
     return tasker->enqueue([this](string namep, DynamicVar defaultValuep){
+
+        if (namep == "")
+        {
+            log->warning("TheController", Errors::Error_TheVariableNameCannotBeEmpty);
+            return GetVarResult(Errors::Error_TheVariableNameCannotBeEmpty, {});
+        }
 
         function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
         readFromDb = [&](string nname, bool childsToo)        
@@ -227,10 +233,8 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
             }
             else
             {
-                log->error("TheController", "wildcard char (*) can be used only at last of varname in the getVar function");
-                //vector<tuple<string, DynamicVar>> emptyResult = { std::make_tuple(namep, defaultValuep ) };
-                vector<tuple<string, DynamicVar>> emptyResult = { };
-                return emptyResult;
+                log->error("TheController", Errors::Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting);
+                return GetVarResult(Errors::Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting, {});
             }
         }
 
@@ -243,8 +247,7 @@ future<vector<tuple<string, DynamicVar>>> TheController::getVar(string name, Dyn
             values.push_back(make_tuple(namep, defaultValuep));
 
         //return the values
-
-        return values;
+        return GetVarResult(Errors::NoError, values);
     }, name, defaultValue);
 
 }
@@ -292,7 +295,7 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
 
         for (auto &curr : observingVars)
         {
-            auto currVarsAndValues = this->getVar(curr, "").get();
+            auto currVarsAndValues = this->getVar(curr, "").get().result;
 
             if (controller_ClientHelperP.notify(currVarsAndValues) != API::ClientSendResult::LIVE)
             {

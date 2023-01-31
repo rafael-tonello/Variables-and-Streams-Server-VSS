@@ -87,7 +87,7 @@ namespace Controller{
         void stopObservingVar(string varName, string clientId, ApiInterface* api);
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
-        future<vector<tuple<string, DynamicVar>>> getVar(string name, DynamicVar defaultValue);
+        future<GetVarResult> getVar(string name, DynamicVar defaultValue);
         future<Errors::Error> setVar(string name, DynamicVar value);
         future<Errors::Error> delVar(string varname);
 

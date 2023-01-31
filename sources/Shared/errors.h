@@ -28,9 +28,21 @@ public:
         friend bool operator==(const Error &err1, const Error &err2) {return err1.code == err2.code; }
     };
 
+    template<typename TResult>
+    class ResultWithErrorStatus{
+    public:
+        TResult result;
+        Error errorStatus;
+
+        ResultWithErrorStatus(TResult result, Error errorStatus): result(result), errorStatus(errorStatus){};
+        ResultWithErrorStatus(Error errorStatus, TResult result): result(result), errorStatus(errorStatus){};
+    };
+
     static Error NoError;
     static Error Error_VariableWithWildCardCantBeSet;
     static Error Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar;
     static Error Error_VariablesStartedWithUnderscornAreJustForInternal;
+    static Error Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting;
+    static Error Error_TheVariableNameCannotBeEmpty;
 };
 #endif
