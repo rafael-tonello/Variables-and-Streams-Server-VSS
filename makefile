@@ -60,10 +60,12 @@ LK_FLAGS=-ansi      \
 RM = rm -rf
  
 
+debug: CC=g++
 debug: CC_FLAGS += -g
 debug: LK_FLAGS += -g
 debug: prebuild $(PROJ_NAME)
 	
+
 all: CC_FLAGS += -O3   
 all: LK_FLAGS += -O3
 all: prebuild $(PROJ_NAME)

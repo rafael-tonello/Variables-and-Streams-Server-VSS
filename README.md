@@ -134,7 +134,6 @@
     [✔] ControllerVarHelper
     [✔] Services->APis->VSTP
     [✔] Services->APis->VSTP->socketInfo
-    [ ] Services->Storage->VarSystemLib
     [✔] Shared->Libs->Confs
     [✔] Shared->Libs->Confs->SimpleConfFileProvider
     [✔] Shared->Libs->DependencyInjectionManager
@@ -142,8 +141,8 @@
     [ ] Services->ServerDiscovery
     [ ] Services->APIs->Http
 
-## Project Progress (26/29)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░ ~89.6%
+## Project Progress (26/28)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░ ~92.8%
 
 ## sugests and things to analyze    
     - Restfull and WebSocket API
@@ -151,6 +150,7 @@
     - Paralel project (app server)
     - Move all code of main.cpp to a class
     - Convert configs to a repository
+    - Tests for Services->Storage->VarSystemLib
 
 
 
