@@ -1,4 +1,5 @@
 #!/bin/bash
+export TERM=xterm-256color
 
 rundir=/home/orangepi/vss/bin
 binaryName=VarServer
