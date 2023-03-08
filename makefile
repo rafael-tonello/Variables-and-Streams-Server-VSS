@@ -59,7 +59,7 @@ LK_FLAGS=-ansi      \
 # Command used at clean target
 RM = rm -rf
  
-
+debug: CC=g++
 debug: CC_FLAGS += -g
 debug: LK_FLAGS += -g
 debug: prebuild $(PROJ_NAME)
