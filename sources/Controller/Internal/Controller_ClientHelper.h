@@ -32,7 +32,7 @@ public:
     bool isConnected();
     vector<string> getObservingVars();
     int getObservingVarsCount();
-    API::ClientSendResult notify(vector<tuple<string, DynamicVar>> varsAndValues);
+    API::ClientSendResult notify(vector<tuple<string, string, DynamicVar>> varsAndValues);
     void registerNewObservation(string varName);
     void unregisterObservation(string varName);
     string getClientId();

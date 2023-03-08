@@ -4,12 +4,16 @@ API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
 { 
     this->port = port;
     this->ctrl = dim->get<ApiMediatorInterface>();
+    this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
+
+
     server = new KWTinyWebServer(this->port, new WebServerObserverHelper(
         [&](HttpData* in, HttpData* out){
             this->onServerRequest(in, out);
         }),
         {}
     );
+    log.info(string("Http API started a webserver and is listening on port ") + to_string(this->port));
 
     startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
 }
@@ -109,7 +113,7 @@ string API::HTTP::HttpAPI::getApiId()
     return this->apiId;
 }
 
-API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues)
 {
     return API::ClientSendResult::DISCONNECTED;
 }

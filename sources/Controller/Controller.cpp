@@ -21,7 +21,7 @@ TheController::TheController(DependencyInjectionManager* dim)
     }
 
     if (this->confs == NULL)
-        log->error("TheController", "configuration system can't be found in the dependency injection manager");
+        log->critical("TheController", "configuration system can't be found in the dependency injection manager");
 
 
     db = dim->get<StorageInterface>();
@@ -70,7 +70,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
     }, name, varHelper, value);
 
 }
-
+  
 future<Errors::Error> TheController::lockVar(string varName)
 {
     return tasker->enqueue([this](string varNamep){
@@ -92,7 +92,7 @@ future<Errors::Error> TheController::unlockVar(string varName)
 }
 
 //start to observate a variable
-void TheController::observeVar(string varName, string clientId, ApiInterface* api)
+void TheController::observeVar(string varName, string clientId, string customMetadata, ApiInterface* api)
 {
     //NOTE: enclosure the code ins a ThreadPool tasker
     log->info("TheController", {"::observeVar called. varName: '",varName,"', clientId:: '",clientId,"', api(id): '",api->getApiId(),"'"});
@@ -103,14 +103,19 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
     {
         Controller_ClientHelper client(this->db, clientId, api);
 
-        varHelper.addClientToObservers(clientId);
+        varHelper.addClientToObservers(clientId, customMetadata);
         client.registerNewObservation(varName);
 
         //upate client about the var
-        auto varsResult = this->getVar(varName, "").get().result;
+        auto getVarResult = this->getVar(varName, "").get().result;
+
+        vector<tuple<string, string, DynamicVar>> finalResult;
+
+        for (auto &c: getVarResult)
+            finalResult.push_back(std::make_tuple(std::get<0>(c), customMetadata, std::get<1>(c)));
         
 
-        if (client.notify(varsResult) != API::ClientSendResult::LIVE)
+        if (client.notify(finalResult) != API::ClientSendResult::LIVE)
             this->checkClientLiveTime(client);
     };
 }
@@ -118,7 +123,7 @@ void TheController::observeVar(string varName, string clientId, ApiInterface* ap
 void TheController::notifyVarModification(string varName, DynamicVar value)
 {
     Controller_VarHelper vh(log, db, varName);
-    notifyClientsAboutVarChange(vh.getObserversClientIds(), varName, value);
+    notifyClientsAboutVarChange(vh.getObserversClientIdsAndMetadta(), varName, value);
 
     //todo: scrolls through parent vars lookin for '*' special child
     notifyParentGenericObservers(varName, varName, value);
@@ -126,7 +131,7 @@ void TheController::notifyVarModification(string varName, DynamicVar value)
     /*done: If the current variable contains the child '*', should it be notified?
         when i observe the variable "a.b.c.*" i want to observate also a.b.c or only their childs.*/
    Controller_VarHelper childWildcard(log, db, varName + ".*");
-   notifyClientsAboutVarChange(childWildcard.getObserversClientIds(), varName, value);
+   notifyClientsAboutVarChange(childWildcard.getObserversClientIdsAndMetadta(), varName, value);
     
 }
 
@@ -136,30 +141,31 @@ void TheController::notifyParentGenericObservers(string varName, string changedV
     {
         string parentName = varName.substr(0, varName.find_last_of("."));
         Controller_VarHelper varHelper(log, db, parentName + ".*");
-        notifyClientsAboutVarChange(varHelper.getObserversClientIds(), changedVarName, value);
+        notifyClientsAboutVarChange(varHelper.getObserversClientIdsAndMetadta(), changedVarName, value);
         notifyParentGenericObservers(parentName, changedVarName, value);
     }
 }
 
-void TheController::notifyClientsAboutVarChange(vector<string> clients, string changedVarName, DynamicVar value)
+void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> clientIdsAndMetadata, string changedVarName, DynamicVar value)
 {
-    for (string &clientId: clients)
+    for (tuple<string, string> &clientIdAndMetadata: clientIdsAndMetadata)
     {
-        tasker->enqueue([&](string changedVarNamep, string clientIdp, DynamicVar valuep){
-            
+        tasker->enqueue([&](string changedVarNamep, tuple<string, string> clientIdAndMetadatap, DynamicVar valuep){
+            auto clientIdp = std::get<0>(clientIdAndMetadatap);
+            auto metadata = std::get<1>(clientIdAndMetadatap);
             Controller_ClientHelperError resultError;
             Controller_ClientHelper ch(db, clientIdp, this->apis, resultError);
 
             if (resultError == Controller_ClientHelperError::NO_ERROR)
             {
-                if (ch.notify( { std::make_tuple(changedVarNamep, valuep) } ) != API::ClientSendResult::LIVE)
+                if (ch.notify( { std::make_tuple(changedVarNamep, metadata, valuep) } ) != API::ClientSendResult::LIVE)
                     this->checkClientLiveTime(ch);
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
                 log->error("TheController", "Client notification failute due 'responsible API not found.");
             else
                 log->error("TheController", "Client notification failute due an unknown error.");
-        }, changedVarName, clientId, value);
+        }, changedVarName, clientIdAndMetadata, value);
     }
 }
 
@@ -297,7 +303,13 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
         {
             auto currVarsAndValues = this->getVar(curr, "").get().result;
 
-            if (controller_ClientHelperP.notify(currVarsAndValues) != API::ClientSendResult::LIVE)
+            vector<tuple<string, string, DynamicVar>> finalResult;
+            Controller_VarHelper tmpVar(log, this->db, curr);
+
+            for (auto &c: currVarsAndValues)
+                finalResult.push_back(std::make_tuple(std::get<0>(c), tmpVar.getMetadataForClient(controller_ClientHelper.getClientId()), std::get<1>(c)));
+
+            if (controller_ClientHelperP.notify(finalResult) != API::ClientSendResult::LIVE)
             {
                 mustCheckClientLiveTime = true;
                 break;

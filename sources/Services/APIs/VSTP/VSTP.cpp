@@ -213,7 +213,11 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::SUBSCRIBE_VAR)
     {
-        ctrl->observeVar(varName, clientSocket.tags["id"], this);
+        string metadata = "";
+
+        separateNameAndMetadata(varName, varName, metadata);
+
+        ctrl->observeVar(varName, clientSocket.tags["id"], metadata, this);
         log->info({"Client", clientSocket.tags["id"], "is now observing the variable", varName});
     }
     else if (command == VSTP_ACTIONS::UNSUBSCRIBE_VAR)
@@ -351,6 +355,23 @@ void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & v
     }
 }
 
+void separateNameAndMetadata(string originalVarName, string &varname, string &metadata)
+{
+    if (auto pos = originalVarName.find('('); pos != string::npos)
+    {
+        varname = originalVarName.substr(0, pos);
+        metadata = originalVarName.substr(pos + 1);
+        if (metadata.size() > 0 && metadata[metadata.size()-1] == ')')
+            metadata = metadata.substr(0, metadata.size()-1);
+    }
+    else
+    {
+        varname = originalVarName;
+        metadata = "";
+    }
+    
+}
+
 
 string API::VSTP::getApiId()
 {
@@ -358,14 +379,15 @@ string API::VSTP::getApiId()
 }
 
 
-API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues)
 {
     if (clientsById.count(clientId))
     {
         auto cli = clientsById[clientId];
-        for (auto &c: varsAndValues)
+        for (auto &c: varsnamesMetadataAndValues)
         {
-            string bufferStr = std::get<0>(c) + "="+(std::get<1>(c)).getString();
+            string metadataStr = std::get<1>(c) != "" ? "("+std::get<1>(c)+")": "";
+            string bufferStr = std::get<0>(c) + metadataStr+ "="+(std::get<2>(c)).getString();
             this->__PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
         }
         return ClientSendResult::LIVE;

@@ -124,11 +124,11 @@ vector<string> Controller_VarHelper::getChildsNames()
 
 bool Controller_VarHelper::isClientObserving(string clientId)
 {
-    auto result = db->hasValue(name + "._observers.byId."+clientId);
+    auto result = db->hasValue(name + "._observers.byId."+clientId+".index");
     return result;
 }
 
-void Controller_VarHelper::addClientToObservers(string clientId)
+void Controller_VarHelper::addClientToObservers(string clientId, string customMetadata)
 {
     
     runLocked([&](){
@@ -136,7 +136,8 @@ void Controller_VarHelper::addClientToObservers(string clientId)
         int actualVar_observersCount = db->get(name + "._observers.list.count", 0).getInt();
         
         db->set(name + "._observers.list."+to_string(actualVar_observersCount), clientId);
-        db->set(name + "._observers.byId."+clientId, actualVar_observersCount);
+        db->set(name + "._observers.byId."+clientId+".index", actualVar_observersCount);
+        db->set(name + "._observers.byId."+clientId+".customMetadata", customMetadata);
         db->set(name + "._observers.list.count", actualVar_observersCount+1);
     });
 }
@@ -155,18 +156,18 @@ void Controller_VarHelper::removeClientFromObservers(string clientId)
                 {
                     auto currId = db->get(name + "._observers.list."+to_string(c2+1), "").getString();
                     db->set(name+"._observers.list."+to_string(c2), currId);
-                    db->set(name + "._observers.byId."+currId, c2);
+                    db->set(name + "._observers.byId."+currId+".index", c2);
                 }
                 
                 //remove the last item from the _observers.list
                 db->deleteValue(name + "._observers.list."+to_string(actualVar_observersCount-1));
-                db->deleteValue(name + "._observers.byId."+clientId);
 
                 actualVar_observersCount--;
                 db->set(name + "._observers.list.count", actualVar_observersCount);
 
                 //remove the item from _observers.byId
-                db->deleteValue(name + "._observers.byId"+clientId);
+                db->deleteValue(name + "._observers.byId."+clientId+".index");
+                db->deleteValue(name + "._observers.byId."+clientId+".customMetada");
             }
         }
     });
@@ -202,6 +203,20 @@ vector<string> Controller_VarHelper::getObserversClientIds()
     return result;
 }
 
+vector<tuple<string, string>> Controller_VarHelper::getObserversClientIdsAndMetadta()
+{
+    vector<string> clients = this->getObserversClientIds();
+    vector<tuple<string, string>> result;
+
+    for (auto &c : clients)
+    {
+        auto customMetadata = db->get(name + "._observers.byId."+c+".customMetada", "").getString();
+        result.push_back(std::make_tuple(c, customMetadata));
+    }
+
+    return result;
+}
+
 void Controller_VarHelper::deleteValueFromDB()
 {
     db->deleteValue(name, false);
@@ -214,4 +229,11 @@ void Controller_VarHelper::runLocked(function<void()>f)
     Utils::named_lock(name + "._observationLock", [&](){ //more memory, lock individualy each variable
         f();
     });
+}
+
+string Controller_VarHelper::getMetadataForClient(string clientId)
+{
+    auto customMetadata = db->get(name + "._observers.byId."+clientId+".customMetada", "").getString();
+
+    return customMetadata;
 }

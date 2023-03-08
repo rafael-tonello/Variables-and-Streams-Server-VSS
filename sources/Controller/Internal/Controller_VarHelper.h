@@ -42,10 +42,13 @@ public:
     void deleteValueFromDB();
     vector<string> getChildsNames();
     bool isClientObserving(string clientId);
-    void addClientToObservers(string clientId);
+    void addClientToObservers(string clientId, string customMetadata);
     void removeClientFromObservers(string clientId);
     void foreachObserversClients(FObserversForEachFunction f);
     vector<string> getObserversClientIds();
+    vector<tuple<string, string>> getObserversClientIdsAndMetadta();
+
+    string getMetadataForClient(string clientId);
 }; 
  
 #endif 

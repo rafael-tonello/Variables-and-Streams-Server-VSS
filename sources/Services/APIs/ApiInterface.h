@@ -16,7 +16,7 @@ namespace API
     {
     public:
         virtual string getApiId() = 0;
-        virtual ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues) = 0;
+        virtual ClientSendResult notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues) = 0;
         virtual ClientSendResult checkAlive(string clientId) = 0;
         virtual string getListeningInfo() = 0;
 

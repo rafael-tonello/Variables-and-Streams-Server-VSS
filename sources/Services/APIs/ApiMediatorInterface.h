@@ -31,7 +31,7 @@ namespace API
         
         virtual void apiStarted(ApiInterface *api) = 0;
         virtual string clientConnected(string clientId, ApiInterface* api, int &observingVarsCount) = 0;
-        virtual void observeVar(string varName, string clientId, ApiInterface* api) = 0;
+        virtual void observeVar(string varName, string clientId, string customMetadata, ApiInterface* api) = 0;
         virtual void stopObservingVar(string varName, string clientId, ApiInterface* api) = 0;
 
     };
