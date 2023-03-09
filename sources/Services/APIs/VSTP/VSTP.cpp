@@ -355,7 +355,7 @@ void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & v
     }
 }
 
-void separateNameAndMetadata(string originalVarName, string &varname, string &metadata)
+void API::VSTP::separateNameAndMetadata(string originalVarName, string &varname, string &metadata)
 {
     if (auto pos = originalVarName.find('('); pos != string::npos)
     {
