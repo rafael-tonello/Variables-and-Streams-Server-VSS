@@ -73,7 +73,7 @@ void ServerDiscovery::run()
                     for (uint c = 0; c < 255; c++)
                         buffer[c] = 0;
                 }
-                usleep(10000);
+                usleep(1000);
             }
         }
         else
