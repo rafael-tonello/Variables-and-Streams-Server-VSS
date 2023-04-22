@@ -43,12 +43,13 @@ bool isRunningInPortableMode();
 void handleSignals();
 
 //semantic versioning
-string INFO_VERSION = "1.13.2";
+string INFO_VERSION = "1.14.0";
 
 int main(){
     
 
-    handleSignals();  
+    handleSignals();
+    srand((unsigned)time(0)); 
     
     DependencyInjectionManager dim;
     

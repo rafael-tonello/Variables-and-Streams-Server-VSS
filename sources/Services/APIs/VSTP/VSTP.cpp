@@ -1,4 +1,4 @@
-#include "VSTP.h"
+ #include "VSTP.h"
 
 string API::VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS = "sci";
 string API::VSTP_ACTIONS::PING = "ping";
@@ -20,6 +20,8 @@ string API::VSTP_ACTIONS::LOCK_VAR_DONE = "lvd";
 string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "uvd";
 string API::VSTP_ACTIONS::SERVER_BEGIN_HEADERS = "sbh";
 string API::VSTP_ACTIONS::SERVER_END_HEADERS = "seh";
+string API::VSTP_ACTIONS::HELP = "help";
+string API::VSTP_ACTIONS::SET_TELNET_SESSION = "telnet";
 
 API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
 {
@@ -84,7 +86,7 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     sendIdToClient(cli, cli->tags["id"]);
     sentTotalVarsAlreadyBeingObserved(cli, 0);
 
-    log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id '",cli->tags["id"],"'"});
+    log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id ","'"+cli->tags["id"]+"'","and friendly name", "'"+getCliFriendlyName(cli) + "'"});
 
     sendEndHeaderToClient(cli);
     
@@ -98,6 +100,7 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
 
 void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
 {
+    log->info((DVV){"Client", getCliFriendlyName(cli, true), "disconnected"});
     if (incomingDataBuffers.count(cli))
     {
         incomingDataBuffers[cli] = "";
@@ -175,7 +178,15 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     VarList get_var_values;
 
     separateKeyAndValue(payload, varName, value);
-    if (command ==VSTP_ACTIONS::SET_VAR)
+    if (string(VSTP_ACTIONS::HELP + "\r").find(command) == 0)
+        displayHelpMenu(&clientSocket);
+    else if (string(VSTP_ACTIONS::SET_TELNET_SESSION + "\r").find(command) == 0)
+    {
+        log->info("Session of client '"+getCliFriendlyName(&clientSocket, true)+"' setted as a telnet session.");
+        clientSocket.tags["isATelnetSession"] = "true";
+        clientSocket.sendString("Session configured as a Telenet session.\n");
+    }
+    else if (command ==VSTP_ACTIONS::SET_VAR)
         this->ctrl->setVar(varName, value);
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
@@ -261,6 +272,14 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
         sentTotalVarsAlreadyBeingObserved(&clientSocket, varsAlreadyBeingObserved);
     }
+    else 
+    {
+        log->info("Received an unknown command: '"+command+"'. Payload: '"+payload+"'");
+        if (clientSocket.tags["isATelnetSession"] == "true")
+        {
+            clientSocket.sendString("Unknown command '"+command+"'\n");
+        }
+    }
 }
 
 
@@ -303,16 +322,20 @@ void API::VSTP::onDataReceived(ClientInfo* cli, char* data, size_t size)
     incomingDataBuffers[cli] += string(data, size);
     string package;
 
-    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli], package))
+    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli], package, cli->tags["isATelnetSession"] == "true"))
         processReceivedMessage(cli, package);
 }
 
-bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output)
+bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output, bool isATelnetSession)
 {
     if (size_t pos = text.find('\n'); pos != string::npos)
     {
         output = text.substr(0, pos);
         text = text.substr(pos+1);
+
+        if (isATelnetSession && output.size() > 0 && output[output.size()-1] == '\r')
+            output = output.substr(0, output.size()-1);
+
         return true;
     }
     return false;
@@ -324,25 +347,34 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
     string command = "";
     string payload = "";
 
-    separateKeyAndValue(message, command, payload, ';');
+    separateKeyAndValue(message, command, payload, "; ");
 
     payload = byteUnescape(payload);
 
     this->processCommand(command, payload, *cli);
 }
 
+void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & value, string possibleCharSeps)
+{
+    for (size_t c = 0; c < keyValuePair.size(); c++)
+    {
+        if (possibleCharSeps.find(keyValuePair[c]) != string::npos)
+        {
+            key = keyValuePair.substr(0, c);
+            value = keyValuePair.substr(c+1);    
+            return;
+        }
+    }
+
+    key = keyValuePair;
+    value = "";
+}
+
 void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & value, char charSep)
 {
-    if (auto pos = keyValuePair.find(charSep); pos != string::npos)
-    {
-        key = keyValuePair.substr(0, pos);
-        value = keyValuePair.substr(pos+1);
-    }
-    else
-    {
-        key = keyValuePair;
-        value = "";
-    }
+    string sep = "";
+    sep += charSep;
+    return separateKeyAndValue(keyValuePair, key, value, sep);
 }
 
 
@@ -396,4 +428,52 @@ void API::VSTP::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
             result.setString("access", getListeningInfo());
         }
     });
+}
+
+string API::VSTP::getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditionalInfomation)
+{
+    if (!cli->tags.count("friendlyName"))
+        cli->tags["friendlyName"] = Utils::getAName(rand()) + " " + Utils::getAName(rand());
+
+    string ret = cli->tags["friendlyName"];
+
+    if (includeClieIdAndAditionalInfomation)
+    ret += " (ID: "+cli->tags["id"]+", remote host: "+cli->address+", remote port: "+to_string(cli->port)+")";
+
+    return ret;
+}
+
+void API::VSTP::displayHelpMenu(ClientInfo* cli)
+{
+    cli->sendString(string("VSTP rotocol version ") + string(VSTP_PROTOCOL_VERSION) + string("\n"));
+    cli->sendString(string("\n"));
+    cli->sendString(string("    Usage: vsp_command;arguments\n"));
+    cli->sendString(string("    Usage (2, using space instead ';'): vsp_command arguments\n"));
+    cli->sendString(string("\n"));
+    //                      --------------------------------------------------------------------------------
+    cli->sendString(string("    Available commands: \n"));
+    cli->sendString(string("        help - Display this menu\n"));
+    cli->sendString(string("        sv varname=value - Changes or create the variable 'varname' with value\n"));
+    cli->sendString(string("                           'value';\n"));
+    cli->sendString(string("        gv varname       - Gets the value of variable 'varname'. Wildcard\n"));
+    cli->sendString(string("                           (* char) can be used here;\n"));
+    cli->sendString(string("        lv varname       - Locks the variable 'varname' ('sv' and others\n"));
+    cli->sendString(string("                           commands will not be able to change the variable);\n"));
+    cli->sendString(string("        uv varname       - Unlocks the variable 'varname';\n"));
+    cli->sendString(string("        sv varname       - Subscribe the variable 'varname'. A notification will\n"));
+    cli->sendString(string("                           be sent when variable is changed;\n"));
+    cli->sendString(string("        usv varname      - Cancels the subscription to variable 'varname';\n"));
+    cli->sendString(string("        gc varname       - Get variable 'varname' childs. Note: The system uses\n"));
+    cli->sendString(string("                           object name notation and uses the dot (.) as name\n"));
+    cli->sendString(string("                           separator;\n"));
+    cli->sendString(string("        ping             - Pings the server. Server will replay with 'pong;';\n"));
+    cli->sendString(string("        cid              - Update the client id. It is used to resume a previous\n"));
+    cli->sendString(string("                           VSTP session. The server will reply with all observed\n"));
+    cli->sendString(string("                           variables and theirs respective values;\n"));
+    cli->sendString(string("        telnet           - Informs the server that the current session is a\n"));
+    cli->sendString(string("                           telnet session. Server will adapt messages to enable\n"));
+    cli->sendString(string("                           a more easy use over a telnet session (like remove\n"));
+    cli->sendString(string("                           \\' from the end of received commands)\n"));
+    cli->sendString(string("\n"));
+
 }

@@ -52,8 +52,10 @@ namespace API {
         static string UNLOCK_VAR_DONE;
         static string SERVER_BEGIN_HEADERS;
         static string SERVER_END_HEADERS;
+        static string HELP;
+        static string SET_TELNET_SESSION;
     };
-    #define VSTP_PROTOCOL_VERSION "1"
+    #define VSTP_PROTOCOL_VERSION "1.1.0"
     
     //#define VSTP_SCAPE_CHAR '\'
 
@@ -91,8 +93,24 @@ namespace API {
             void sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varCount);
 
             void onDataReceived(ClientInfo* cli, char* data, size_t size);
-            bool detectAndTakeACompleteMessage(string &text, string &output);
+            bool detectAndTakeACompleteMessage(string &text, string &output, bool isATelnetSession = false);
             void processReceivedMessage(ClientInfo* cli, string message);
+
+            void displayHelpMenu(ClientInfo* cli);
+
+            string getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditionalInfomation = false);
+
+            /**
+             * @brief Separate key and value from a keyValuePair. The funciton will find the first ocurrency of any character in 'possibleCharSeps' arguments
+             * and will divide the keyValuePair in this position
+             * 
+             * @param keyValuePair A string with a key, followed by a separator and by a value.
+             * @param key Key output
+             * @param value Value output
+             * @param possibleCharSeps Possible characters to be used as a key-value seperator.
+             */
+            void separateKeyAndValue(string keyValuePair, string &key, string & value, string possibleCharSeps);
+
 
             void separateKeyAndValue(string keyValuePair, string &key, string & value, char charSep = '=');
             
