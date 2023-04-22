@@ -71,13 +71,12 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
 }
 
-future<Errors::Error> TheController::lockVar(string varName)
+future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 {
-    return tasker->enqueue([this](string varNamep){
+    return tasker->enqueue([this, maxTimeOut_ms](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
-        varHelper.lock();
+        return varHelper.lock(maxTimeOut_ms);
 
-        return Errors::NoError;
     }, varName);
 }
 
@@ -89,6 +88,12 @@ future<Errors::Error> TheController::unlockVar(string varName)
 
         return Errors::NoError;
     }, varName);
+}
+
+bool TheController::isVarLocked(string varName)
+{
+    Controller_VarHelper varHelper(log, db, varName);
+    return varHelper.isLocked();
 }
 
 //start to observate a variable

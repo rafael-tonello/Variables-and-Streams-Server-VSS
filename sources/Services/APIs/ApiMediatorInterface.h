@@ -8,6 +8,7 @@
 #include "ApiInterface.h"
 #include <errors.h>
 #include <tuple>
+#include <limits.h>
 
 using namespace std;
 namespace API
@@ -26,8 +27,9 @@ namespace API
         virtual future<vector<string>> getChildsOfVar(string parentName) = 0;
 
         
-        virtual future<Errors::Error> lockVar(string varName) = 0;
+        virtual future<Errors::Error> lockVar(string varName, uint maxTimeOut_ms = UINT_MAX) = 0;
         virtual future<Errors::Error> unlockVar(string varName) = 0;
+        virtual bool isVarLocked(string varName) = 0;
         
         virtual void apiStarted(ApiInterface *api) = 0;
         virtual string clientConnected(string clientId, ApiInterface* api, int &observingVarsCount) = 0;

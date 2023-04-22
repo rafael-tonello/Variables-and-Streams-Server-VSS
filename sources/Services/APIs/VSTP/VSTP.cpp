@@ -16,17 +16,20 @@ string API::VSTP_ACTIONS::GET_CHILDS = "gc";
 string API::VSTP_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
 string API::VSTP_ACTIONS::LOCK_VAR = "lv";
 string API::VSTP_ACTIONS::UNLOCK_VAR = "uv";
-string API::VSTP_ACTIONS::LOCK_VAR_DONE = "lvd";
+string API::VSTP_ACTIONS::LOCK_VAR_RESULT = "lvr";
 string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "uvd";
 string API::VSTP_ACTIONS::SERVER_BEGIN_HEADERS = "sbh";
 string API::VSTP_ACTIONS::SERVER_END_HEADERS = "seh";
 string API::VSTP_ACTIONS::HELP = "help";
 string API::VSTP_ACTIONS::SET_TELNET_SESSION = "telnet";
+string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS = "vls";
+string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT = "vlsr";
 
 API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
 {
     this->log =   dim.get<ILogger>()->getNamedLoggerP("API::VSTP");
     this->ctrl = dim.get<ApiMediatorInterface>();
+    this->scheduler = dim.get<ThreadPool>();
     this->initServer(port, dim.get<ThreadPool>());
     this->startListenMessageBus(dim.get<MessageBus<JsonMaker::JSON>>());
 
@@ -177,7 +180,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     future<GetVarResult> get_var_fut;
     VarList get_var_values;
 
-    separateKeyAndValue(payload, varName, value);
+    separateKeyAndValue(payload, varName, value, "=;: ");
     if (string(VSTP_ACTIONS::HELP + "\r").find(command) == 0)
         displayHelpMenu(&clientSocket);
     else if (string(VSTP_ACTIONS::SET_TELNET_SESSION + "\r").find(command) == 0)
@@ -205,9 +208,23 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::LOCK_VAR)
     {
         //note: with the actual structure and socket system, this operation will block que socket reading until the var is sucessful locked
-        auto lockFuture = this->ctrl->lockVar(varName);
-        lockFuture.get();
-        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_DONE, varName);
+        uint timeout = UINT_MAX;
+        try{
+            if (value != "")
+                timeout = stoi(value);
+        }
+        catch (...)
+        {
+            log->error((DVV){"Error parsing timeout, to LOCKVAR action, received from client", getCliFriendlyName(&clientSocket, true) + ".", "Received value was:", payload});
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=Error parsing timeout");
+
+            return;
+        }
+
+        auto lockFuture = this->ctrl->lockVar(varName, timeout);
+        auto result = lockFuture.get();
+        string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result.message;
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=" + resultMsg);
     }
     else if (command == VSTP_ACTIONS::UNLOCK_VAR)
     {
@@ -215,6 +232,11 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         auto lockFuture = this->ctrl->unlockVar(varName);
         lockFuture.get();
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::UNLOCK_VAR_DONE, varName);
+    }
+    else if (command == VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS)
+    {
+        auto varLockCheckResult = this->ctrl->isVarLocked(varName);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT, varName + "=" + (varLockCheckResult ? "locked" : "unlocked"));
     }
     else if (command == VSTP_ACTIONS::SUBSCRIBE_VAR)
     {
@@ -347,11 +369,14 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
     string command = "";
     string payload = "";
 
-    separateKeyAndValue(message, command, payload, "; ");
+    separateKeyAndValue(message, command, payload, ";: ");
 
     payload = byteUnescape(payload);
 
-    this->processCommand(command, payload, *cli);
+    
+    scheduler->enqueue([&, command, payload, cli](){
+        this->processCommand(command, payload, *cli);
+    });
 }
 
 void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & value, string possibleCharSeps)
@@ -460,6 +485,8 @@ void API::VSTP::displayHelpMenu(ClientInfo* cli)
     cli->sendString(string("        lv varname       - Locks the variable 'varname' ('sv' and others\n"));
     cli->sendString(string("                           commands will not be able to change the variable);\n"));
     cli->sendString(string("        uv varname       - Unlocks the variable 'varname';\n"));
+    cli->sendString(string("        vls varname      - Returns 'locked' if 'varname' is locked and\n"));
+    cli->sendString(string("                           'unlocked' if 'varname' is unlocked;\n"));
     cli->sendString(string("        sv varname       - Subscribe the variable 'varname'. A notification will\n"));
     cli->sendString(string("                           be sent when variable is changed;\n"));
     cli->sendString(string("        usv varname      - Cancels the subscription to variable 'varname';\n"));

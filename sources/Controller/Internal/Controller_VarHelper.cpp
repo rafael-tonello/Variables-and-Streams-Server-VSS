@@ -70,8 +70,11 @@ bool Controller_VarHelper::isLocked()
     return lockValue != "0" && lockValue != "";
 }
 
-void Controller_VarHelper::lock()
+Errors::Error Controller_VarHelper::lock(uint maxTimeOut_ms)
 {
+    maxTimeOut_ms *= 1000;
+        
+    uint timeout_count = 0;
         string finalVName = this->name + "._lock";
         //ir variable if currently locked, add an observer to it "._lock" property and wait the change of this to 0
 
@@ -98,8 +101,17 @@ void Controller_VarHelper::lock()
             lockedWithSucess = tryLockFunc();
 
             if (!lockedWithSucess)
-                usleep(1000 + rand() % 9000);
+            {
+                if (timeout_count >= maxTimeOut_ms)
+                    return Errors::Error_TimeoutReached;
+
+                auto sleepTime = 1000 + rand() % 9000;
+                timeout_count += sleepTime;
+                usleep(sleepTime);
+            }
         }
+
+        return Errors::NoError;
 }
 
 void Controller_VarHelper::unlock()

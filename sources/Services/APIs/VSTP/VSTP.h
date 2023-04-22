@@ -17,6 +17,7 @@
 #include <dependencyInjectionManager.h>
 #include <messagebus.h>
 #include <JSON.h>
+#include <limits.h>
  
 //#define MSG_DONTWAIT 0x40
 
@@ -48,14 +49,16 @@ namespace API {
         static string GET_CHILDS_RESPONSE;
         static string LOCK_VAR;
         static string UNLOCK_VAR;
-        static string LOCK_VAR_DONE;
+        static string LOCK_VAR_RESULT;
         static string UNLOCK_VAR_DONE;
+        static string CHECK_VAR_LOCK_STATUS;
+        static string CHECK_VAR_LOCK_STATUS_RESULT;
         static string SERVER_BEGIN_HEADERS;
         static string SERVER_END_HEADERS;
         static string HELP;
         static string SET_TELNET_SESSION;
     };
-    #define VSTP_PROTOCOL_VERSION "1.1.0"
+    #define VSTP_PROTOCOL_VERSION "1.1.1"
     
     //#define VSTP_SCAPE_CHAR '\'
 
@@ -140,6 +143,8 @@ namespace API {
             string byteUnescape(string text);
 
             void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
+
+            ThreadPool *scheduler;
 
 
         public:

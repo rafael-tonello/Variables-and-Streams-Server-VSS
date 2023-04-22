@@ -9,6 +9,7 @@
 #include <logger.h>
 #include <functional>
 #include <errors.h>
+#include <limits.h>
 #ifdef __TESTING__
     #include <tester.h>
 #endif
@@ -37,7 +38,7 @@ public:
     Errors::Error setValue(DynamicVar value);
     bool isLocked();
     bool valueIsSetInTheDB();
-    void lock();
+    Errors::Error lock(uint maxTimeOut_ms = UINT_MAX);
     void unlock();
     void deleteValueFromDB();
     vector<string> getChildsNames();
