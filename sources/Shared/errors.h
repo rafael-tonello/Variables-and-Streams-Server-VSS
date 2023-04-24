@@ -46,6 +46,7 @@ public:
     static Error Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar;
     static Error Error_VariablesStartedWithUnderscornAreJustForInternal;
     static Error Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting;
+    static Error Error_WildcardCanotBeUsesForGetVarChilds;
     static Error Error_TheVariableNameCannotBeEmpty;
     static Error Error_TimeoutReached;
 };

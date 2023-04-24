@@ -57,8 +57,9 @@ namespace API {
         static string SERVER_END_HEADERS;
         static string HELP;
         static string SET_TELNET_SESSION;
+        static string ERROR;
     };
-    #define VSTP_PROTOCOL_VERSION "1.1.1"
+    #define VSTP_PROTOCOL_VERSION "1.2.0"
     
     //#define VSTP_SCAPE_CHAR '\'
 
@@ -94,6 +95,8 @@ namespace API {
             void sendInfoAndConfToClient(ClientInfo* cli);
             void sendIdToClient(ClientInfo* cli, string id);
             void sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varCount);
+            void sendErrorToClient(ClientInfo *cli, Errors::Error error);
+            void sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError);
 
             void onDataReceived(ClientInfo* cli, char* data, size_t size);
             bool detectAndTakeACompleteMessage(string &text, string &output, bool isATelnetSession = false);

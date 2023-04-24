@@ -267,12 +267,19 @@ future<Errors::Error> TheController::delVar(string varname)
     }, varname);
 }
 
-future<vector<string>> TheController::getChildsOfVar(string parentName)
+future<Errors::ResultWithErrorStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
 {
     return tasker->enqueue([this](string parentNamep)
     {
+        if (parentNamep.find('*') != string::npos)
+        {
+            log->error("TheController", Errors::Error_WildcardCanotBeUsesForGetVarChilds);
+            return Errors::ResultWithErrorStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, (vector<string>){});
+        }
+
         Controller_VarHelper varHelper(log, db, parentNamep);
-        return varHelper.getChildsNames();
+        auto result = varHelper.getChildsNames();
+        return Errors::ResultWithErrorStatus<vector<string>>(Errors::NoError, result);
     }, parentName);
 
 }

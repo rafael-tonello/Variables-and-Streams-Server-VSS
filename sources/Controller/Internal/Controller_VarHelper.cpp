@@ -51,7 +51,7 @@ Errors::Error Controller_VarHelper::setValue(DynamicVar value)
         #ifdef __TESTING__
             Tester::global_test_result = Errors::Error_VariableWithWildCardCantBeSet;
         #endif
-        log->warning("TheController", Errors::Error_VariableWithWildCardCantBeSet);
+        log->error("TheController", Errors::Error_VariableWithWildCardCantBeSet);
         //throw "Invalid setVar parameter. A variable with '*' can't be setted";
 
         return Errors::Error_VariableWithWildCardCantBeSet;

@@ -141,6 +141,8 @@
     [✔] Shared->Misc->TaggedObject
     [ ] Services->ServerDiscovery
     [ ] Services->APIs->Http
+## Bugs
+    [ ] GetVar (vstp) is not returning error to client
 
 ## Project Progress (26/29)
     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░ ~89.6%

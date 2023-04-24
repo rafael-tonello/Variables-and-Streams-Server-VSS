@@ -24,6 +24,7 @@ string API::VSTP_ACTIONS::HELP = "help";
 string API::VSTP_ACTIONS::SET_TELNET_SESSION = "telnet";
 string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS = "vls";
 string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT = "vlsr";
+string API::VSTP_ACTIONS::ERROR = "error";
 
 API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
 {
@@ -148,6 +149,19 @@ void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int var
     __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED, to_string(varsCount));
 }
 
+void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, Errors::Error error)
+{
+    log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
+    //log->info2("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error.message);
+}
+
+void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError)
+{
+    string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError.message;
+    this->sendErrorToClient(cli, Errors::Error(errorMessage));
+}
+
 
 void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 {
@@ -181,16 +195,20 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     VarList get_var_values;
 
     separateKeyAndValue(payload, varName, value, "=;: ");
-    if (string(VSTP_ACTIONS::HELP + "\r").find(command) == 0)
+    if (command != "" && string(VSTP_ACTIONS::HELP + "\r").find(command) == 0)
         displayHelpMenu(&clientSocket);
-    else if (string(VSTP_ACTIONS::SET_TELNET_SESSION + "\r").find(command) == 0)
+    else if (command != "" && string(VSTP_ACTIONS::SET_TELNET_SESSION + "\r").find(command) == 0)
     {
         log->info("Session of client '"+getCliFriendlyName(&clientSocket, true)+"' setted as a telnet session.");
         clientSocket.tags["isATelnetSession"] = "true";
         clientSocket.sendString("Session configured as a Telenet session.\n");
     }
     else if (command ==VSTP_ACTIONS::SET_VAR)
-        this->ctrl->setVar(varName, value);
+    {
+        auto sv_ctrl_result = this->ctrl->setVar(varName, value).get();
+        if (sv_ctrl_result != Errors::NoError)
+            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::SET_VAR, sv_ctrl_result);
+    }
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
         //store a clientSocket id in a variable
@@ -250,27 +268,36 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::GET_CHILDS)
     {
-        vector<string> result = this->ctrl->getChildsOfVar(varName).get();
-        string response = "";
-        for (size_t cont = 0; cont < result.size(); cont++)
+        auto resultFromController  = this->ctrl->getChildsOfVar(varName).get();
+        if (resultFromController.errorStatus == Errors::NoError)
         {
-            response += result[cont];
-            if (cont < result.size()-1)
-                response += ",";
-            
+            vector<string> result = resultFromController.result;
+            string response = "";
+            for (size_t cont = 0; cont < result.size(); cont++)
+            {
+                response += result[cont];
+                if (cont < result.size()-1)
+                    response += ",";
+                
+            }
+
+            //prepara buffer with response and send this
+            buffer = new char[response.size()];
+            for (size_t cont  =0; cont < response.size(); cont++)
+                buffer[cont] = response[cont];
+
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_CHILDS_RESPONSE, buffer, response.size());
+
+            //clear used data
+            delete[] buffer;
+            result.clear();
+            response.clear();
         }
-
-        //prepara buffer with response and send this
-        buffer = new char[response.size()];
-        for (size_t cont  =0; cont < response.size(); cont++)
-            buffer[cont] = response[cont];
-
-        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_CHILDS_RESPONSE, buffer, response.size());
-
-        //clear used data
-        delete[] buffer;
-        result.clear();
-        response.clear();
+        else
+        {
+            log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.errorStatus.message);
+            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.errorStatus);
+        }
     }
     else if (command == VSTP_ACTIONS::PING)
     {
@@ -297,9 +324,10 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else 
     {
         log->info("Received an unknown command: '"+command+"'. Payload: '"+payload+"'");
+        sendErrorToClient(&clientSocket, command, Errors::Error("Unknown command"));
         if (clientSocket.tags["isATelnetSession"] == "true")
         {
-            clientSocket.sendString("Unknown command '"+command+"'\n");
+            clientSocket.sendString("Unknown command '"+command+". Use 'help' command to get more information about commands.'\n");
         }
     }
 }
