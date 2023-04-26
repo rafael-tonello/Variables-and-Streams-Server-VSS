@@ -41,6 +41,7 @@ namespace Shared
 	{
 		private:
 			size_t maxCacheSize = 10 * 1024 * 1024; //10 MB buffer
+			size_t currentCacheSize = 0;
 			string directory;
             int ramCacheMaxItems = 10000;
             map<string, Var*> ramCache;
@@ -54,7 +55,7 @@ namespace Shared
 
 			bool containsKey(string key);
 		public:
-			FileVars(string dirBase, bool isToUseCache);
+			FileVars(string dirBase, bool isToUseCache, size_t inMemoryCacheSize = 10 * 1024 * 1024);
 			~FileVars();
 			void set(string varName, string value);
 			void append(string varName, string value);

@@ -11,7 +11,7 @@ namespace Shared
 			cout << "Append var "<<varName << endl << flush;
         if (useCache)
         {
-            if (this->ramCache.find(cacheName) != this->ramCache.end())
+            if (this->ramCache.count(cacheName) > 0)
 			{
 				if (this->ramCache[cacheName]->varStateOnFs == AlreadySync)
 					this->ramCache[cacheName]->set(value);	
@@ -20,6 +20,8 @@ namespace Shared
 			}
             else
                 this->ramCache[cacheName] = new Var(value);
+
+			currentCacheSize += value.size();
 
             this->ramCache[cacheName]->varStateOnFs = DataToBeAppend;
         }
@@ -35,8 +37,10 @@ namespace Shared
         }
 	}
 
-	FileVars::FileVars(string dirBase, bool isToUseCache)
+	FileVars::FileVars(string dirBase, bool isToUseCache, size_t inMemoryCacheSize)
 	{
+		maxCacheSize = inMemoryCacheSize;
+
         this->useCache = isToUseCache;
 		if (dirBase.back() != '/')
 			dirBase += '/';
@@ -64,11 +68,13 @@ namespace Shared
 			cout << "Set var "<<varName << endl << flush;
         if (useCache)
         {
-            if (this->ramCache.find(cacheName) != this->ramCache.end())
+            if (this->ramCache.count(cacheName) > 0)
                 this->ramCache[cacheName]->set(value);
             else
                 this->ramCache[cacheName] = new Var(value);
 
+
+			currentCacheSize += value.size();
             this->ramCache[cacheName]->varStateOnFs = DataToBeSet;
 
 			if (this->debugMode)
@@ -168,6 +174,8 @@ namespace Shared
 
 		if (this->ramCache.find(cacheName) != this->ramCache.end())
         {
+			currentCacheSize -= ramCache[cacheName]->size();
+			delete ramCache[cacheName];
             this->ramCache.erase(cacheName);
         }
 
@@ -229,7 +237,6 @@ namespace Shared
     void FileVars::__Thread_syncToFs()
     {
         string varName;
-		size_t totalCacheSize = 0;
         while (running)
         {
             // for (int cont =0 ; cont < this->ramCache.size(); cont++)
@@ -246,7 +253,6 @@ namespace Shared
 					if (x.second->varStateOnFs == DataToBeSet)
 					{
             			sysLink.writeFile(varName, x.second->AsString());
-						totalCacheSize += x.second->size();
 						x.second->varStateOnFs = AlreadySync;
 					}
 					else
@@ -265,19 +271,25 @@ namespace Shared
 
 			//limits the size of RAM cache
 			int count = 0;
-			size_t initialCacheSize = totalCacheSize;
+			auto initialCacheSize = currentCacheSize;
 			for (auto const& x : this->ramCache)
 			{
-				if (totalCacheSize <= this->maxCacheSize)
-					break;
+				//ensures the current cache item is already sync to fs and can be deleted
+				if (x.second->varStateOnFs == AlreadySync)
+				{
+					if (currentCacheSize <= this->maxCacheSize)
+						break;
 
-				totalCacheSize -= x.second->size();
-				x.second->set("");
-				this->ramCache.erase(x.first);
+					currentCacheSize -= x.second->size();
+					x.second->set("");
+					auto tmpObject = x.second;
+					delete tmpObject;
+					this->ramCache.erase(x.first);
+				}
 			}
 
-			if (this->debugMode && initialCacheSize != totalCacheSize)
-				cout << "Released " << to_string(initialCacheSize - totalCacheSize) << " bytes from RAM cache" << endl;
+			if (this->debugMode && initialCacheSize != currentCacheSize)
+				cout << "Released " << to_string(initialCacheSize - currentCacheSize) << " bytes from RAM cache" << endl;
 
             sysLink.sleep_ms(10);
         }
@@ -292,19 +304,6 @@ namespace Shared
 
 	bool FileVars::containsKey(string key)
 	{
-/*		map<string, Var*>::iterator iter(this->ramCache.lower_bound(key));
-		if (iter == this->ramCache.end() || key < iter->first) {    // not found
-			return false;
-		} else {
-			return true;
-		}*/
-
-		/*for (auto const& x : this->ramCache)
-		{
-			if (x.first.compare(key) == 0)
-				return true;
-		}*/
-
 		return this->ramCache.count(key);
 
 		return false;
