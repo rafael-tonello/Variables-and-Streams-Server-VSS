@@ -13,7 +13,7 @@ CUSTOM_INCLUDE_PATH += -I"../sources/Controller/Internal"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs/VSTP"
-CUSTOM_INCLUDE_PATH += -I"../sources/Services/http"
+CUSTOM_INCLUDE_PATH += -I"../sources/Services/APIs/http"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/http/varsexporters"
 CUSTOM_INCLUDE_PATH += -I"../sources/Services/Storage"
 CUSTOM_INCLUDE_PATH += -I"../sources/Shared"
@@ -41,6 +41,7 @@ C_SOURCE+=$(wildcard ./sources/mocks/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.cpp)
+C_SOURCE+=$(wildcard ./sources/Services/APIs/http/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.cpp)
 C_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.cpp)
@@ -52,6 +53,7 @@ C_SOURCE+=$(wildcard ../sources/Controller/Internal/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/APIs/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.cpp)
+C_SOURCE+=$(wildcard ../sources/Services/APIs/http/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/http/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/http/varsexporters/*.cpp)
 C_SOURCE+=$(wildcard ../sources/Services/Storage/*.cpp)
@@ -79,6 +81,7 @@ H_SOURCE+=$(wildcard ./sources/mocks/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/*.h)
 H_SOURCE+=$(wildcard ./sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ./sources/Services/APIs/VSTP/*.h)
+H_SOURCE+=$(wildcard ./sources/Services/APIs/http/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/DependencyInjectionManager/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/*.h)
 H_SOURCE+=$(wildcard ./sources/Shared/Libs/Confs/internal/*.h)
@@ -90,8 +93,8 @@ H_SOURCE+=$(wildcard ../sources/Controller/Internal/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/APIs/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/APIs/VSTP/*.h)
-H_SOURCE+=$(wildcard ../sources/Services/http/*.h)
-H_SOURCE+=$(wildcard ../sources/Services/http/varsexporters/*.h)
+H_SOURCE+=$(wildcard ../sources/Services/APIs/http/*.h)
+H_SOURCE+=$(wildcard ../sources/Services/APIs/http/varsexporters/*.h)
 H_SOURCE+=$(wildcard ../sources/Services/Storage/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/*.h)
 H_SOURCE+=$(wildcard ../sources/Shared/Misc/*.h)
@@ -115,11 +118,13 @@ objFolder:
 	@ mkdir -p objects/tests/Controller
 	@ mkdir -p objects/tests/Controller/Internal
 	@ mkdir -p objects/tests/Services/APIs/VSTP
+	@ mkdir -p objects/tests/Services/APIs/http
 	@ mkdir -p objects/tests/Shared/Libs/DependencyInjectionManager
-	@ mkdir -p objects/tests/Shared/Libs/Confs
+	@ mkdir -p objects/tests/Shared/Libs/Confs 
 	@ mkdir -p objects/tests/Shared/Libs/Confs/internal
 	@ mkdir -p objects/tests/Shared/Misc/TaggedObject
 #	the main app directories
+	@ mkdir -p objects/main/Services/APIs/http
 	@ mkdir -p objects/main/Services/APIs/VSTP
 	@ mkdir -p objects/main/Services/http/varsexporters
 	@ mkdir -p objects/main/Controller
