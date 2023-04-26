@@ -46,8 +46,6 @@ void handleSignals();
 string INFO_VERSION = "1.17.0";
 
 int main(){
-    
-
     handleSignals();
     srand((unsigned)time(0)); 
     
