@@ -12,6 +12,7 @@
 #include <jsonexporter.h>
 #include <plaintextexporter.h>
 #include <dependencyInjectionManager.h>
+#include <logger.h>
 
 namespace API::HTTP{
     using namespace KWShared;
@@ -22,6 +23,7 @@ namespace API::HTTP{
         void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
         ApiMediatorInterface* ctrl;
         KWShared::KWTinyWebServer *server;
+        NLogger log;
 
         void onServerRequest(HttpData* in, HttpData* out);
         IVarsExporter *detectExporter(HttpData *request);
@@ -36,7 +38,7 @@ namespace API::HTTP{
     public:
         /* ApiInterface implementation */
         string getApiId();
-        ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues);
+        ClientSendResult notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues);
         ClientSendResult checkAlive(string clientId);
         string getListeningInfo();
     }; 

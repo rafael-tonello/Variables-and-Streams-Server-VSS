@@ -74,7 +74,7 @@ namespace Controller{
         void setVarInternalFlag(string vName, string flagName, DynamicVar value);
         void notifyVarModification(string varName, DynamicVar value);
         void notifyParentGenericObservers(string varName, string changedVarName, DynamicVar value);
-        void notifyClientsAboutVarChange(vector<string> clients, string changedVarName, DynamicVar value);
+        void notifyClientsAboutVarChange(vector<tuple<string, string>> clients, string changedVarName, DynamicVar value);
     public:
         TheController(DependencyInjectionManager* dim);
         ~TheController();
@@ -84,7 +84,7 @@ namespace Controller{
 
         void apiStarted(ApiInterface *api);
         string clientConnected(string clientId, ApiInterface* api, int &observingVarsCount);
-        void observeVar(string varName, string clientId, ApiInterface* api);
+        void observeVar(string varName, string clientId, string customAdditionalData, ApiInterface* api);
         void stopObservingVar(string varName, string clientId, ApiInterface* api);
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").

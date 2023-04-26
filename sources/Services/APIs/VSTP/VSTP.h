@@ -119,6 +119,7 @@ namespace API {
 
 
             void separateKeyAndValue(string keyValuePair, string &key, string & value, char charSep = '=');
+            void separateNameAndMetadata(string originalVarName, string &varname, string &metadata);
             
             /** 
              * @brief this function is called majority by the function ThreadTalkWithClientFunction when a pack is receitved
@@ -159,7 +160,7 @@ namespace API {
         public:
         /* ApiInterface */
             string getApiId();
-            ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues);
+            ClientSendResult notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues);
             ClientSendResult checkAlive(string clientId);
     };
 

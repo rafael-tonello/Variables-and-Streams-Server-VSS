@@ -29,7 +29,11 @@ Commands and actions:
 
   gvr: response ofa get variable value
 
-  ov: observate variable
+  ov: 
+    desc: observate variable
+    formats: 
+      - "ov:varname"
+      - "ov(metadata):varname"
 
   so: stop obvervate variable
 

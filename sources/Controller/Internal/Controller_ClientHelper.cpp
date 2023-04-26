@@ -85,9 +85,9 @@ vector<string> Controller_ClientHelper::getObservingVars()
     return result;
 }
 
-API::ClientSendResult Controller_ClientHelper::notify(vector<tuple<string, DynamicVar>> varsAndValues)
+API::ClientSendResult Controller_ClientHelper::notify(vector<tuple<string, string, DynamicVar>> varsnamesMetadaAndValues)
 {
-    if (this->api->notifyClient(clientId, varsAndValues) == ClientSendResult::LIVE)
+    if (this->api->notifyClient(clientId, varsnamesMetadaAndValues) == ClientSendResult::LIVE)
     {
         this->updateLiveTime();
         return API::ClientSendResult::LIVE;
