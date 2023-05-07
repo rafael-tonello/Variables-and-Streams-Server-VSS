@@ -65,7 +65,7 @@ namespace Shared
 			void del(string varName);
             void __Thread_syncToFs();
 
-			Var get(string varName, string defaulValue);
+			Var get(string varName, string defaulValue, bool initializeFileAndCahceWithDefaultValue = true);
 			Var getPart(string varName, size_t start, size_t count);
 			size_t getVarSize(string varName);
 

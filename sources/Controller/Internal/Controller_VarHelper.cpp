@@ -44,8 +44,6 @@ DynamicVar Controller_VarHelper::getValue(DynamicVar defaultValue)
 
 Errors::Error Controller_VarHelper::setValue(DynamicVar value)
 {
-    vector<future<void>> pendingTasks;
-
     if (name.find('*') != string::npos)
     {
         #ifdef __TESTING__
@@ -179,7 +177,7 @@ void Controller_VarHelper::removeClientFromObservers(string clientId)
 
                 //remove the item from _observers.byId
                 db->deleteValue(name + "._observers.byId."+clientId+".index");
-                db->deleteValue(name + "._observers.byId."+clientId+".customMetada");
+                db->deleteValue(name + "._observers.byId."+clientId+".customMetadata");
             }
         }
     });
@@ -222,7 +220,7 @@ vector<tuple<string, string>> Controller_VarHelper::getObserversClientIdsAndMeta
 
     for (auto &c : clients)
     {
-        auto customMetadata = db->get(name + "._observers.byId."+c+".customMetada", "").getString();
+        auto customMetadata = db->get(name + "._observers.byId."+c+".customMetadata", "").getString();
         result.push_back(std::make_tuple(c, customMetadata));
     }
 

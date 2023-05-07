@@ -6,10 +6,12 @@ string API::VSTP_ACTIONS::PONG = "pong";
 string API::VSTP_ACTIONS::SUGGEST_NEW_CLI_ID = "nid";
 string API::VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID = "cid";
 string API::VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED = "aoc";
+string API::VSTP_ACTIONS::RESPONSE_BEGIN = "br";
+string API::VSTP_ACTIONS::RESPONSE_END = "er";
 string API::VSTP_ACTIONS::SET_VAR = "sv";
 string API::VSTP_ACTIONS::GET_VAR = "gv";
 string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "gvr";
-string API::VSTP_ACTIONS::SUBSCRIBE_VAR = "sv";
+string API::VSTP_ACTIONS::SUBSCRIBE_VAR = "subv";
 string API::VSTP_ACTIONS::UNSUBSCRIBE_VAR = "usv";
 string API::VSTP_ACTIONS::VAR_CHANGED = "vc";
 string API::VSTP_ACTIONS::GET_CHILDS = "gc";
@@ -205,9 +207,14 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command ==VSTP_ACTIONS::SET_VAR)
     {
+        TimersForDebug::begin("bb");
         auto sv_ctrl_result = this->ctrl->setVar(varName, value).get();
+
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         if (sv_ctrl_result != Errors::NoError)
             this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::SET_VAR, sv_ctrl_result);
+        
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
@@ -216,12 +223,14 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         get_var_values = get_var_fut.get().result;
         
 
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         for (auto &c : get_var_values)
         {
             //strin as buffer. I know, this is is not a good praticy.. May be i change this sometime
             string bufferStr = std::get<0>(c) + "="+(std::get<1>(c)).getString();
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_VAR_RESPONSE , bufferStr);
         }
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::LOCK_VAR)
     {
@@ -242,19 +251,25 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         auto lockFuture = this->ctrl->lockVar(varName, timeout);
         auto result = lockFuture.get();
         string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result.message;
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=" + resultMsg);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::UNLOCK_VAR)
     {
         //note: with the actual structure and socket system, this operation will block que socket reading until the var is sucessful locked
         auto lockFuture = this->ctrl->unlockVar(varName);
         lockFuture.get();
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::UNLOCK_VAR_DONE, varName);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS)
     {
         auto varLockCheckResult = this->ctrl->isVarLocked(varName);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT, varName + "=" + (varLockCheckResult ? "locked" : "unlocked"));
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::SUBSCRIBE_VAR)
     {
@@ -263,12 +278,18 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         separateNameAndMetadata(varName, varName, metadata);
 
         ctrl->observeVar(varName, clientSocket.tags["id"], metadata, this);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
+
         log->info({"Client", clientSocket.tags["id"], "is now observing the variable", varName});
     }
     else if (command == VSTP_ACTIONS::UNSUBSCRIBE_VAR)
     {
         ctrl->stopObservingVar(varName, clientSocket.tags["id"], this);
         log->info({"Client", clientSocket.tags["id"], "stop watching the variable", varName});
+
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::GET_CHILDS)
     {
@@ -289,8 +310,9 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
             buffer = new char[response.size()];
             for (size_t cont  =0; cont < response.size(); cont++)
                 buffer[cont] = response[cont];
-
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_CHILDS_RESPONSE, buffer, response.size());
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
 
             //clear used data
             delete[] buffer;
@@ -300,12 +322,16 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         else
         {
             log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.errorStatus.message);
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
             this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.errorStatus);
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
         }
     }
     else if (command == VSTP_ACTIONS::PING)
     {
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::PONG, "");
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else if (command == VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID)
     {
@@ -323,12 +349,16 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         //event if client do not change its id, notify the controller so it can update the client about its observing vars.
         int varsAlreadyBeingObserved = 0;
         this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         sentTotalVarsAlreadyBeingObserved(&clientSocket, varsAlreadyBeingObserved);
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
     }
     else 
     {
         log->info("Received an unknown command: '"+command+"'. Payload: '"+payload+"'");
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         sendErrorToClient(&clientSocket, command, Errors::Error("Unknown command"));
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
         if (clientSocket.tags["isATelnetSession"] == "true")
         {
             clientSocket.sendString("Unknown command '"+command+". Use 'help' command to get more information about commands.'\n");
@@ -351,24 +381,32 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
 string API::VSTP::byteEscape(string originalText)
 {
-    stringstream ret("");
-    for (auto &c: originalText)
-    {
-        if (c == '\n')
-            ret << scape_char << 'n';
-        else if (c == scape_char)
-            ret << scape_char << scape_char;
-        else
-            ret << c;
-    }
+    //stringstream ret("");
 
-    return ret.str();
+    return Utils::sr(originalText, {
+        {"\n", string(""+scape_char) + string("n")},
+        {string(""+scape_char), string(""+scape_char+scape_char)}
+    });
+
+    //for (auto &c: originalText)
+    //{
+    //    if (c == '\n')
+    //        ret << scape_char << 'n';
+    //    else if (c == scape_char)
+    //        ret << scape_char << scape_char;
+    //    else
+    //        ret << c;
+    //}
+//
+    //return ret.str();
 }
 
 string API::VSTP::byteUnescape(string text)
 {
-    log->warning("::byteUnescape is not impelemented yet (return the original text)");
-    return text;
+    return Utils::sr(text, {
+        {string(""+scape_char) + string("n"), "\n"},
+        {string(""+scape_char+scape_char), string(""+scape_char)}
+    });
 }
 
 void API::VSTP::onDataReceived(ClientInfo* cli, char* data, size_t size)
@@ -469,6 +507,10 @@ API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<stri
             string bufferStr = std::get<0>(c) + metadataStr+ "="+(std::get<2>(c)).getString();
             this->__PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
         }
+        TimersForDebug::end("bb");
+        cout << "total notification time: " << TimersForDebug::get("bb").totalTime_us << "us" << endl;
+    
+
         return ClientSendResult::LIVE;
     }
     return ClientSendResult::DISCONNECTED;

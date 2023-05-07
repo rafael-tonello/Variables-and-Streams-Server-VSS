@@ -61,6 +61,15 @@
         "new": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "cassert": "cpp",
+        "cerrno": "cpp",
+        "climits": "cpp",
+        "ciso646": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "cinttypes": "cpp"
     }
 }

@@ -21,22 +21,30 @@ void VarSystemLibStorage::set(string name, DynamicVar v)
 
 DynamicVar VarSystemLibStorage::get(string name, DynamicVar defaultValue)
 {
-
+    name = escape(name);
     return DynamicVar(unescape(db->get(name, defaultValue.getString()).AsString()));
 }
 
 vector<string> VarSystemLibStorage::getChilds(string parentName)
 {
-    return db->getChilds(parentName);
+    parentName = escape(parentName);
+    vector<string> result;
+    auto tmp = db->getChilds(parentName);
+    for (auto &c: tmp)
+        result.push_back(unescape(c));
+
+    return result;
 }
 
 bool VarSystemLibStorage::hasValue(string name)
 {
+    name = escape(name);
     return db->get(name, "__iNval!d__").AsString() != "__iNval!d__";
 }
 
 void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
 {
+    name = escape(name);
 
     if (deleteChildsInACascade)
     {
@@ -50,6 +58,8 @@ void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
 
 void VarSystemLibStorage::forEachChilds(string parentName, function<void(string, DynamicVar)> f)
 {
+    parentName = escape(parentName);
+    
     auto names = this->getChilds(parentName);
     for (auto &c: names)
     {
@@ -59,6 +69,8 @@ void VarSystemLibStorage::forEachChilds(string parentName, function<void(string,
 
 future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
 {
+    parentName = escape(parentName);
+
     auto names = this->getChilds(parentName);
     vector<future<void>> *pendingTasks = new vector<future<void>>;
     for (auto &c: names)

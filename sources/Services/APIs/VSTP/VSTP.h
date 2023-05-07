@@ -18,6 +18,7 @@
 #include <messagebus.h>
 #include <JSON.h>
 #include <limits.h>
+#include <timersForDebug.h>
  
 //#define MSG_DONTWAIT 0x40
 
@@ -33,12 +34,15 @@ namespace API {
 
     class VSTP_ACTIONS{
     public:
+        
         static string SEND_SERVER_INFO_AND_CONFS;
         static string PING;
         static string PONG;
         static string SUGGEST_NEW_CLI_ID;
         static string CHANGE_OR_CONFIRM_CLI_ID;
         static string TOTAL_VARIABLES_ALREADY_BEING_OBSERVED;
+        static string RESPONSE_BEGIN;
+        static string RESPONSE_END;
         static string SET_VAR;
         static string GET_VAR;
         static string GET_VAR_RESPONSE;
@@ -83,7 +87,7 @@ namespace API {
 
             char scape_char = 0x1B;
             string apiId = "VSTPAPI";
-
+            
             void initServer(int port, ThreadPool *tasker);
 
             void onClientConnected(ClientInfo *cli);

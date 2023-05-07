@@ -41,33 +41,29 @@ TheController::~TheController()
 //creates or change a variable
 future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 {
-    Controller_VarHelper varHelper(log, this->db, name);
-    //check if name isn't a internal flag var
-
-    if (name.find('_') == 0 || name.find("._") != string::npos)
+    return tasker->enqueue([this](string namep, DynamicVar valuep)
     {
-        log->warning("TheController", Errors::Error_VariablesStartedWithUnderscornAreJustForInternal);
-        promise<Errors::Error> p;
-        p.set_value(Errors::Error_VariablesStartedWithUnderscornAreJustForInternal);
-        return p.get_future();
-    }
+        //check if name isn't a internal flag var
 
-    //checks if the variabel is locked
-    if (varHelper.isLocked())
-    {
-        Errors::Error errMessage = Utils::sr(Errors::Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar, "vName", name);
-        log->warning("TheController", errMessage);
-        promise<Errors::Error> p;
-        p.set_value(errMessage);
-        return p.get_future();
-    }
+        if (namep.find('_') == 0 || namep.find("._") != string::npos)
+        {
+            log->warning("TheController", Errors::Error_VariablesStartedWithUnderscornAreJustForInternal);
+            return Errors::Error_VariablesStartedWithUnderscornAreJustForInternal;
+        }
 
-    return tasker->enqueue([this](string namep, Controller_VarHelper varhelperp, DynamicVar valuep)
-    {
-        auto ret = varhelperp.setValue(valuep);
+        Controller_VarHelper varHelper(log, this->db, namep);
+        //checks if the variabel is locked
+        if (varHelper.isLocked())
+        {
+            Errors::Error errMessage = Utils::sr(Errors::Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar, "vName", namep);
+            log->warning("TheController", errMessage);
+            return errMessage;
+        }
+
+        auto ret = varHelper.setValue(valuep);
         this->notifyVarModification(namep, valuep);
         return ret;
-    }, name, varHelper, value);
+    }, name, value);
 
 }
 
@@ -127,16 +123,18 @@ void TheController::observeVar(string varName, string clientId, string customMet
 
 void TheController::notifyVarModification(string varName, DynamicVar value)
 {
-    Controller_VarHelper vh(log, db, varName);
-    notifyClientsAboutVarChange(vh.getObserversClientIdsAndMetadta(), varName, value);
+    tasker->enqueue([varName, value, this](){
+        Controller_VarHelper vh(log, db, varName);
+        notifyClientsAboutVarChange(vh.getObserversClientIdsAndMetadta(), varName, value);
 
-    //todo: scrolls through parent vars lookin for '*' special child
-    notifyParentGenericObservers(varName, varName, value);
+        //todo: scrolls through parent vars lookin for '*' special child
+        notifyParentGenericObservers(varName, varName, value);
 
-    /*done: If the current variable contains the child '*', should it be notified?
-        when i observe the variable "a.b.c.*" i want to observate also a.b.c or only their childs.*/
-   Controller_VarHelper childWildcard(log, db, varName + ".*");
-   notifyClientsAboutVarChange(childWildcard.getObserversClientIdsAndMetadta(), varName, value);
+        /*done: If the current variable contains the child '*', should it be notified?
+            when i observe the variable "a.b.c.*" i want to observate also a.b.c or only their childs.*/
+        Controller_VarHelper childWildcard(log, db, varName + ".*");
+        notifyClientsAboutVarChange(childWildcard.getObserversClientIdsAndMetadta(), varName, value);
+    });
     
 }
 

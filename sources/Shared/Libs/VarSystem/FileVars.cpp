@@ -69,12 +69,15 @@ namespace Shared
         if (useCache)
         {
             if (this->ramCache.count(cacheName) > 0)
+			{
+				currentCacheSize -= this->ramCache[cacheName]->size();
                 this->ramCache[cacheName]->set(value);
+			}
             else
                 this->ramCache[cacheName] = new Var(value);
 
 
-			currentCacheSize += value.size();
+			currentCacheSize += this->ramCache[cacheName]->size();
             this->ramCache[cacheName]->varStateOnFs = DataToBeSet;
 
 			if (this->debugMode)
@@ -111,13 +114,15 @@ namespace Shared
 	}
 
 	//get a varlue of a variable
-	Var FileVars::get(string varName, string defaulValue)
+	Var FileVars::get(string varName, string defaulValue, bool initializeFileAndCahceWithDefaultValue)
 	{
+		string originalVarName = varName;
         varName += ".__value__";
 		string cacheName = this->getFileName(varName, false);
 
 		if (this->debugMode)
 			cout << "Get var "<<varName << endl << flush;
+			
 		string result;
 
 
@@ -153,7 +158,9 @@ namespace Shared
     		}
     		else
 			{
-
+				if (initializeFileAndCahceWithDefaultValue)
+					this->set(originalVarName, defaulValue);
+				
 				Var ret(defaulValue);
     			return ret;
 			}
@@ -354,7 +361,8 @@ namespace Shared
 	}
 
 	size_t Var::size(){
-		return this->_data.size();
+		
+		return this->_data.size() + sizeof(this);
 	}
 	//#endregion
 
