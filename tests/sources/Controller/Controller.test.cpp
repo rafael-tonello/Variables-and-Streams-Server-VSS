@@ -364,6 +364,7 @@ void ControllerTester::test_function_observeVar()
 {
     ApiInterfaceTmp apit;
     string clientId = Utils::createUniqueId();
+    string customId = Utils::createUniqueId();
     string varName = "this.is.a.var";
     StorageInterface *db = dim.get<StorageInterface>();
 
@@ -376,7 +377,7 @@ void ControllerTester::test_function_observeVar()
     // db->set(name + "._observers.byId."+clientId, actualVar_observersCount);
     this->test("observeVar should increment the client count in the variable (vars session of db)", [&](){
         int initialCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
-        this->ctrl->observeVar(varName, clientId, &apit);
+        this->ctrl->observeVar(varName, clientId, customId, &apit);
         int finalCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
 
         return TestResult{
@@ -423,7 +424,7 @@ void ControllerTester::test_function_observeVar()
     string varName2 = "this.is.another.var";
     auto itemIndex = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
     auto prevClientObservingCount = itemIndex;
-    this->ctrl->observeVar(varName2, clientId, &apit);
+    this->ctrl->observeVar(varName2, clientId, customId, &apit);
 
     this->test("observeVar should increase internal list items count (clients session of db)", [&]()
     {
@@ -453,14 +454,16 @@ void ControllerTester::test_function_stopObservingVar()
 {
     ApiInterfaceTmp apit;
     string clientId = Utils::createUniqueId();
+    string customId = Utils::createUniqueId();
     string clientId2 = Utils::createUniqueId();
+    string customId2 = Utils::createUniqueId();
     string varName = "this.is.a.var";
     StorageInterface *db = dim.get<StorageInterface>();
-    this->ctrl->observeVar(varName, clientId, &apit);
+    this->ctrl->observeVar(varName, clientId, customId, &apit);
     int theClientIndex = db->get("vars."+varName+"._observers.list.count", "0").getInt();
 
 
-    this->ctrl->observeVar(varName, clientId2, &apit);
+    this->ctrl->observeVar(varName, clientId2, customId2, &apit);
 
     
 
@@ -477,7 +480,7 @@ void ControllerTester::test_function_stopObservingVar()
 
     this->test("stopObservingVar should decrement the client count in the variable (vars session of db)", [&](){
         int initialCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();;
-        this->ctrl->stopObservingVar(varName, clientId, &apit);
+        this->ctrl->stopObservingVar(varName, clientId, customId, &apit);
         int finalCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
 
         return TestResult{
@@ -489,13 +492,14 @@ void ControllerTester::test_function_stopObservingVar()
 
 
     string varName2 = "this.is.another.var";
-    this->ctrl->observeVar(varName2, clientId, &apit);
+    string additionalId = "abc";
+    this->ctrl->observeVar(varName2, clientId, additionalId, &apit);
     auto itemIndex = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
 
     this->test("stopObservingVar should increase internal list items count (clients session of db)", [&]()
     {
         auto prevClientObservingCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
-        this->ctrl->stopObservingVar(varName2, clientId, &apit);
+        this->ctrl->stopObservingVar(varName2, clientId, additionalId, &apit);
         auto currentClientObservindCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
 
         return TestResult{

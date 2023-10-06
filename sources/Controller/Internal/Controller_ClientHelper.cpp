@@ -87,6 +87,7 @@ vector<string> Controller_ClientHelper::getObservingVars()
 
 API::ClientSendResult Controller_ClientHelper::notify(vector<tuple<string, string, DynamicVar>> varsnamesMetadaAndValues)
 {
+    cout << "WIll call the api to notify client " << clientId <<endl;
     if (this->api->notifyClient(clientId, varsnamesMetadaAndValues) == ClientSendResult::LIVE)
     {
         this->updateLiveTime();

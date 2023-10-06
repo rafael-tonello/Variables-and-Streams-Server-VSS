@@ -93,18 +93,18 @@ bool TheController::isVarLocked(string varName)
 }
 
 //start to observate a variable
-void TheController::observeVar(string varName, string clientId, string customMetadata, ApiInterface* api)
+void TheController::observeVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api)
 {
     //NOTE: enclosure the code ins a ThreadPool tasker
     log->info("TheController", {"::observeVar called. varName: '",varName,"', clientId:: '",clientId,"', api(id): '",api->getApiId(),"'"});
 
     
     Controller_VarHelper varHelper(log, db, varName);
-    if (!varHelper.isClientObserving(clientId))
+    if (!varHelper.isObserving(clientId, customIdsAndMetainfo))
     {
         Controller_ClientHelper client(this->db, clientId, api);
 
-        varHelper.addClientToObservers(clientId, customMetadata);
+        varHelper.addObserver(clientId, customIdsAndMetainfo);
         client.registerNewObservation(varName);
 
         //upate client about the var
@@ -113,7 +113,7 @@ void TheController::observeVar(string varName, string clientId, string customMet
         vector<tuple<string, string, DynamicVar>> finalResult;
 
         for (auto &c: getVarResult)
-            finalResult.push_back(std::make_tuple(std::get<0>(c), customMetadata, std::get<1>(c)));
+            finalResult.push_back(std::make_tuple(std::get<0>(c), customIdsAndMetainfo, std::get<1>(c)));
         
 
         if (client.notify(finalResult) != API::ClientSendResult::LIVE)
@@ -125,15 +125,14 @@ void TheController::notifyVarModification(string varName, DynamicVar value)
 {
     tasker->enqueue([varName, value, this](){
         Controller_VarHelper vh(log, db, varName);
-        notifyClientsAboutVarChange(vh.getObserversClientIdsAndMetadta(), varName, value);
+        notifyClientsAboutVarChange(vh.getObservations(), varName, value);
 
-        //todo: scrolls through parent vars lookin for '*' special child
         notifyParentGenericObservers(varName, varName, value);
 
         /*done: If the current variable contains the child '*', should it be notified?
             when i observe the variable "a.b.c.*" i want to observate also a.b.c or only their childs.*/
         Controller_VarHelper childWildcard(log, db, varName + ".*");
-        notifyClientsAboutVarChange(childWildcard.getObserversClientIdsAndMetadta(), varName, value);
+        notifyClientsAboutVarChange(childWildcard.getObservations(), varName, value);
     });
     
 }
@@ -144,41 +143,47 @@ void TheController::notifyParentGenericObservers(string varName, string changedV
     {
         string parentName = varName.substr(0, varName.find_last_of("."));
         Controller_VarHelper varHelper(log, db, parentName + ".*");
-        notifyClientsAboutVarChange(varHelper.getObserversClientIdsAndMetadta(), changedVarName, value);
+        notifyClientsAboutVarChange(varHelper.getObservations(), changedVarName, value);
         notifyParentGenericObservers(parentName, changedVarName, value);
     }
 }
 
 void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> clientIdsAndMetadata, string changedVarName, DynamicVar value)
 {
-    for (tuple<string, string> &clientIdAndMetadata: clientIdsAndMetadata)
+    //notify firsts added first
+    //for (tuple<string, string> &clientIdAndMetadata: clientIdsAndMetadata)
+
+    //notify last added first
+    for (int c = clientIdsAndMetadata.size()-1; c >= 0; c--)
     {
+        auto tmp = clientIdsAndMetadata[c];
+        cout << "Current clieInfo: "<< c << " -> " << get<0>(tmp) << ", " << get<1>(tmp) << endl;
         tasker->enqueue([&](string changedVarNamep, tuple<string, string> clientIdAndMetadatap, DynamicVar valuep){
             auto clientIdp = std::get<0>(clientIdAndMetadatap);
-            auto metadata = std::get<1>(clientIdAndMetadatap);
+            auto customIdsAndMetainfo = std::get<1>(clientIdAndMetadatap);
             Controller_ClientHelperError resultError;
             Controller_ClientHelper ch(db, clientIdp, this->apis, resultError);
 
             if (resultError == Controller_ClientHelperError::NO_ERROR)
             {
-                if (ch.notify( { std::make_tuple(changedVarNamep, metadata, valuep) } ) != API::ClientSendResult::LIVE)
+                if (ch.notify( { std::make_tuple(changedVarNamep, customIdsAndMetainfo, valuep) } ) != API::ClientSendResult::LIVE)
                     this->checkClientLiveTime(ch);
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
                 log->error("TheController", "Client notification failute due 'responsible API not found.");
             else
                 log->error("TheController", "Client notification failute due an unknown error.");
-        }, changedVarName, clientIdAndMetadata, value);
+        }, changedVarName, tmp, value);
     }
 }
 
 //stop observate variable
-void TheController::stopObservingVar(string varName, string clientId, ApiInterface* api)
+void TheController::stopObservingVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api)
 {
     Controller_VarHelper varHelper(log, db, varName);
     Controller_ClientHelper clienthelper(db, clientId, api);
 
-    varHelper.removeClientFromObservers(clientId);
+    varHelper.removeObserving(clientId, customIdsAndMetainfo);
     clienthelper.unregisterObservation(varName);
 }
 
@@ -309,17 +314,28 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
         bool mustCheckClientLiveTime = false;
         auto observingVars = controller_ClientHelperP.getObservingVars();
 
-        for (auto &curr : observingVars)
+        for (auto &currVarToSearch : observingVars)
         {
-            auto currVarsAndValues = this->getVar(curr, "").get().result;
+            //vector<tuple<varname, customIdsAndMetainfo, value>>
+            vector<tuple<string, string, DynamicVar>> result;
+            
+            Controller_VarHelper tmpVar(log, this->db, currVarToSearch);
 
-            vector<tuple<string, string, DynamicVar>> finalResult;
-            Controller_VarHelper tmpVar(log, this->db, curr);
+            auto varSearchResult = this->getVar(currVarToSearch, "").get().result;
+            for (auto &c: varSearchResult)
+            {
+                Controller_VarHelper currVar(log, this->db, std::get<0>(c));
 
-            for (auto &c: currVarsAndValues)
-                finalResult.push_back(std::make_tuple(std::get<0>(c), tmpVar.getMetadataForClient(controller_ClientHelper.getClientId()), std::get<1>(c)));
+                auto customIdsAndMetainfos = currVar.getMetadatasOfAClient(controller_ClientHelperP.getClientId());
+                for (auto &currMetadata: customIdsAndMetainfos)
+                    result.push_back({
+                        std::get<0>(c), 
+                        currMetadata,
+                        std::get<1>(c)
+                    });
+            }
 
-            if (controller_ClientHelperP.notify(finalResult) != API::ClientSendResult::LIVE)
+            if (controller_ClientHelperP.notify(result) != API::ClientSendResult::LIVE)
             {
                 mustCheckClientLiveTime = true;
                 break;
@@ -335,7 +351,7 @@ void TheController::checkClientLiveTime(Controller_ClientHelper client)
 {
     if (!client.isConnected())
     {
-        if (!client.timeSinceLastLiveTime() >= maxTimeWaitingClient_seconds)
+        if (client.timeSinceLastLiveTime() >= maxTimeWaitingClient_seconds)
         {
             deleteClient(client);
         }
@@ -349,6 +365,6 @@ void TheController::deleteClient(Controller_ClientHelper client)
     for (auto &currVar: vars)
     {
         Controller_VarHelper varHelper(log, db, currVar);
-        varHelper.removeClientFromObservers(client.getClientId());
+        varHelper.removeCliObservings(client.getClientId());
     }
 }

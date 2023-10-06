@@ -346,10 +346,11 @@ void Controller_VarHelperTester::test_function_addClientToObservers()
 {
     //void addClientToObservers(string clientId);
     auto clientId = Utils::createUniqueId();
+    auto customId = Utils::createUniqueId();
 
     this->test("addClientToObservers should increment the client count in the variable", [&](){
         int initialCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
-        var->addClientToObservers(clientId);
+        var->addObserver(clientId, customId);
         int finalCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
 
         return TestResult{
@@ -397,21 +398,21 @@ void Controller_VarHelperTester::test_function_removeClientFromObservers()
     auto clientId9 = Utils::createUniqueId();
     auto clientId10 = Utils::createUniqueId();
 
-    var->addClientToObservers(clientId1);
-    var->addClientToObservers(clientId2);
-    var->addClientToObservers(clientId3);
-    var->addClientToObservers(clientId4);
-    var->addClientToObservers(clientId5);
-    var->addClientToObservers(clientId6);
-    var->addClientToObservers(clientId7);
-    var->addClientToObservers(clientId8);
-    var->addClientToObservers(clientId9);
-    var->addClientToObservers(clientId10);
+    var->addObserver(clientId1, "1");
+    var->addObserver(clientId2, "2");
+    var->addObserver(clientId3, "3");
+    var->addObserver(clientId4, "4");
+    var->addObserver(clientId5, "5");
+    var->addObserver(clientId6, "6");
+    var->addObserver(clientId7, "7");
+    var->addObserver(clientId8, "8");
+    var->addObserver(clientId9, "9");
+    var->addObserver(clientId10, "10");
     
 
     this->test("removeClientFromObservers should decrese the client count in the var flags", [&](){
         auto initialCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
-        this->var->removeClientFromObservers(clientId8);
+        this->var->removeObserving(clientId8, "8");
         auto finalCount = db->get("vars."+varName+"._observers.list.count", "0").getInt();
 
         return TestResult{
@@ -423,7 +424,7 @@ void Controller_VarHelperTester::test_function_removeClientFromObservers()
 
     this->test("removeClientFromObservers should shift the client list in the var flags", [&](){
         auto initialValue = db->get("vars."+varName+"._observers.4", "--not found").getString();
-        this->var->removeClientFromObservers(clientId5);
+        this->var->removeObserving(clientId5, "5");
         auto finalValue = db->get("vars."+varName+"._observers.4", "--not found--").getString();
 
         return TestResult{
@@ -435,7 +436,7 @@ void Controller_VarHelperTester::test_function_removeClientFromObservers()
 
     this->test("removeClientFromObservers should remove info in the byId list", [&](){
         //auto initialValue = db->get("vars."+varName+"._observers.byId"+clientId2, "--not found--").getString();
-        this->var->removeClientFromObservers(clientId2);
+        this->var->removeObserving(clientId2, "2");
         auto finalValue = db->get("vars."+varName+"._observers.byId"+clientId2, "--not found--").getString();
 
         return TestResult{
@@ -449,23 +450,24 @@ void Controller_VarHelperTester::test_function_removeClientFromObservers()
 void Controller_VarHelperTester::test_function_isClientObserving()
 {
     auto clientId1 = Utils::createUniqueId();
+    auto customId = Utils::createUniqueId();
 
-    var->addClientToObservers(clientId1);
+    var->addObserver(clientId1, customId);
 
     this->test("isClientObserving should return false for clients that isn't observing a var", [&](){
-        auto observingResult = var->isClientObserving("an_id_of_a_client_that_is_not_observing_the_var");
+        auto observingResult = var->isObserving("an_id_of_a_client_that_is_not_observing_the_var", "invalid_custom_id");
         return observingResult == false;
     });
     
 
     this->test("isClientObserving should return true for clients observing a var", [&](){
-        auto observingResult = var->isClientObserving(clientId1);
+        auto observingResult = var->isObserving(clientId1, customId);
         return observingResult;
     });
 
     this->test("isClientObserving should return false for clients removed from var observing flags", [&](){
-        var->removeClientFromObservers(clientId1);
-        auto observingResult = var->isClientObserving("an_id_of_a_client_that_is_not_observing_the_var");
+        var->removeObserving(clientId1, customId);
+        auto observingResult = var->isObserving(clientId1, customId);
         return observingResult == false;
     });
     
@@ -474,31 +476,32 @@ void Controller_VarHelperTester::test_function_isClientObserving()
 void Controller_VarHelperTester::test_function_getObserversClientIds()
 {
     //vector<string> getObserversClientIds();
-    vector<string> clientIds;
+    vector<tuple<string, string>> observationsIds;
     for (auto c = 0; c < 10; c++)
     {
         auto tmpClientId = Utils::createUniqueId();
-        var->addClientToObservers(tmpClientId);
-        clientIds.push_back(tmpClientId);
+        auto customId = Utils::createUniqueId();
+        var->addObserver(tmpClientId, customId);
+        observationsIds.push_back({ tmpClientId, customId});
     }
 
     this->test("getObservingClientIds should return all added clients", [&](){
-        auto returnedClientIds = var->getObserversClientIds();
+        auto returnedClientIds = var->getObservations();
 
         bool allClientsFound = true;
-        for (auto &c: clientIds)
+        for (auto &c: observationsIds)
         {
-            allClientsFound &= std::count(returnedClientIds.begin(), returnedClientIds.end(), c) > 0;
+            allClientsFound &= std::count(returnedClientIds.begin(), returnedClientIds.end(), c) == 10;
         }
 
         return allClientsFound;
     });
 
     this->test("getObservingClientIds should not return id of a removed client", [&](){
-        auto idToRemove = clientIds[2];
-        var->removeClientFromObservers(idToRemove);
+        auto idToRemove = observationsIds[2];
+        var->removeObserving(get<0>(idToRemove), get<1>(idToRemove));
 
-        auto returnedClientIds = var->getObserversClientIds();
+        auto returnedClientIds = var->getObservations();
         bool removeClienWasFound = false;
         for (auto &c: returnedClientIds)
         {
@@ -514,39 +517,40 @@ void Controller_VarHelperTester::test_function_getObserversClientIds()
 void Controller_VarHelperTester::test_function_foreachObserversClients()
 {
     //void foreachObserversClients(FObserversForEachFunction f);
-    vector<string> clientIds;
+    vector<tuple<string, string>> observationsIds;
     for (auto c = 0; c < 10; c++)
     {
         auto tmpClientId = Utils::createUniqueId();
-        var->addClientToObservers(tmpClientId);
-        clientIds.push_back(tmpClientId);
+        auto customId = Utils::createUniqueId();
+        var->addObserver(tmpClientId, customId);
+        observationsIds.push_back({ tmpClientId, customId});
     }
 
     this->test("getObservingClientIds should return all added clients", [&](){
         string allClientIds = "";
-        var->foreachObserversClients([&](string currId){
-            allClientIds += currId;
+        var->foreachObservations([&](string currId, string metadata){
+            allClientIds += currId + metadata;
         });
 
         bool allClientsFound = true;
-        for (auto &c: clientIds)
+        for (auto &c: observationsIds)
         {
-            allClientsFound &= allClientIds.find(c) != string::npos;
+            allClientsFound &= allClientIds.find(get<0>(c) + get<1>(c)) != string::npos;
         }
 
         return allClientsFound;
     });
 
     this->test("getObservingClientIds should not return id of a removed client", [&](){
-        auto idToRemove = clientIds[2];
-        var->removeClientFromObservers(idToRemove);
+        auto idToRemove = observationsIds[2];
+        var->removeObserving(get<0>(idToRemove), get<1>(idToRemove));
 
         string allClientIds = "";
-        var->foreachObserversClients([&](string currId){
-            allClientIds += currId;
+        var->foreachObservations([&](string currId, string metadata){
+            allClientIds += currId+metadata;
         });
 
-        return allClientIds.find(idToRemove) == string::npos;
+        return allClientIds.find(get<0>(idToRemove) + get<1>(idToRemove)) == string::npos;
     });
 
 

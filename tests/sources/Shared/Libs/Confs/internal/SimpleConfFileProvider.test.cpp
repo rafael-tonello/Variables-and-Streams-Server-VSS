@@ -138,10 +138,12 @@ void SimpleConfFileProviderTester::run(string context)
             for (auto &c: configurations)
             {
                 //cout << get<0>(c) << " -> " << get<1>(c) << endl;
-                if (get<0>(c) == "key1")
-                    conf1 = get<1>(c);
-                else if (get<0>(c) == "key2")
-                    conf2 = get<1>(c);
+                auto key = get<0>(c);
+                auto value = get<1>(c);
+                if (key == "key1")
+                    conf1 = value;
+                else if (key == "key2")
+                    conf2 = value;
             }
         });
 
@@ -167,6 +169,7 @@ void SimpleConfFileProviderTester::run(string context)
                 string("key2=value2_changed\n")
             ); 
             
+            usleep(5000);
             string expected = "value1, value2_changed";
             string received = conf1 + ", " + conf2;
             return TestResult

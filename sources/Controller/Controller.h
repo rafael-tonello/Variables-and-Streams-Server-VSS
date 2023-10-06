@@ -84,8 +84,8 @@ namespace Controller{
 
         void apiStarted(ApiInterface *api);
         string clientConnected(string clientId, ApiInterface* api, int &observingVarsCount);
-        void observeVar(string varName, string clientId, string customAdditionalData, ApiInterface* api);
-        void stopObservingVar(string varName, string clientId, ApiInterface* api);
+        void observeVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api);
+        void stopObservingVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api);
 
         //return the var name (if a alias is send, returns the correct var name) and the value (returna vector because you can request a var like "a.b.c.*").
         future<GetVarResult> getVar(string name, DynamicVar defaultValue);

@@ -97,11 +97,11 @@ void Controller_ClientHelperTester::test_function_notify()
 {
     //API::ClientSendResult notify(vector<tuple<string, DynamicVar>> varsAndValues);
     string receivedClientIdByApi;
-    vector<tuple<string, DynamicVar>> receivedVarsAndValuesByApi;
+    vector<tuple<string, string, DynamicVar>> receivedVarsAndValuesByApi;
     ClientSendResult nextApiResult = ClientSendResult::LIVE;
 
 
-    api->setFunction_notifyClient([&](string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+    api->setFunction_notifyClient([&](string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues)
     {
         receivedClientIdByApi = clientId;
         receivedVarsAndValuesByApi = varsAndValues;
@@ -112,7 +112,7 @@ void Controller_ClientHelperTester::test_function_notify()
     this->test("ClientHelper::notify sould send the client id to the API", [&](){
         receivedClientIdByApi ="";
         cli->notify(
-            { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
+            { std::make_tuple<string, string, DynamicVar>("varname", "abc", string("varValue")) }
         );
 
         
@@ -127,13 +127,13 @@ void Controller_ClientHelperTester::test_function_notify()
     this->test("ClientHelper::notify sould send 'varname=varValue' to the API", [&](){
         receivedVarsAndValuesByApi = {};
         cli->notify(
-            { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
+            { std::make_tuple<string, string, DynamicVar>("varname", "abc", string("varValue")) }
         );
 
         string expected = "varname=varValue";
         string receivedByApi = "";
         for (auto &c: receivedVarsAndValuesByApi)
-            receivedByApi = std::get<0>(c) + "=" + std::get<1>(c).getString() + ";";
+            receivedByApi = std::get<0>(c) + "=" + std::get<2>(c).getString() + ";";
 
         if (receivedByApi.size() > -0 && receivedByApi[receivedByApi.size() -1] == ';')
             receivedByApi = receivedByApi.substr(0, receivedByApi.size()-1);
@@ -181,14 +181,14 @@ void Controller_ClientHelperTester::test_function_updateLiveTime_and_getLastLive
         usleep(100000);
 
         //when clientHelper try to notify the client, the api will return an error
-        api->setFunction_notifyClient([](string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+        api->setFunction_notifyClient([](string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues)
         {
             //return an error (no data exchanged with the client);
             return ClientSendResult::DISCONNECTED;
         });
 
         cli->notify(
-            { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
+            { std::make_tuple<string, string, DynamicVar>("varname", "abc", string("varValue")) }
         );
 
         auto t2 = cli->getLastLiveTime();
@@ -205,14 +205,14 @@ void Controller_ClientHelperTester::test_function_updateLiveTime_and_getLastLive
         usleep(1000000);
 
         //when clientHelper try to notify the client, the api will return a sucess result, and the last live time should be updated
-        api->setFunction_notifyClient([](string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+        api->setFunction_notifyClient([](string clientId, vector<tuple<string, string,DynamicVar>> varsAndValues)
         {
             //return an error (no data exchanged with the client);
             return ClientSendResult::LIVE;
         });
 
         cli->notify(
-            { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
+            { std::make_tuple<string, string, DynamicVar>("varname", "abc", string("varValue")) }
         );
         auto t2 = cli->getLastLiveTime();
 
@@ -240,7 +240,7 @@ void Controller_ClientHelperTester::test_function_timeSinceLastLiveTime()
     this->test("if client is active, timeSinceLastLiveTime counter should be restarted", [&]()
     {
 
-        api->setFunction_notifyClient([](string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+        api->setFunction_notifyClient([](string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues)
         {
             return ClientSendResult::LIVE;
         });
@@ -248,7 +248,7 @@ void Controller_ClientHelperTester::test_function_timeSinceLastLiveTime()
         auto t1 = cli->timeSinceLastLiveTime();
         usleep(1000000);
         cli->notify(
-            { std::make_tuple<string, DynamicVar>("varname", string("varValue")) }
+            { std::make_tuple<string, string, DynamicVar>("varname", string("some metadata"), string("varValue")) }
         );
         auto t2 = cli->timeSinceLastLiveTime();
 

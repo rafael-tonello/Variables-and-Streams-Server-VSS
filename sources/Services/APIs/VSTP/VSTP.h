@@ -123,7 +123,11 @@ namespace API {
 
 
             void separateKeyAndValue(string keyValuePair, string &key, string & value, char charSep = '=');
-            void separateNameAndMetadata(string originalVarName, string &varname, string &metadata);
+
+            /// @brief seperate metada from varname
+            /// @param originalVarName the original varname (with the medata)
+            /// @return a tuple with varname and metadata --> tuple<string varname, string metadata>
+            tuple<string, string> separateNameAndMetadata(string originalVarName);
             
             /** 
              * @brief this function is called majority by the function ThreadTalkWithClientFunction when a pack is receitved

@@ -7,11 +7,87 @@
 #include <httpapi.h>
 
 using namespace std;
- 
+
+class HttpStatus{
+public:
+    uint code;
+    string message;
+};
+
+class Header{
+public:
+    string key;
+    vector<string> values;
+
+    string getValuesAsString()
+    {
+        string ret = 0;
+        for (auto &c: values)
+            ret += c +"; ";
+
+        ret = ret.substr(0, ret.size()-2);
+
+        return ret;
+    }
+
+    string exportToHttpHeaderFormat()
+    {
+        string ret = key + ": ";
+        for (int c = 0; c < values.size(); c++)
+            ret += values[c] + (c < values.size()-1 ? "; " : "");
+
+        return ret;
+    };
+
+    static Header createFromHeaderText(string headerText)
+    {
+
+    }
+};
+
+class Body{
+public:
+    uint contentLength;
+    string contentType;
+    string content;
+
+    void clear()
+    {
+        contentLength = 0;
+        contentType = "";
+        content = "";
+    }
+};
+
+
+class HttpData: public TaggedObject{
+public:
+    vector<Header> headers;
+    Body body;
+};
+
+class HttpResponse: public HttpData{
+public:
+    HttpStatus status;
+    string resource;
+};
+
+class HttpRequest: public HttpData{
+public:
+    string url;
+    string method;
+};
+
 class Http_test: public Tester { 
 public: 
-    Http_test(); 
-    ~Http_test(); 
+    Http_test();
+    ~Http_test();
+    HttpResponse request(HttpRequest request);
+    string readSocket(int socket);
+    void writeSocket(int socket, string data);
+    void doRequest(HttpRequest request, int socket);
+    void processReadByte(string byte, HttpResponse& out);
+    HttpResponse readResponse(int socket);
 
 public:
     /* Tester implementation */
@@ -19,67 +95,5 @@ public:
     void run(string context);
 }; 
 
-namespace HttpTestData
-{
-    class HttpStatus{
-    public:
-        uint code;
-        string message;
-    };
-
-    class Header{
-    public:
-        string key;
-        vector<string> values;
-
-        string exportToHttpHeaderFormat()
-        {
-            string ret = key + ": ";
-            for (int c = 0; c < values.size(); c++)
-                ret += values[c] + (c < values.size()-1 ? "; " : "");
-
-            return ret;
-        };
-
-        static Header createNewFromText(string headerText)
-        {
-
-        }
-    };
-
-    class Body{
-    public:
-        uint contentLength;
-        string contentType;
-        string content;
-
-        void clear()
-        {
-            contentLength = 0;
-            contentType = "";
-            content = "";
-        }
-    };
-
-    
-    class HttpData: TaggedObject{
-    public:
-        vector<Header> headers;
-        Body body;
-    };
-
-    class HttpResponse:HttpData{
-    public:
-        HttpStatus status;
-        string resource;
-    };
-
-    class HttpRequest: HttpData{
-    public:
-        string url;
-        string method;
-    };
-
-}
  
 #endif 

@@ -21,10 +21,10 @@ void Http_test::run(string context)
     if (context != string("APIs.Http"))
         return;
 
-    API::HTTP::HttpAPI api()
+    API::HTTP::HttpAPI api();
     
     this->test("Http api should return valid 'get requests' with a 200 status", [&](){
-
+        return false;
     });
 
     //TODO: Http api should return a 201 no content when setting a var
@@ -34,40 +34,40 @@ void Http_test::run(string context)
 }
 
 
-HttpTestData::HttpResponse request(HttpRequest request)
+HttpResponse Http_test::request(HttpRequest request)
 {
-    int socket = createSocket();
+    //int socket = createSocket();
 
-    doRequest(request, socket);
-    return readResponse(socket);
+    //doRequest(request, socket);
+    //return readResponse(socket);
 }
 
 
-string readSocket(int socket)
+string Http_test::readSocket(int socket)
 {
 
 }
 
-void writeSocket(int socket, string data)
+void Http_test::writeSocket(int socket, string data)
 {
     send(socket, data.c_str(), data.size(), 0);
 }
 
-void doRequest(HttpRequest request, int socket)
+void Http_test::doRequest(HttpRequest request, int socket)
 {
-    writeSocket(socket, request.method + " ")
+    writeSocket(socket, request.method + " ");
     writeSocket(socket, request.url + " HTTP/1.1");
     for (auto &currHeader: request.headers)
-        writeSocket(currHeader.exportToHttpHeaderFormat() + "\r\n");
+        writeSocket(socket, currHeader.exportToHttpHeaderFormat() + "\r\n");
 
-    writeSocket("\r\n");
+    writeSocket(socket, "\r\n");
 
-    writeSocket(request.body);
+    writeSocket(socket, request.body.content);
 }
 
 
 
-void processReadByte(char byte, HttptestData::HttpResponse& out)
+void Http_test::processReadByte(string byte, HttpResponse& out)
 {
     if (out.tags["state"] == "reading http version")
     {
@@ -114,13 +114,13 @@ void processReadByte(char byte, HttptestData::HttpResponse& out)
     {
         if (byte == "\n")
         {
-            if (tempStr.size() > 2)
+            if (out.tags["buffer"].size() > 2)
             {
                 out.headers.push_back(Header::createFromHeaderText(out.tags["buffer"]));
                 if (out.headers.back().key == "content-length")
-                    out.body.contentLength = atoi(out.headers.back().value);
+                    out.body.contentLength = atoi(out.headers.back().getValuesAsString().c_str());
                 else if (out.headers.back().key == "content-type")
-                    out.body.contentType = out.headers.back().value;
+                    out.body.contentType = out.headers.back().getValuesAsString();
                 
                 out.tags["buffer"] = "";
             }
@@ -128,11 +128,11 @@ void processReadByte(char byte, HttptestData::HttpResponse& out)
             {
                 if (out.tags["content-length"] != "")
                 {
-                    out.tags["state"] = "reading body"
+                    out.tags["state"] = "reading body";
                     out.body.clear();;
                 }
                 else
-                    state = "finished"
+                    out.tags["state"] = "finished";
             }
         }
         else if (byte != "\r")
@@ -144,22 +144,22 @@ void processReadByte(char byte, HttptestData::HttpResponse& out)
         out.body.content += byte;
 
         if (out.body.content.size() == out.body.contentLength)
-            state = "finished";
+            out.tags["state"] = "finished";
     }
 
 }
 
 
-HttpTestData::HttpResponse readResponse(int socket)
+HttpResponse Http_test::readResponse(int socket)
 {
     HttpResponse result;
     result.tags["state"] = "reading http version";
     result.tags["buffer"] = "";
 
-    auto startTime = Utils::getCurrentTimeMilliseconds()
+    auto startTime = Utils::getCurrentTimeMilliseconds();
     char buffer[10];
 
-    while (result.tags["state"] != finished)
+    while (result.tags["state"] != "finished")
     {
         if ((Utils::getCurrentTimeMilliseconds() - startTime) < 2000)
             throw string("timeout");
@@ -167,7 +167,7 @@ HttpTestData::HttpResponse readResponse(int socket)
         auto totalRead = read (socket, buffer, sizeof buffer);
 
         for (int c = 0; c < totalRead; c++)
-            processReadByte(buffer[c], result);
+            processReadByte(string(1, buffer[c]), result);
 
     }
 

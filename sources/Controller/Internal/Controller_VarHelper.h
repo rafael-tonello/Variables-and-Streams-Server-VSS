@@ -16,7 +16,8 @@
 
 using namespace std;
 
-using FObserversForEachFunction = function<void(string currentClientId)>;
+using FObservationsForEachFunction = function<void(string currentClientId, string metadata)>;
+#define R Utils::sr
 
 class Controller_VarHelper { 
 private:
@@ -42,14 +43,19 @@ public:
     void unlock();
     void deleteValueFromDB();
     vector<string> getChildsNames();
-    bool isClientObserving(string clientId);
-    void addClientToObservers(string clientId, string customMetadata);
-    void removeClientFromObservers(string clientId);
-    void foreachObserversClients(FObserversForEachFunction f);
-    vector<string> getObserversClientIds();
-    vector<tuple<string, string>> getObserversClientIdsAndMetadta();
+    bool isObserving(string clientId, string metadata);
+    void addObserver(string clientId, string metadata);
+    void removeCliObservings(string clientId);
+    void removeObserving(string clientId, string metadata);
+    void foreachObservations(FObservationsForEachFunction f);
 
-    string getMetadataForClient(string clientId);
+    /// @brief Return a vector with client ids and metadata
+    /// @return a vector of tuples where each is like: tuple<clientId, metadata>
+    vector<tuple<string, string>> getObservations();
+
+    vector<tuple<string, string>> getObservationsOfAClient(string clientId);
+    vector<string> getMetadatasOfAClient(string clientId);
+
 }; 
  
 #endif 

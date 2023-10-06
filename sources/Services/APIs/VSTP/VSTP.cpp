@@ -138,7 +138,6 @@ void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
     //scapeChar must be sent without __PROTOCOL_VSTP_WRITE
     string buffer = VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS + ";" + "SCAPE CHARACTER="+scape_char + "\n";
     cli->sendString(buffer);
-    buffer.clear();
 }
 
 void API::VSTP::VSTP::sendIdToClient(ClientInfo* cli, string id)
@@ -185,7 +184,9 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 
 void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
 {
-    this->log->info((DVV){"processCommand received a new command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    if (command != VSTP_ACTIONS::PING)
+        this->log->debug((DVV){"processCommand received a new command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+        
     string strData;
     string key;
     string tempStr;
@@ -273,11 +274,11 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::SUBSCRIBE_VAR)
     {
-        string metadata = "";
 
-        separateNameAndMetadata(varName, varName, metadata);
+        auto [ vName, customIdsAndMetainfo] = separateNameAndMetadata(varName);
+        varName = vName;
 
-        ctrl->observeVar(varName, clientSocket.tags["id"], metadata, this);
+        ctrl->observeVar(varName, clientSocket.tags["id"], customIdsAndMetainfo, this);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + ";" + payload);
 
@@ -285,7 +286,12 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::UNSUBSCRIBE_VAR)
     {
-        ctrl->stopObservingVar(varName, clientSocket.tags["id"], this);
+        auto [ vName, customIdsAndMetainfo] = separateNameAndMetadata(varName);
+        varName = vName;
+
+        //todo: if no metadata is specified, delete all client observations
+
+        ctrl->stopObservingVar(varName, clientSocket.tags["id"], customIdsAndMetainfo, this);
         log->info({"Client", clientSocket.tags["id"], "stop watching the variable", varName});
 
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + ";" + payload);
@@ -369,9 +375,12 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
 
 void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data)
 {
-    string buffer = command + ";" + byteEscape(data) + "\n";
+    //if (data.size() > 0)
+    //    data = byteEscape(data);
+
+    string buffer = command + ";" + data + "\n";
+
     clientSocket.sendString(buffer);
-    buffer.clear();
 }
 
 void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, char* data, unsigned int size)
@@ -384,8 +393,8 @@ string API::VSTP::byteEscape(string originalText)
     //stringstream ret("");
 
     return Utils::sr(originalText, {
-        {"\n", string(""+scape_char) + string("n")},
-        {string(""+scape_char), string(""+scape_char+scape_char)}
+        {"\n", string(1, scape_char) + string("n")},
+        {string(1, scape_char), string(1, scape_char+scape_char)}
     });
 
     //for (auto &c: originalText)
@@ -403,9 +412,10 @@ string API::VSTP::byteEscape(string originalText)
 
 string API::VSTP::byteUnescape(string text)
 {
+
     return Utils::sr(text, {
-        {string(""+scape_char) + string("n"), "\n"},
-        {string(""+scape_char+scape_char), string(""+scape_char)}
+        {string(1, scape_char) + string("n"), "\n"},
+        {string(1, scape_char)+string(1, scape_char), string(1, scape_char)}
     });
 }
 
@@ -441,7 +451,7 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
 
     separateKeyAndValue(message, command, payload, ";: ");
 
-    payload = byteUnescape(payload);
+    //payload = byteUnescape(payload);
 
     
     scheduler->enqueue([&, command, payload, cli](){
@@ -472,20 +482,19 @@ void API::VSTP::separateKeyAndValue(string keyValuePair, string &key, string & v
     return separateKeyAndValue(keyValuePair, key, value, sep);
 }
 
-void API::VSTP::separateNameAndMetadata(string originalVarName, string &varname, string &metadata)
+tuple<string, string> API::VSTP::separateNameAndMetadata(string originalVarName)
 {
     if (auto pos = originalVarName.find('('); pos != string::npos)
     {
-        varname = originalVarName.substr(0, pos);
-        metadata = originalVarName.substr(pos + 1);
+        auto varname = originalVarName.substr(0, pos);
+        auto metadata = originalVarName.substr(pos + 1);
         if (metadata.size() > 0 && metadata[metadata.size()-1] == ')')
             metadata = metadata.substr(0, metadata.size()-1);
+
+        return { varname, metadata };
     }
     else
-    {
-        varname = originalVarName;
-        metadata = "";
-    }
+        return {originalVarName, ""};
     
 }
 
@@ -498,6 +507,7 @@ string API::VSTP::getApiId()
 
 API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues)
 {
+    cout << "Notificating the client " << clientId << endl;
     if (clientsById.count(clientId))
     {
         auto cli = clientsById[clientId];

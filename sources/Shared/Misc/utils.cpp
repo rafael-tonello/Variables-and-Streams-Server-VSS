@@ -2,7 +2,6 @@
 
 mutex Utils::names_locks_mutexes_mutex;
 map<string, timed_mutex*> Utils::names_locks_mutexes;
-int Utils::idCount = 0;
 bool Utils::srandOk = false;
 char Utils::proxyListInitializedState = 'a';
 vector <string> Utils::validProxies;
@@ -100,67 +99,86 @@ string Utils::charVecToHex(const char* data, size_t size)
     return charVecToHex((char*)data, size);
 }
 
-string Utils::ssystem (string command, bool removeTheLastLF) {
-    //todo:change it to use popen (https://stackoverflow.com/questions/45202379/how-does-popen-work-and-how-to-implement-it-into-c-code-on-linux)
-    char tmpname [L_tmpnam];
-    std::tmpnam ( tmpname );
-
-    char tmpname2 [L_tmpnam];
-    std::tmpnam ( tmpname2 );
-    std::string scommand = command;
-    std::string cmd = scommand + " &>> " + tmpname;
-
-    Utils::writeTextFileContent(string(tmpname2) + ".sh", cmd);
-
-    auto pid = fork();
-
-    if (pid < 0)
-    {
-
-    }
-    else if (pid == 0)
-    {
-        execlp("chmod", "chmod", "+x", (string(tmpname2)+".sh").c_str(), NULL);
-
-        exit(0);
-    }
-
-    waitpid(pid, 0, 0);
-
-
-    pid = fork();
-
-    if (pid < 0)
-    {
-
-    }
-    else if (pid == 0)
-    {
-        execlp((string(tmpname2)+".sh").c_str(), (string(tmpname2)+".sh").c_str(), NULL);
-        exit(0);
-    }
-
-    waitpid(pid, 0, 0);
-
-
-
-    std::ifstream file(tmpname, std::ios::in | std::ios::binary );
-    std::string result;
-    if (file) {
-        while (!file.eof()) result.push_back(file.get())
-            ;
-        file.close();
-    }
-    remove(tmpname);
-    remove(tmpname2);
+vector<string> Utils::splitString(string source, string split_by)
+{
+    vector<string> result;
     
-    //remove the last character, with is comming with invalid value
-    result = result.substr(0, result.size()-1);
+    while (true)
+    {
+        if (auto pos = source.find(split_by); pos != string::npos)
+        {
+            result.push_back(source.substr(0, pos));
+            source = source.substr(pos + split_by.size());
+        }
+        else
+            break;
+    }
 
-    if (removeTheLastLF)
-        result = result.substr(0, result.size()-1);
+    if (source != "")
+        result.push_back(source);
 
     return result;
+}
+
+string Utils::strToUpper(std::string source)
+{
+    std::string result = source;
+
+    for (char& c : result) {
+        c = std::toupper(c);
+    }
+
+    return result;
+}
+
+string Utils::strToLower(std::string source)
+{
+    std::string result = source;
+
+    for (char& c : result) {
+        c = std::tolower(c);
+    }
+
+    return result;
+}
+
+string Utils::getOnly(string source, string validChars)
+{
+    string ret = "";
+    for (auto &c: source)
+        if (validChars.find(c) != string::npos)
+            ret.push_back(c);
+
+    return ret;
+}
+
+string Utils::ssystem (string command, bool removeTheLastLF) {
+
+    const int bufferSize = 128;
+    char buffer[bufferSize];
+    std::string output;
+
+    // Executar o comando e redirecionar stdout e stderr para o mesmo arquivo temporário
+    FILE* pipe = popen((command + " 2>&1").c_str(), "r");
+    if (pipe == nullptr) {
+        std::cerr << "Erro ao executar o comando." << std::endl;
+        return output;
+    }
+
+    // Ler a saída do subprocesso (stdout e stderr)
+    while (fgets(buffer, bufferSize, pipe) != nullptr) {
+        output += buffer;
+    }
+
+    // Fechar o subprocesso
+    pclose(pipe);
+
+    // Remover a quebra de linha final, se necessário
+    if (removeTheLastLF && !output.empty() && output.back() == '\n') {
+        output.pop_back();
+    }
+
+    return output;
 }
 
 future<string> Utils::asystem(string command, bool removeTheLastLF)
@@ -259,28 +277,87 @@ void Utils::runSRand()
     }
 }
 
-string Utils::createUniqueId()
+string Utils::createUniqueId(string validChars, int size, string prefix, string sufix, bool includeTimeStampAtBegining)
 {
+
     Utils::runSRand();
     auto i = to_string(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
     //auto i2 = to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
     
-    string validToI2 = "abcedfghijklmnopqrsuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ";
     string i2 = "";
 
 
-    for (int c = 0; c < 20; c++)
+    int randomCharsCount = size - (includeTimeStampAtBegining ? i.size() : 0);
+    for (int c = 0; c < randomCharsCount; c++)
     {
-        i2 += validToI2[rand() %validToI2.size()];
+        i2 += validChars[rand() % validChars.size()];
     }
 
-    auto i5 = Utils::idCount++;
-
-    string tmp = "UID"+i + i2 +  to_string(i5);
+    string tmp = prefix + (includeTimeStampAtBegining ? i: "") + i2 + sufix;
     //return Utils::StringToHex(tmp);
     return tmp;
 
 }
+
+string Utils::createUniqueId_customFormat(string format, string prefix, string sufix)
+{
+    //auto chartList = Utils::createUniqueId(validChars, format.size(), "", "", includeTimeStampAtBegining);
+
+    stringstream ret;
+
+    Utils::runSRand();
+    ret.clear();
+    string chars = "0123456789abcdefghijklmnopqrstuvxywz";
+
+    auto getAlpha = [chars](){ return chars[(rand() % (chars.size()-10))+10]; };
+    auto getNum = [chars](){ return chars[rand() % 10]; };
+    auto getHex = [chars](){ return chars[rand() % 16]; };
+    auto getAlphaRandUpper = [getAlpha, chars](){
+        if (((rand() % 2)+1) == 2)
+            return (char)toupper(getAlpha());
+        else
+            return getAlpha();
+
+    };
+
+    
+    for (size_t c = 0; c < format.size(); c++)
+    {
+        if (format[c] == 'a')
+            ret << getAlpha();
+        else if (format[c] == 'A')
+            ret << (char)toupper(getAlpha());
+        else if (format[c] == 'h')
+            ret << getHex();
+        else if (format[c] == 'H')
+            ret << (char)toupper(getHex());
+        else if (format[c] == '0')
+            ret << getNum();
+        else if (format[c] == '?')
+            ret << (vector<function<char()>>({ getAlphaRandUpper, getNum, getHex}))[rand() % 3]();
+        else
+            ret << format[c];
+    }
+    string ret2 = ret.str();
+    return prefix + ret2  + sufix;
+
+}
+
+string Utils::createUnidqueId_guidFormat()
+{
+    /*auto charList = Utils::createUniqueId("0123456789abcdef", 32, "", "", false);
+
+    string ret = ""+
+                    charList.substr(0, 8) +  "-"+
+                    charList.substr(8, 4) +  "-"+
+                    charList.substr(12, 4) + "-"+ 
+                    charList.substr(16, 4) + "-"+ 
+                    charList.substr(20); */
+    string ret = Utils::createUniqueId_customFormat("hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh");
+    return ret;
+}
+
+
 
 string Utils::readTextFileContent(string fileName)
 {
@@ -414,15 +491,16 @@ void Utils::appendTextFileContent(string fileName, string content)
 
 string Utils::stringReplace(string source, string replace, string by)
 {
-    if (source.find(replace) != string::npos)
+    stringstream ret;
+    auto pos = source.find(replace);
+    while (pos != string::npos)
     {
-        string tmp = source.substr(0, source.find(replace));
-        tmp += by;
-        tmp += source.substr(source.find(replace)+replace.size());
-        return Utils::stringReplace(tmp, replace, by);
+        ret << source.substr(0, pos) << by;
+        source = source.substr(pos + replace.size());
+        pos = source.find(replace);
     }
-    else
-        return source;
+    ret << source;
+    return ret.str();
 }
 
 string Utils::stringReplace(string source, vector<tuple<string, string>> replaceAndByTuples)
@@ -430,6 +508,27 @@ string Utils::stringReplace(string source, vector<tuple<string, string>> replace
     for (auto &c: replaceAndByTuples)
         source = Utils::stringReplace(source, std::get<0>(c), std::get<1>(c));
     return source;
+}
+
+string Utils::stringReplace(string source, vector<string> by, string marker, bool use_TheArgBy_Circularly)
+{
+    stringstream ret;
+    auto pos = source.find(marker);
+    int index = 0;
+    while (pos != string::npos && index < by.size())
+    {
+        auto currReplacer = by[index];
+        ret << source.substr(0, pos) << currReplacer;
+        source = source.substr(pos + marker.size());
+        pos = source.find(marker);
+
+        index++;
+        if (use_TheArgBy_Circularly && index >= by.size())
+            index = 0;
+    }
+    
+    ret << source;
+    return ret.str();
 }
 
 bool Utils::isNumber(string source)
@@ -517,4 +616,26 @@ string Utils::getNestedExceptionText(exception &e, string prefix, int level)
     }
 
     return ret;
+}
+
+string Utils::ltrim(string s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+
+    return s;
+}
+
+// trim from end (in place)
+string Utils::rtrim(string s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+
+    return s;
+}
+
+// trim from both ends (in place)
+string Utils::trim(std::string s) {
+    return rtrim(ltrim(s));
 }

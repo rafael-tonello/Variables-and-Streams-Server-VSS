@@ -5,7 +5,7 @@ string API::HTTP::JsonExporter::toString()
 {
     JSON result;
     for (auto &c: vars)
-        result.set(c.first  + "._value", c.second);
+        result.set(c.first  + "._value", c.second.getString());
 
     return result.ToJson();
 }

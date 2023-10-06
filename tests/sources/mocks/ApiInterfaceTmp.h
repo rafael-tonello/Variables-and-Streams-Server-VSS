@@ -12,7 +12,7 @@ class ApiInterfaceTmp: public ApiInterface
 {
 private:
     function<string()> getApiIdFunction = [](){return "tempApiId";};
-    function<ClientSendResult(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)> notifyClientFunction = [](string clientId, vector<tuple<string, DynamicVar>> varsAndValues){ return ClientSendResult::LIVE;};
+    function<ClientSendResult(string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues)> notifyClientFunction = [](string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues){ return ClientSendResult::LIVE;};
     function<ClientSendResult(string clientId)> checkAliveFunction = [](string clientId){return ClientSendResult::LIVE;};
 public:
 
@@ -21,7 +21,7 @@ public:
         getApiIdFunction = f;
     }
     
-    void setFunction_notifyClient(function<ClientSendResult(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)> f)
+    void setFunction_notifyClient(function<ClientSendResult(string clientId, vector<tuple<string, string, DynamicVar>> varsAndValues)> f)
     {
         notifyClientFunction = f;
     }
@@ -31,26 +31,27 @@ public:
         checkAliveFunction = f;
     }
 
-    string getApiId()
+    string getApiId() override
     {
         return getApiIdFunction();
     }
 
-    string getListeningInfo()
+    string getListeningInfo() override
     {
         return "This api does not provide an external access";
 
     }
 
-    ClientSendResult notifyClient(string clientId, vector<tuple<string, DynamicVar>> varsAndValues)
+    ClientSendResult notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues) override
     {
-        return notifyClientFunction(clientId, varsAndValues);
+        return notifyClientFunction(clientId, varsnamesMetadataAndValues);
     }
 
-    ClientSendResult checkAlive(string clientId)
+    ClientSendResult checkAlive(string clientId) override
     {
         return checkAliveFunction(clientId);
     }
+
 };
 
 #endif
