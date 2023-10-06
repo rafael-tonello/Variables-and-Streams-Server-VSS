@@ -43,7 +43,7 @@ bool isRunningInPortableMode();
 void handleSignals();
 
 //semantic versioning
-string INFO_VERSION = "0.117.0";
+string INFO_VERSION = "0.20.0";
 
 int main(){
     handleSignals();
