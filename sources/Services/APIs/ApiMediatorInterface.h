@@ -36,6 +36,7 @@ namespace API
         virtual void observeVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api) = 0;
         //virtual void stopObservingVar(string varName, string clientId, ApiInterface* api) = 0;
         virtual void stopObservingVar(string varName, string clientId, string customIdsAndMetainfo, ApiInterface* api) = 0;
+        virtual string getSystemVersion() = 0;
 
     };
 }

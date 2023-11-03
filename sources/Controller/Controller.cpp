@@ -2,7 +2,7 @@
 
 using namespace Controller;
 
-TheController::TheController(DependencyInjectionManager* dim)
+TheController::TheController(DependencyInjectionManager* dim, string systemVersion): systemVersion(systemVersion)
 {
     
     this->log = dim->get<ILogger>();
@@ -43,6 +43,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 {
     return tasker->enqueue([this](string namep, DynamicVar valuep)
     {
+        log->debug("Entered in setVar task");
         //check if name isn't a internal flag var
 
         if (namep.find('_') == 0 || namep.find("._") != string::npos)
@@ -62,6 +63,8 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
         auto ret = varHelper.setValue(valuep);
         this->notifyVarModification(namep, valuep);
+
+        log->debug("Will exit from setVar task");
         return ret;
     }, name, value);
 
@@ -69,7 +72,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
 future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 {
-    return tasker->enqueue([this, maxTimeOut_ms](string varNamep){
+    return tasker->enqueue([&, maxTimeOut_ms](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         return varHelper.lock(maxTimeOut_ms);
 
@@ -78,7 +81,7 @@ future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 
 future<Errors::Error> TheController::unlockVar(string varName)
 {
-    return tasker->enqueue([this](string varNamep){
+    return tasker->enqueue([&](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         varHelper.unlock();
 
@@ -125,6 +128,7 @@ void TheController::notifyVarModification(string varName, DynamicVar value)
 {
     tasker->enqueue([varName, value, this](){
         Controller_VarHelper vh(log, db, varName);
+
         notifyClientsAboutVarChange(vh.getObservations(), varName, value);
 
         notifyParentGenericObservers(varName, varName, value);
@@ -157,7 +161,6 @@ void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> cl
     for (int c = clientIdsAndMetadata.size()-1; c >= 0; c--)
     {
         auto tmp = clientIdsAndMetadata[c];
-        cout << "Current clieInfo: "<< c << " -> " << get<0>(tmp) << ", " << get<1>(tmp) << endl;
         tasker->enqueue([&](string changedVarNamep, tuple<string, string> clientIdAndMetadatap, DynamicVar valuep){
             auto clientIdp = std::get<0>(clientIdAndMetadatap);
             auto customIdsAndMetainfo = std::get<1>(clientIdAndMetadatap);
@@ -170,7 +173,11 @@ void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> cl
                     this->checkClientLiveTime(ch);
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
+            {
                 log->error("TheController", "Client notification failute due 'responsible API not found.");
+                //try  to remove invalid clients (but this cannot happenens :( ))
+                deleteClient(ch);
+            }
             else
                 log->error("TheController", "Client notification failute due an unknown error.");
         }, changedVarName, tmp, value);
@@ -201,7 +208,7 @@ string TheController::_createUniqueId()
 
 future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
 {
-    return tasker->enqueue([this](string namep, DynamicVar defaultValuep){
+    return tasker->enqueue([&](string namep, DynamicVar defaultValuep){
 
         if (namep == "")
         {
@@ -268,7 +275,7 @@ future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
 
 future<Errors::Error> TheController::delVar(string varname)
 {
-    return tasker->enqueue([this](string varnamep)
+    return tasker->enqueue([&](string varnamep)
     {
         Controller_VarHelper varHelper(log, db, varnamep);
         varHelper.deleteValueFromDB();
@@ -278,7 +285,7 @@ future<Errors::Error> TheController::delVar(string varname)
 
 future<Errors::ResultWithErrorStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
 {
-    return tasker->enqueue([this](string parentNamep)
+    return tasker->enqueue([&](string parentNamep)
     {
         if (parentNamep.find('*') != string::npos)
         {
@@ -367,4 +374,9 @@ void TheController::deleteClient(Controller_ClientHelper client)
         Controller_VarHelper varHelper(log, db, currVar);
         varHelper.removeCliObservings(client.getClientId());
     }
+}
+
+string TheController::getSystemVersion()
+{
+    return systemVersion;
 }

@@ -54,6 +54,8 @@ namespace Shared
 			bool running = true;
 
 			bool containsKey(string key);
+
+			void deleteDirectoryTree(string directory);
 		public:
 			FileVars(string dirBase, bool isToUseCache, size_t inMemoryCacheSize = 10 * 1024 * 1024);
 			~FileVars();
@@ -65,7 +67,10 @@ namespace Shared
 			void del(string varName);
             void __Thread_syncToFs();
 
-			Var get(string varName, string defaulValue, bool initializeFileAndCahceWithDefaultValue = true);
+			//using initializeFileAndCahceWithDefaultValue as true, the get vars speed will be increaseed, because the system will automatically
+			//initializing the cache with the default value. The nexe file time the variabel will be acccessed, the file will no be read.
+			//if the falue is false, every time (if variable do not exists) the system will look for its value in the filesytem.
+			Var get(string varName, string defaulValue, bool initializeFileAndCahceWithDefaultValue = false);
 			Var getPart(string varName, size_t start, size_t count);
 			size_t getVarSize(string varName);
 

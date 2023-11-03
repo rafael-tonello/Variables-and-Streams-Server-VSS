@@ -115,7 +115,7 @@ namespace Shared
 
 	//get a varlue of a variable
 	Var FileVars::get(string varName, string defaulValue, bool initializeFileAndCahceWithDefaultValue)
-	{
+	{		
 		string originalVarName = varName;
         varName += ".__value__";
 		string cacheName = this->getFileName(varName, false);
@@ -123,8 +123,7 @@ namespace Shared
 		if (this->debugMode)
 			cout << "Get var "<<varName << endl << flush;
 			
-		string result;
-
+		string result = "";
 
         if ((this->useCache) && (this->containsKey(cacheName)))
         {
@@ -132,6 +131,7 @@ namespace Shared
         }
         else
         {
+
 			varName = this->getFileName(varName, false);
     		
 
@@ -175,6 +175,7 @@ namespace Shared
 	//delete a variable
 	void FileVars::del(string varName)
 	{
+		string varName2 = varName;
 		string cacheName = this->getFileName(varName, false);
 
 		//delete from cache
@@ -186,11 +187,13 @@ namespace Shared
             this->ramCache.erase(cacheName);
         }
 
-        varName += ".__value__";
-		varName = this->getFileName(varName, false);
+        varName2 += ".__value__";
+		varName2 = this->getFileName(varName2, false);
 		if (this->debugMode)
-			cout << "Del file "<<varName << endl << flush;
-		sysLink.deleteFile(varName);
+			cout << "Del file "<<varName2 << endl << flush;
+		sysLink.deleteFile(varName2);
+
+		this->deleteDirectoryTree(this->getFileName(varName, false));
 	}
 
 	//gets a var name and return their respective file. This function converts a variable name to a fiilename
@@ -314,6 +317,24 @@ namespace Shared
 		return this->ramCache.count(key);
 
 		return false;
+	}
+
+	void FileVars::deleteDirectoryTree(string directory)
+	{
+		if (directory.find(this->directory) == 0)
+		{
+			auto dirExists = sysLink.directoryExists(directory);
+			auto directoryObjects = sysLink.getObjectsFromDirectory(directory, "", "-e \"^-\" -e \"^d\"");
+			if (dirExists && directoryObjects.size() == 0)
+			{
+				sysLink.deleteDirectory(directory);
+				if (directory.find('/') != string::npos)
+				{
+					auto parentDir = directory.substr(0, directory.find_last_of('/'));
+					deleteDirectoryTree(parentDir);
+				}
+			}
+		}
 	}
 
 

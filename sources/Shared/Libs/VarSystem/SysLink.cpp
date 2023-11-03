@@ -11,7 +11,7 @@ namespace Shared {
 	bool SysLink::deleteFile(string filename)
 	{
 		//delete(filename.c_str());
-		string command = "rm \""+filename+"\"";
+		string command = "rm \""+filename+"\"  2>/dev/null";
 		system (command.c_str());
 
 		return SysLink::fileExists(filename);
@@ -141,7 +141,7 @@ namespace Shared {
 
 	bool SysLink::deleteDirectory(string directoryName)
 	{
-		string sysCommand = "rm -rf \""+directoryName+"\"";
+		string sysCommand = "rm -rf \""+directoryName+"\" 2>/dev/null";
 		system(sysCommand.c_str());
 		return SysLink::directoryExists(directoryName);
 	}
@@ -207,7 +207,7 @@ namespace Shared {
 			directoryName += "/";
 
 		//prepre a command to be executed
-		string command = "ls --full-time -Gg ''"+directoryName+lsFilter+"'' | grep "+grepArguments+" >\""+tmpFile+"\"";
+		string command = "ls --full-time -Gg ''"+directoryName+lsFilter+"'' 2>/dev/null | grep "+grepArguments+" >\""+tmpFile+"\"";
 
 		//cout << "vai executar o comando " << command << endl << flush;
 

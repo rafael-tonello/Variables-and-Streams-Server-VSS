@@ -1,5 +1,5 @@
 # About VSS
-  Vss is a variable server. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
+  Vss is a variable server, a state share system. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
   
   Vss is a server that provides some APIs to manage variables from multiple clients. All variables are shared between these clients, that means you can write a variable in any client and read it in any client.
   
@@ -193,3 +193,52 @@ When i wrote this app, I reused ancient codes, that was not very well structured
     serviceController - Orchestrate the workflow
     VSTP read and writer - recieve and write data to web sockets, puttin headers, sizes and checksums
     pack processor and generator - interprete and create packs in the VSTP format (command + data)
+
+
+# The VSTP Protocol
+The vstp protocol is a api developed to be easy to implement and lightweight to run with microcontrollers. The vstp, besides very simple, allow the use of all VSS server (set vars, get vars, observe vars, ...).
+
+The protocol is inspired by text files, and work by send commands in lines, where a line should contains the command, its arguments and be ended with a line break.
+
+You can also comunicate with the VSS using telnet and VSTP protocol. When you enter in a telnet session with the VSTP port, you can use the '--help' command to be a list of available commands.
+
+## Starting a VSTP the session
+The VSTP session starts with a single TCP socket connection to the VSTP port. When you connect to this port, the server will send some initial information to you. Lets take a look:
+
+    sbh:
+    sci:PROTOCOL VERSION=1.2.0
+    sci:VSS VERSION=0.21.0+Sedna
+    sci:SCAPE CHARACTER=
+    id:UID1698369563120248AFhr
+    seh:
+
+  line 1 (sbh:) -> this line are sent by the server to inform that the initiar server header will be send. 'sbh' is the abbreviation of 'sever begin headers'.
+
+  line 2 (sci:PROTOCOL VERSION=1.2.0) -> here, server sen the first header. This header contains the version of the protocol (not of the VSS). The command used here are the 'sci', that means "server configurations and informations". The payload of 'sci' command is always a key=value pair. Int this case, the 'PROTOCOL VERSION' key was sent with the "1.2.0" as its value.
+
+  line 3 (sci:VSS VERSION=0.21.0+Sedna) -> Here, the server sent its version (the version of the VSS).
+
+  line 4 (sci:SCAPE CHARACTER=) -> The scape character are used to send speical chars, like a line break. In this case, the scape character is not being used.
+
+  Line 5 (id:UID1698369563120248AFhr) -> Here, the server sent a suggestion of an id to you. These id is used internaly by the server to control variable observations. If youare restoring a connection and had received another one in a previous section, you can send it to the server, that will reply you with a resume of all variables you are observing before. We will take a look in how to do it later.
+
+  Line 6 (seh:) -> server sent this to ifnorm that all header it have done sending the headers. 'seh' means "server end headers"
+
+
+## Confirming or changing the client id
+
+In the start of the section server sends a list of headers with useful information. One of these information that is very important is the 'ID'. Every client connected to the VSTP server must have an unique identification that allow server to manage the observation and some other information related to the client. and that's why the server sends this id at the beginning of the session, along with its headers.
+
+But is very common we lost the connection due network problems and a "thousand" of other reasons. Furthmore, the VSS is designed to work with variable observation, allow you to be notified when a variable of your interest is changed, instead of consulting theis value constantly (a technique known as 'polling').
+
+Now, supose you have to resend observations request allways the connection is lost and restored. You would need to do things like use a lot of code to identify this situation is each place you needs to observate a variable, or create internal vector to known which variable is already requested to the server and request agains eacho of the previous observations when connection is restored.
+
+This situation would not be pleasant at all and fortunately the solution to this problem already exists. And to and to avoid having to do all of the above, you need just to discard the id sent by the server in the headers and send a previus used one.
+
+Of corse, if you are starting the comunication, you will not have one previous id. In this case, you just need to use the one sent by the server in the headers
+
+With all explained, lets see how to continue how VSTP session in the both situation (with a new ID and with a previous one):
+  
+
+
+

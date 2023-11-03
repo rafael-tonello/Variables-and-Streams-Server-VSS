@@ -278,5 +278,5 @@ void Controller_VarHelper::runLocked(function<void()>f)
     //Utils::named_lock("internal.observationLock", [&](){ //less memory, lock all variables at same time
     Utils::named_lock(name + "._observationLock", [&](){ //more memory, lock individualy each variable
         f();
-    });
+    }, 10000);
 }

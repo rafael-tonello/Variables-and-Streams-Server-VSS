@@ -19,13 +19,14 @@
 #include <JSON.h>
 #include <limits.h>
 #include <timersForDebug.h>
- 
+
 //#define MSG_DONTWAIT 0x40
 
 #ifdef __TESTING__
     #include <tester.h>
 #endif
 
+#define CMDPAYLOADSEPARATOR  ":"
 
 //VSTP == VAR SERVER TEXT PROTOCOL
 namespace API {

@@ -58,7 +58,9 @@ RM = rm -rf
  
 debug: CC=g++
 debug: CC_FLAGS+=-g
+debug: CC_FLAGS+=-ggdb
 debug: LK_FLAGS+=-g
+debug: LK_FLAGS+=-ggdb
 debug: prebuild $(PROJ_NAME)
 	
 all: CC_FLAGS+=-O3

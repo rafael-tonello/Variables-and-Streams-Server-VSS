@@ -43,26 +43,28 @@ bool isRunningInPortableMode();
 void handleSignals();
 
 //semantic versioning
-string INFO_VERSION = "0.20.0";
+string INFO_VERSION = "0.21.1+Sedna";
 
 int main(){
     handleSignals();
     srand((unsigned)time(0)); 
     
     DependencyInjectionManager dim;
+
+    dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
     
     Shared::Config *conf = new Shared::Config(findConfigurationFile());
     conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory());
 
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(), new LoggerFileWriter(determinteLogFile())}, true));
-    dim.addSingleton<ThreadPool>(new ThreadPool(4));
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
+    dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
     dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
-    dim.addSingleton<TheController>(new TheController(&dim), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
+    dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(5032, dim));
     dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(5024, &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));

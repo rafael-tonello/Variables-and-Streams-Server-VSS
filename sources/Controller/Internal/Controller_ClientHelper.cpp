@@ -78,7 +78,9 @@ vector<string> Controller_ClientHelper::getObservingVars()
         {
             auto currChildName = db->get("internal.clients.byId."+clientId+".observing."+c, "").getString();
             //remove the "vars." from begining o ght currChildName
-            currChildName = currChildName.substr(5);
+            if (currChildName.size() > 5)
+                currChildName = currChildName.substr(5);
+
             result.push_back(currChildName);
         }
 
@@ -87,7 +89,6 @@ vector<string> Controller_ClientHelper::getObservingVars()
 
 API::ClientSendResult Controller_ClientHelper::notify(vector<tuple<string, string, DynamicVar>> varsnamesMetadaAndValues)
 {
-    cout << "WIll call the api to notify client " << clientId <<endl;
     if (this->api->notifyClient(clientId, varsnamesMetadaAndValues) == ClientSendResult::LIVE)
     {
         this->updateLiveTime();
@@ -122,13 +123,11 @@ void Controller_ClientHelper::removeClientFromObservationSystem()
 {
     //completelly remove the client infor from obsrevation system and from variables
     Utils::named_lock("db.intenal.clients", [&](){
-        this->updateLiveTime();
         
         auto clientIndexOnInternalDBList = db->get("internal.clients.byId."+clientId, -1).getInt();
 
         if (clientIndexOnInternalDBList > -1)
         {
-            db->deleteValue("internal.clients.byId."+clientId, true);
 
             //todo: DELETE ALSO FROM internal.clients.list 
 
@@ -143,6 +142,7 @@ void Controller_ClientHelper::removeClientFromObservationSystem()
             db->deleteValue("internal.clients.list."+to_string(currentCount));
             db->set("internal.clients.list.count", currentCount);
         }
+        db->deleteValue("internal.clients.byId."+clientId, true);
 
     });
 

@@ -30,7 +30,6 @@ namespace Shared {
 	{
 		private:
 			vector<string> split(string* text, char sep);
-			vector<string> getObjectsFromDirectory(string directoryName, string lsFilter, string grepArguments);
 		public:
 			//file system
 			bool fileExists(string filename);
@@ -44,6 +43,7 @@ namespace Shared {
 			bool unlockFile(string filename);
 			bool directoryExists(string directoryName);
 			bool createDirectory(string directoryName);
+			vector<string> getObjectsFromDirectory(string directoryName, string lsFilter, string grepArguments);
 			vector<string> getFilesFromDirectory(string directoryName, string searchPatern);
 			vector<string> getDirectoriesFromDirectory(string directoryName, string searchPatern);
 			bool deleteDirectory(string directoryName);

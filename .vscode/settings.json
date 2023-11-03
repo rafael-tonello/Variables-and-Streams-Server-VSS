@@ -70,6 +70,8 @@
         "locale": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "iomanip": "cpp",
+        "valarray": "cpp"
     }
 }

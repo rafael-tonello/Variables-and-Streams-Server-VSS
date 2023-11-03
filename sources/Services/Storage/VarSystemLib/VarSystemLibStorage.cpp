@@ -22,7 +22,10 @@ void VarSystemLibStorage::set(string name, DynamicVar v)
 DynamicVar VarSystemLibStorage::get(string name, DynamicVar defaultValue)
 {
     name = escape(name);
-    return DynamicVar(unescape(db->get(name, defaultValue.getString()).AsString()));
+    auto tmp = db->get(name, defaultValue.getString()).AsString();
+    tmp = unescape(tmp);
+    DynamicVar ret = DynamicVar(tmp);
+    return ret;
 }
 
 vector<string> VarSystemLibStorage::getChilds(string parentName)
@@ -80,7 +83,7 @@ future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, func
         }, c));
     }
 
-    auto ret = taskerForParallel->enqueue([&](){
+    auto ret = taskerForParallel->enqueue([&, pendingTasks](){
         for (auto &c: *pendingTasks)
             c.wait();
 
@@ -94,10 +97,10 @@ future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, func
 
 string VarSystemLibStorage::escape(string text)
 {
-    text = Utils::stringReplace(text, {
-        std::make_tuple<string, string>("*", "__wildcard__"),
-        std::make_tuple<string, string>("\r", "__cr__"),
-        std::make_tuple<string, string>("\n", "__nl__")
+    text = Utils::stringReplace(text, (vector<tuple<string, string>>){
+        {"*", "__wildcard__"},
+        {"\r", "__cr__"},
+        {"\n", "__nl__"}
     });
 
     return text;
@@ -106,10 +109,10 @@ string VarSystemLibStorage::escape(string text)
 
 string VarSystemLibStorage::unescape(string text)
 {
-    text = Utils::stringReplace(text, {
-        std::make_tuple<string, string>("__wildcard__", "*"),
-        std::make_tuple<string, string>("__cr__", "\r"),
-        std::make_tuple<string, string>("__nl__", "\n")
+    text = Utils::stringReplace(text, (vector<tuple<string, string>>){
+        {"__wildcard__", "*"},
+        {"__cr__", "\r"},
+        {"__nl__", "\n"}
     });
 
     return text;

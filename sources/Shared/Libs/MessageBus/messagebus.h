@@ -36,7 +36,7 @@ class MessageBus
             vector<future<void>> pending;
             for (auto &c: tmpObservers)
             {
-                pending.push_back(scheduler->enqueue([&](OnMessageF<T> observer)
+                pending.push_back(scheduler->enqueue([&, message, args](OnMessageF<T> observer)
                 {
                     T tmpResult;
                     observer(message, args, tmpResult);

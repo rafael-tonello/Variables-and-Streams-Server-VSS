@@ -56,6 +56,7 @@ namespace Controller{
         StorageInterface* db;
         ILogger *log;
         int64_t maxTimeWaitingClient_seconds = 12*60*60;
+        string systemVersion;
 
         map<string, ApiInterface*> apis;
 
@@ -76,7 +77,7 @@ namespace Controller{
         void notifyParentGenericObservers(string varName, string changedVarName, DynamicVar value);
         void notifyClientsAboutVarChange(vector<tuple<string, string>> clients, string changedVarName, DynamicVar value);
     public:
-        TheController(DependencyInjectionManager* dim);
+        TheController(DependencyInjectionManager* dim, string systemVersion);
         ~TheController();
 
     /* ApiMediatorIntgerface interface*/
@@ -97,6 +98,7 @@ namespace Controller{
         future<Errors::Error> unlockVar(string varName);
         bool isVarLocked(string varName);
         future<Errors::ResultWithErrorStatus<vector<string>>> getChildsOfVar(string parentName);
+        string getSystemVersion();
         
     };
 }

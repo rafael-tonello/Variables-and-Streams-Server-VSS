@@ -169,6 +169,7 @@ void SimpleConfFileProviderTester::run(string context)
                 string("key2=value2_changed\n")
             ); 
             
+            //this interval is necessary to allow conf obversation have enought time to detect the file changes
             usleep(5000);
             string expected = "value1, value2_changed";
             string received = conf1 + ", " + conf2;
@@ -233,5 +234,3 @@ void SimpleConfFileProviderTester::writeFile(string fName, string data)
     
     usleep(500000);
 }
-
-
