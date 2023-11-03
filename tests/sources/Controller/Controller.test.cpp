@@ -27,7 +27,7 @@ void ControllerTester::run(string context)
 {
     if (context == "Controller")
     {
-        this->ctrl = new TheController(&this->dim);
+        this->ctrl = new TheController(&this->dim, "test-version");
         test_function__createUniqueId();
         test_function_setVar();
         test_function_getVar();
