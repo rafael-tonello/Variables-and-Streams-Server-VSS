@@ -389,7 +389,7 @@ void ControllerTester::test_function_observeVar()
 
     this->test("observeVar should save the client index with the corret value (vars session of db)", [&](){
         int correctValue = db->get("vars."+varName+"._observers.list.count", "0").getInt()-1;
-        int savedValue = db->get("vars."+varName+"._observers.byId."+clientId, "-1").getInt();
+        int savedValue = db->get("vars."+varName+"._observers.byId."+clientId+".byMetadata."+customId, "-1").getInt();
 
         return TestResult{
             correctValue == savedValue,
@@ -399,9 +399,9 @@ void ControllerTester::test_function_observeVar()
     });
 
     this->test("observeVar should save the client id int the observers list (vars session of db)", [&](){
-        int index = db->get("vars."+varName+"._observers.byId."+clientId, "-1").getInt();
+        int index = db->get("vars."+varName+"._observers.byId."+clientId+".byMetadata."+customId, "-1").getInt();
 
-        string savedId = db->get("vars."+varName+"._observers.list."+to_string(index), "--not found--").getString();
+        string savedId = db->get("vars."+varName+"._observers.list."+to_string(index)+".clientId", "--not found--").getString();
 
         return TestResult{
             savedId == clientId,
@@ -469,7 +469,7 @@ void ControllerTester::test_function_stopObservingVar()
 
     this->test("observeVar should save client id in the client list (vars session of db)", [&](){
         auto expectedId = clientId2;
-        auto receivedId = db->get("vars."+varName+"._observers.list."+to_string(theClientIndex), "--not found--").getString();
+        auto receivedId = db->get("vars."+varName+"._observers.list."+to_string(theClientIndex) + ".clientId", "--not found--").getString();
 
         return TestResult{
             receivedId == expectedId,

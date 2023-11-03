@@ -52,7 +52,6 @@ CC_FLAGS=-D__TESTING__\
 
 LK_FLAGS=-D__TESTING__\
         -ansi      \
-		-c			\
 		-pedantic  \
 		-pthread   \
 		-std=c++20 \
@@ -71,6 +70,8 @@ RM = rm -rf
 debug: CC=g++
 debug: CC_FLAGS+=-g
 debug: LK_FLAGS+=-g
+debug: CC_FLAGS+=-ggdb
+debug: LK_FLAGS+=-ggdb
 debug: prebuild $(PROJ_NAME)
 	
 all: CC_FLAGS+=-O3   

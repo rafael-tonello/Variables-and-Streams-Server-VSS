@@ -38,7 +38,7 @@
         {
             "label": "buildTests",
             "type": "shell",
-            "command": "make all -j -l 4",
+            "command": "make debug -j -l 4",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/tests"

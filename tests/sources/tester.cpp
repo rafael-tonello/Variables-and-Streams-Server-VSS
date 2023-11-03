@@ -12,12 +12,12 @@ string Tester::getTag(string tag, string defValue){if (tags.count(tag) > 0) retu
 
 void Tester::errorMessage(string message){ cerr << "\e[0;31m        " << "'"<< message << "\e[0m" << endl; }
 
-void Tester::redMessage(string message){ cout << "\e[0;31m        " << message << "\e[0m" << endl; }
-void Tester::greenMessage(string message){ cout << "\e[0;32m        " << message << "\e[0m" << endl; }
-void Tester::yellowMessage(string message){ cout << "\e[0;33m        " << message << "\e[0m" << endl; }
-void Tester::blueMessage(string message){ cout << "\e[0;34m        " << message << "\e[0m" << endl; }
-void Tester::cyanMessage(string message){ cout << "\e[0;96m        " << message << "\e[0m" << endl; }
-void Tester::brightMessage(string message){ cout << "\e[0;97m        " << message << "\e[0m" << endl; }
+void Tester::redMessage(string message){ cout << "\e[0;31m        " << message << "\e[0m" << endl << flush; }
+void Tester::greenMessage(string message){ cout << "\e[0;32m        " << message << "\e[0m" << endl << flush; }
+void Tester::yellowMessage(string message){ cout << "\e[0;33m        " << message << "\e[0m" << endl << flush; }
+void Tester::blueMessage(string message){ cout << "\e[0;34m        " << message << "\e[0m" << endl << flush; }
+void Tester::cyanMessage(string message){ cout << "\e[0;96m        " << message << "\e[0m" << endl << flush; }
+void Tester::brightMessage(string message){ cout << "\e[0;97m        " << message << "\e[0m" << endl << flush; }
 
 void Tester::disableStdout()
 {

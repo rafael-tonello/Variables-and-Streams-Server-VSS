@@ -362,7 +362,7 @@ void Controller_VarHelperTester::test_function_addClientToObservers()
 
     this->test("addClientToObservers should save the client index with the corret value", [&](){
         int correctValue = db->get("vars."+varName+"._observers.list.count", "0").getInt()-1;
-        int savedValue = db->get("vars."+varName+"._observers.byId."+clientId, "-1").getInt();
+        int savedValue = db->get("vars."+varName+"._observers.byId."+clientId+".byMetadata."+customId, "-1").getInt();
 
         return TestResult{
             correctValue == savedValue,
@@ -372,9 +372,9 @@ void Controller_VarHelperTester::test_function_addClientToObservers()
     });
 
     this->test("addClientToObservers should save the client id int the observers list", [&](){
-        int index = db->get("vars."+varName+"._observers.byId."+clientId, "-1").getInt();
+        int index = db->get("vars."+varName+"._observers.byId."+clientId+".byMetadata."+customId, "-1").getInt();
 
-        string savedId = db->get("vars."+varName+"._observers.list."+to_string(index), "--not found--").getString();
+        string savedId = db->get("vars."+varName+"._observers.list."+to_string(index)+".clientId", "--not found--").getString();
 
         return TestResult{
             savedId == clientId,
@@ -475,23 +475,26 @@ void Controller_VarHelperTester::test_function_isClientObserving()
 
 void Controller_VarHelperTester::test_function_getObserversClientIds()
 {
+    string vName = "another.var.name."+Utils::createUnidqueId_guidFormat();
+    auto var_tmp = new Controller_VarHelper(logger, db, vName);
+
     //vector<string> getObserversClientIds();
     vector<tuple<string, string>> observationsIds;
     for (auto c = 0; c < 10; c++)
     {
         auto tmpClientId = Utils::createUniqueId();
         auto customId = Utils::createUniqueId();
-        var->addObserver(tmpClientId, customId);
+        var_tmp->addObserver(tmpClientId, customId);
         observationsIds.push_back({ tmpClientId, customId});
     }
 
     this->test("getObservingClientIds should return all added clients", [&](){
-        auto returnedClientIds = var->getObservations();
+        auto returnedClientIds = var_tmp->getObservations();
 
         bool allClientsFound = true;
         for (auto &c: observationsIds)
         {
-            allClientsFound &= std::count(returnedClientIds.begin(), returnedClientIds.end(), c) == 10;
+            allClientsFound &= std::count(returnedClientIds.begin(), returnedClientIds.end(), c) == 1;
         }
 
         return allClientsFound;
@@ -499,9 +502,9 @@ void Controller_VarHelperTester::test_function_getObserversClientIds()
 
     this->test("getObservingClientIds should not return id of a removed client", [&](){
         auto idToRemove = observationsIds[2];
-        var->removeObserving(get<0>(idToRemove), get<1>(idToRemove));
+        var_tmp->removeObserving(get<0>(idToRemove), get<1>(idToRemove));
 
-        auto returnedClientIds = var->getObservations();
+        auto returnedClientIds = var_tmp->getObservations();
         bool removeClienWasFound = false;
         for (auto &c: returnedClientIds)
         {

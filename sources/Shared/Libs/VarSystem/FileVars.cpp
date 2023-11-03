@@ -207,6 +207,19 @@ namespace Shared
 
 		varName = this->directory + varName;
 
+		//removeInvalidchars
+		string validChars = "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ_/\\.-+,0123456789";
+		string tmp2 = "";
+		for (auto &c: varName)
+			if (validChars.find(c) != string::npos)
+				tmp2 += c;
+			else
+				tmp2 += "?";
+
+		varName = tmp2;
+
+
+
 		if (autoCreateDirectory)
 		{
 			sysLink.createDirectory(sysLink.getDirectoryName(varName));

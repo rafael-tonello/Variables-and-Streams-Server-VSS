@@ -27,8 +27,8 @@ public:
         bool operator==(const Error &err1) {return err1.code == this->code; }
         friend bool operator==(const Error &err1, const Error &err2) {return err1.code == err2.code; }
 
-        bool operator!=(const Error &err1) {return err1.code != this->code; }
-        friend bool operator!=(const Error &err1, const Error &err2) {return err1.code != err2.code; }
+        //bool operator!=(const Error &err1) {return err1.code != this->code; }
+        //friend bool operator!=(const Error &err1, const Error &err2) {return err1.code != err2.code; }
     };
 
     template<typename TResult>

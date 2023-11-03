@@ -167,11 +167,8 @@ void SimpleConfFileProviderTester::run(string context)
             writeFile(
                 string("key1=value1\n")+
                 string("key2=value2_changed\n")
-            ); 
-            
-            //this interval is necessary to allow conf obversation have enought time to detect the file changes
-            usleep(5000);
-            string expected = "value1, value2_changed";
+            );
+            string expected = "value1, value2_changed"; 
             string received = conf1 + ", " + conf2;
             return TestResult
             {
@@ -229,8 +226,8 @@ void SimpleConfFileProviderTester::writeFile(string data)
 void SimpleConfFileProviderTester::writeFile(string fName, string data)
 {
     ofstream outFile(fName, ios::out);
-        outFile << data;
-        outFile.close();
+    outFile << data;
+    outFile.close();
     
     usleep(500000);
 }

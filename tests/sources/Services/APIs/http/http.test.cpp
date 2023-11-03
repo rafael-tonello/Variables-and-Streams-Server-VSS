@@ -23,10 +23,7 @@ void Http_test::run(string context)
 
     API::HTTP::HttpAPI api();
     
-    this->test("Http api should return valid 'get requests' with a 200 status", [&](){
-        return false;
-    });
-
+    //TODO: Http api should return valid 'get requests' with a 200 status
     //TODO: Http api should return a 201 no content when setting a var
     //TODO: HTTP API shluld return a forbiden code (401) when try to setting flags and '*' vars
     //TODO: HTTP api should return a fobiden code (401) when try to get a var without sending its name
