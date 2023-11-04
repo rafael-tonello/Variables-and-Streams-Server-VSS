@@ -11,7 +11,8 @@ API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
         [&](HttpData* in, HttpData* out){
             this->onServerRequest(in, out);
         }),
-        {}
+        {},
+        { dim->get<Confs>()->getA("httpDataDir").getString() }
     );
     log.info(string("Http API started a webserver and is listening on port ") + to_string(this->port));
 

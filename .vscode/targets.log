@@ -353,7 +353,7 @@ sources/Shared/Misc/Observable.h:
 #  File has not been updated.
 
 # Not a target:
-sources/Shared/Libs/Confs/internal/IConfigurationProvider.h:
+sources/Shared/Libs/Confs/internal/IConfProvider.h:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -558,7 +558,7 @@ sources/Shared/Libs/TCPServer/TCPServer.h:
 #  Modification time never checked.
 #  File has not been updated.
 
-objects/main.o: sources/main.cpp sources/Controller/Controller.h sources/Controller/Internal/Controller_ClientHelper.h sources/Controller/Internal/Controller_VarHelper.h sources/Services/APIs/ApiInterface.h sources/Services/APIs/ApiMediatorInterface.h sources/Services/APIs/PHOMAU/PHOMAU.h sources/Services/APIs/PHOMAU/SocketInfo.h sources/Services/Storage/StorageInterface.h sources/Services/Storage/VarSystemLib/VarSystemLibStorage.h sources/Shared/Libs/Confs/Confs.h sources/Shared/Libs/Confs/internal/IConfigurationProvider.h sources/Shared/Libs/Confs/internal/SimpleConfFileProvider.h sources/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.h sources/Shared/Libs/logger/logger.h sources/Shared/Libs/logger/writers/LoggerConsoleWriter.h sources/Shared/Libs/logger/writers/LoggerFileWriter.h sources/Shared/Libs/logger/writers/LoggerLambdaWriter.h sources/Shared/Libs/TCPServer/TCPServer.h sources/Shared/Libs/ThreadPool/ThreadPool.h sources/Shared/Libs/VarSystem/FileVars.h sources/Shared/Libs/VarSystem/SysLink.h sources/Shared/Misc/DynamicVar.h sources/Shared/Misc/Observable.h sources/Shared/Misc/TaggedObject.h sources/Shared/Misc/utils.h
+objects/main.o: sources/main.cpp sources/Controller/Controller.h sources/Controller/Internal/Controller_ClientHelper.h sources/Controller/Internal/Controller_VarHelper.h sources/Services/APIs/ApiInterface.h sources/Services/APIs/ApiMediatorInterface.h sources/Services/APIs/PHOMAU/PHOMAU.h sources/Services/APIs/PHOMAU/SocketInfo.h sources/Services/Storage/StorageInterface.h sources/Services/Storage/VarSystemLib/VarSystemLibStorage.h sources/Shared/Libs/Confs/Confs.h sources/Shared/Libs/Confs/internal/IConfProvider.h sources/Shared/Libs/Confs/internal/SimpleConfFileProvider.h sources/Shared/Libs/DependencyInjectionManager/dependencyInjectionManager.h sources/Shared/Libs/logger/logger.h sources/Shared/Libs/logger/writers/LoggerConsoleWriter.h sources/Shared/Libs/logger/writers/LoggerFileWriter.h sources/Shared/Libs/logger/writers/LoggerLambdaWriter.h sources/Shared/Libs/TCPServer/TCPServer.h sources/Shared/Libs/ThreadPool/ThreadPool.h sources/Shared/Libs/VarSystem/FileVars.h sources/Shared/Libs/VarSystem/SysLink.h sources/Shared/Misc/DynamicVar.h sources/Shared/Misc/Observable.h sources/Shared/Misc/TaggedObject.h sources/Shared/Misc/utils.h
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.

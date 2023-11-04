@@ -10,17 +10,19 @@
 #include <tuple>
 #include <string>
 #include <fstream>
-#include "IConfigurationProvider.h"
+#include "IConfProvider.h"
 #include <mutex>
 #include <atomic>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <thread>
 #include <future>
+#include <DynamicVar.h>
+#include <map>
 
 using namespace std;
 namespace Shared{
-    class SimpleConfFileProvider: public IConfigurationProvider
+    class SimpleConfFileProvider: public IConfProvider
     {
     private:
     #ifdef __TESTING__
@@ -28,7 +30,10 @@ namespace Shared{
     #endif
         const string separatorChars = "=:";
         string filename;
-        IConfigurationProvider_onData _onData;
+
+        map<string, DynamicVar> currValues;
+
+        function<void(string, DynamicVar)> _onData;
 
 
 
@@ -48,9 +53,16 @@ namespace Shared{
         SimpleConfFileProvider(string filename);
         ~SimpleConfFileProvider();
     
-    //{IConfigurationProvider interface}
+    //{IConfProvider interface}
     public:
-        void readAndObservate(IConfigurationProvider_onData onData);
+        bool contains(string name) override;
+        DynamicVar get(string name) override;
+        void listen(function<void(string, DynamicVar)> f) override;
+        string getTypeIdName() override 
+        { 
+            string ret = typeid(SimpleConfFileProvider).name();
+            return ret;
+        };
     };
 }
 

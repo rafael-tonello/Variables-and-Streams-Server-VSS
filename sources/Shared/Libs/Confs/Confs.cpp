@@ -1,98 +1,120 @@
 #include "Confs.h"
 
-Shared::Config::Config(shared_ptr<IConfigurationProvider> provider)
+Confs::Confs(vector<IConfProvider*> initialProviders)
 {
-    this->confProvider = provider;
+    for (auto &c: initialProviders)
+        this->addProvider(c);
+}
 
-    this->confProvider->readAndObservate([&](vector<tuple<string, string>> configurations){
-        this->processConfigs(configurations);
+Confs::~Confs()
+{
+    for (auto &c: providers)
+        delete c;
+
+    providers.clear();
+}
+
+Confs::ConfPlaceHolder::ConfPlaceHolder(Confs *ctrl):ctrl(ctrl){}
+
+Confs::ConfPlaceHolder& Confs::ConfPlaceHolder::add(string replace, string by){
+    ctrl->placeHolders.push_back({replace, by});
+    return *this;
+}
+
+Confs::ConfPlaceHolder& Confs::ConfPlaceHolder::add(vector<tuple<string, string>> replacesAndBys){
+    for (auto &c: replacesAndBys)
+        this->add(std::get<0>(c), std::get<1>(c));
+    
+    return *this;
+}
+
+//Warning! Providers will be automatically deleted whend the Confs isntance be destroyed
+void Confs::addProvider(IConfProvider *provider)
+{
+    string typeIdName = provider->getTypeIdName();
+    this->providers.push_back(provider);
+    provider->listen([&, typeIdName](string confName, DynamicVar newValue){
+        this->confChangedInAProvider(typeIdName, confName, newValue);
     });
 }
 
-void Shared::Config::processConfigs(vector<tuple<string, string>> configurations)
+void Confs::confChangedInAProvider(string providerName, string name, DynamicVar value)
 {
-    //read all configuration from the configuration provider
-    string name, value;
-
-    for (auto &c : configurations)
+    for (auto &alias: aliases)
     {
-        name = std::get<0>(c);
-        value = applyPlaceHolders(std::get<1>(c));
-
-        if (this->vars.count(name) > 0)
+        for (auto &provider: alias.second.optionalNamesInEachProviders)
         {
-            //checks if the value was changed
-            if (this->vars[name].lastValue.getString() != value)
+            if (provider.first == providerName)
             {
-                //update the value
-                auto newValue = DynamicVar(value);
-                this->vars[name].lastValue = newValue;
-                //notify observers
-                for (auto &currObserver: this->vars[name].observers)
-                    currObserver(newValue);
+                for (auto &possibleName: provider.second)
+                {
+                    if (possibleName == name)
+                    {
+                        //request value using getA function. This function scrolls the providers in importance order. If use 'value' of 'confChangedInAProvier, the importance will be ignored
+                        auto lastValue = alias.second.lastValidValue;
+                        auto newValue = getA(alias.first);
+                        if (lastValue.getString() != newValue.getString())
+                        {
+                            for(auto &observer: alias.second.listeners)
+                                observer(applyPlaceHolders(newValue));
+                        }
+
+                    }
+                }
             }
         }
-        else
-        {
-            //create a new var in the memory
-            this->vars[name] = {.lastValue = DynamicVar(value)};
-        }
-
     }
-
 }
 
-DynamicVar Shared::Config::get(string varName, DynamicVar defaultValue)
+//return a ConfAliaser object, that can be used to construct an alias. The alias allow you to identify diferent names for same configuration.
+Confs::ConfAliaser Confs::createAlias(string aliasName)
 {
-    if (this->vars.count(varName) > 0)
-        return this->vars[varName].lastValue;
-    return DynamicVar(applyPlaceHolders(defaultValue.getString()));
+    auto ret = ConfAliaser(this, aliasName);
+    return ret;
 }
 
-void Shared::Config::observate(string varName, ObserveFunction onVarChanged, DynamicVar defaultValueIfVarNotExists, bool forceFirstCall)
+Confs::ConfPlaceHolder Confs::createPlaceHolders()
 {
-    defaultValueIfVarNotExists =  DynamicVar(defaultValueIfVarNotExists.getString());
-    //check if variable already exists. If not, creates them
-    if (this->vars.count(varName) == 0)
-        this->vars[varName] = {.lastValue = defaultValueIfVarNotExists};
-
-    //add the observer to the observer lists
-    this->vars[varName].observers.push_back(onVarChanged);
-
-    //cals by the first time
-    if (forceFirstCall)
-        onVarChanged(applyPlaceHolders(this->vars[varName].lastValue));
+    auto ret = ConfPlaceHolder(this);
+    return ret;
 }
 
-void Shared::Config::createPlaceHolder(string placeHolder, string value)
+//identify the alias and scrolls over all providers. The first one with the configuration will be used to return the value.
+DynamicVar Confs::getA(string alias, DynamicVar defaultValue)
 {
-    placeHolders.push_back(std::make_tuple(placeHolder, value));
-
-    for (auto &c : vars)
+    if (aliases.count(alias) > 0)
     {
-        auto tmpName = c.first;
-
-        if (c.second.lastValue.getString().find(placeHolder) != string::npos)
+        auto &aliasInfo = aliases[alias];
+        for (auto &provider: providers)
         {
-            auto tmpValue = applyPlaceHolders(c.second.lastValue);
-            for (auto &currObserver: c.second.observers)
-                currObserver(tmpValue);
+            if (aliasInfo.optionalNamesInEachProviders.count(provider->getTypeIdName()))
+            {
+                auto namesInThisProvider = aliasInfo.optionalNamesInEachProviders[provider->getTypeIdName()];
+                for (auto &possibleName : namesInThisProvider)
+                {
+                    if (provider->contains(possibleName))
+                    {
+                        aliasInfo.lastValidValue = provider->get(possibleName);
+                        return applyPlaceHolders(aliasInfo.lastValidValue);
+                    }
+                }
+            }
         }
     }
+    return defaultValue;
 }
 
-string Shared::Config::applyPlaceHolders(string value)
+void Confs::listenA(string alias, function<void(DynamicVar)> f, bool callFImedially, DynamicVar defaultValueForImediateFCall)
 {
-    for (auto &c: placeHolders)
-    {
-        string pName = std::get<0>(c);
-        string pValue = std::get<1>(c);
-        auto pos = value.find(pName);
-        if (pos != string::npos)
-        {
-            value = value.substr(0, pos) + pValue + value.substr(pos + pName.size());
-        }
-    }
+    if (!aliases.count(alias))
+        aliases[alias] = ConfAliasInfo();
 
-    return value;
+    aliases[alias].listeners.push_back(f);
+    if (callFImedially)
+        f(getA(alias, defaultValueForImediateFCall));
+}
+
+string Confs::applyPlaceHolders(string source)
+{
+    return Utils::stringReplace(source, this->placeHolders);
 }

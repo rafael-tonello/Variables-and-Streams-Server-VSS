@@ -24,7 +24,6 @@
     #include <tester.h>
 #endif
 
-using namespace Shared;
 using namespace std;
 using namespace API;
 
@@ -52,7 +51,7 @@ namespace Controller{
 
         mutex observerMutex;
         ThreadPool *tasker;
-        Shared::Config *confs;
+        Confs *confs;
         StorageInterface* db;
         ILogger *log;
         int64_t maxTimeWaitingClient_seconds = 12*60*60;

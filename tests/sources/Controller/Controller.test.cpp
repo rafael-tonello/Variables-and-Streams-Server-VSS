@@ -13,7 +13,7 @@ ControllerTester::ControllerTester()
 
     dim.addSingleton<ILogger>(logger);
     dim.addSingleton<ThreadPool>(new ThreadPool(4));
-    dim.addSingleton<Shared::Config>(new Shared::Config(getConfigurationProvider()), {typeid(Shared::Config).name()});
+    dim.addSingleton<Confs>(new Confs({getConfigurationProvider()}), {typeid(Confs).name()});
     dim.addSingleton<StorageInterface>(&database);
 }
 
@@ -597,15 +597,12 @@ void ControllerTester::test_function_unlockVar()
 
 }
 
-shared_ptr<IConfigurationProvider> ControllerTester::getConfigurationProvider()
+IConfProvider* ControllerTester::getConfigurationProvider()
 {
-    shared_ptr<IConfigurationProvider> confProvider = shared_ptr<IConfigurationProvider>(
-        new InMemoryConfProvider(
-            {
-                std::make_tuple("sample", "value")
-            }
-        )
-    );
+    IConfProvider *confProvider = new InMemoryConfProvider(
+    {
+        std::make_tuple("sample", "value")
+    });
 
     return confProvider;
 }

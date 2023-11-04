@@ -84,7 +84,7 @@ vector<tuple<string, string>> Shared::SimpleConfFileProvider::readAllConfigurati
     return result;
 }
 
-void Shared::SimpleConfFileProvider::readAndObservate(IConfigurationProvider_onData onData)
+void Shared::SimpleConfFileProvider::listen(function<void(string, DynamicVar)> onData)
 {
     this->_onData = onData;
     readAndNotify();
@@ -136,5 +136,30 @@ string Shared::SimpleConfFileProvider::identifyKeyValueSeparator(string str)
 
 void Shared::SimpleConfFileProvider::readAndNotify()
 {
-    _onData(this->readAllConfigurations());
+    auto confs = this->readAllConfigurations();
+    for (auto &c: confs)
+    {
+        string key = std::get<0>(c);
+        DynamicVar value = std::get<1>(c);
+        
+
+
+        if (!currValues.count(key) || !currValues[key].isEquals(value))
+            _onData(key, value);
+
+        currValues[key] = value;
+    }
+}
+
+bool Shared::SimpleConfFileProvider::contains(string name)
+{
+    return currValues.count(name);
+}
+
+DynamicVar Shared::SimpleConfFileProvider::get(string name)
+{
+    if (currValues.count(name))
+        return currValues[name];
+
+    return "";
 }

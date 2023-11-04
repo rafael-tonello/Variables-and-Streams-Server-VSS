@@ -7,7 +7,10 @@ TheController::TheController(DependencyInjectionManager* dim, string systemVersi
     
     this->log = dim->get<ILogger>();
 
-    this->confs = dim->get<Config>();
+    this->confs = dim->get<Confs>();
+
+    //Moved to the main.cpp
+    //this->confs->createAlias("maxTimeWaitingClients_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
 
     if (dim->contains<ThreadPool>())
     {
@@ -26,9 +29,9 @@ TheController::TheController(DependencyInjectionManager* dim, string systemVersi
 
     db = dim->get<StorageInterface>();
 
-    this->confs->observate("maxTimeWaitingClient_seconds", [&](DynamicVar newValue){
+    this->confs->listenA("maxTimeWaitingClient_seconds", [&](DynamicVar newValue){
         this->maxTimeWaitingClient_seconds = newValue.getInt64();
-    }, maxTimeWaitingClient_seconds);
+    }, true, maxTimeWaitingClient_seconds);
 
     srand(Utils::getCurrentTimeMilliseconds());
 }

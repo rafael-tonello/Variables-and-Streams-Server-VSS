@@ -55,7 +55,7 @@ private:
     void test_function_unlockVar();
 
 
-    shared_ptr<IConfigurationProvider> getConfigurationProvider();
+    IConfProvider* getConfigurationProvider();
 
     
     

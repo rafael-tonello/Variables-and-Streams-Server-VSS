@@ -18,7 +18,7 @@ using namespace Shared;
 class VarSystemLibStorage: public StorageInterface { 
 private:
     shared_ptr<FileVars> db;
-    Shared::Config *confs;
+    Confs *confs;
 
     string escape(string text);
     string unescape(string text);

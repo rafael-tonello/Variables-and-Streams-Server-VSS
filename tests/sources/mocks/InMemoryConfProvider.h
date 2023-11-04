@@ -5,27 +5,23 @@
 #include <string>
 #include <functional>
 #include <map>
-#include <IConfigurationProvider.h>
+#include <IConfProvider.h>
 
 using namespace std;
-using namespace Shared;
 
-class InMemoryConfProvider: public IConfigurationProvider
+class InMemoryConfProvider: public IConfProvider
 {
 private:
-    IConfigurationProvider_onData _onData = [](vector<tuple<string, string>> configurations){};
+    function<void(string, DynamicVar)> _onData = [](string a, DynamicVar b){};
     map<string, string> vars;
 
     void callOnData()
     {
-        vector<tuple<string, string>> varsAsTuple;
         for (auto &c: vars)
-            varsAsTuple.push_back(std::make_tuple(c.first, c.second));
-
-        _onData(varsAsTuple);
+            _onData(c.first, c.second);
     }
 public:
-    //using IConfigurationProvider_onData = function<void (vector<tuple<string, string>> configurations)>;
+    //using IConfProvider_onData = function<void (vector<tuple<string, string>> configurations)>;
     InMemoryConfProvider(vector<tuple<string, string>> initialConfiguration)
     {
         for(auto &c: initialConfiguration)
@@ -41,10 +37,19 @@ public:
     }
 
 
-    void readAndObservate(IConfigurationProvider_onData onData)
-    {
-        _onData = onData;
+    void listen(function<void(string, DynamicVar)> f) override {
+        _onData = f;
         callOnData();
+    }
+
+    bool contains(string name) override {
+        return vars.count(name) > 0;
+    };
+
+    DynamicVar get(string name) override {
+        if (vars.count(name))
+            return vars[name];
+        return DynamicVar("");
     }
 
     ~InMemoryConfProvider()

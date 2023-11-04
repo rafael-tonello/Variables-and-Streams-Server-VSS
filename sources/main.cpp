@@ -19,6 +19,7 @@
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
 #include <ServerDiscovery.h>
+#include <Confs/internal/SimpleConfFileProvider.h>
 
 #include <messagebus.h>
 
@@ -42,6 +43,8 @@ std::string determinteLogFile();
 bool isRunningInPortableMode();
 void handleSignals();
 
+Confs* initConfigurations();
+
 //semantic versioning
 string INFO_VERSION = "0.21.1+Sedna";
 
@@ -52,15 +55,12 @@ int main(){
     DependencyInjectionManager dim;
 
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
-    
-    Shared::Config *conf = new Shared::Config(findConfigurationFile());
-    conf->createPlaceHolder("%PROJECT_DIR%", getApplicationDirectory());
 
+    dim.addSingleton<Confs>(initConfigurations());
     dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
-    dim.addSingleton<Shared::Config>(conf, {typeid(Shared::Config).name()});
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
@@ -110,7 +110,7 @@ int main(){
 
         delete dim.get<TheController>();
 
-        delete dim.get<Config>();
+        delete dim.get<Confs>();
 
         delete dim.get<StorageInterface>();
 
@@ -175,4 +175,29 @@ void handleSignals()
     signal(SIGSEGV, signalHandler);  
     signal(SIGTERM, signalHandler);  
     signal(SIGKILL, signalHandler);
+}
+
+
+Confs* initConfigurations()
+{
+    Confs *conf = new Confs();
+    conf->addProvider(new Shared::SimpleConfFileProvider(findConfigurationFile()));
+
+
+    conf->createPlaceHolders()
+        .add("%PROJECT_DIR%", getApplicationDirectory())
+        .add("%APP_DIR%", getApplicationDirectory())
+        .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
+        .add("%DATA_DIR%", (isRunningInPortableMode() ? getApplicationDirectory() : "") + "/var/VSS/data")
+    ;
+
+
+    conf->createAlias("maxTimeWaitingClients_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
+    conf->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
+    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
+
+
+
+    return conf;
+
 }

@@ -133,18 +133,12 @@ void SimpleConfFileProviderTester::run(string context)
         string conf2 = "";
 
         //observate changes in the file
-        confProvider->readAndObservate([&](vector<tuple<string, string>> configurations)
+        confProvider->listen([&](string key, DynamicVar value)
         {
-            for (auto &c: configurations)
-            {
-                //cout << get<0>(c) << " -> " << get<1>(c) << endl;
-                auto key = get<0>(c);
-                auto value = get<1>(c);
-                if (key == "key1")
-                    conf1 = value;
-                else if (key == "key2")
-                    conf2 = value;
-            }
+            if (key == "key1")
+                conf1 = value.getString();
+            else if (key == "key2")
+                conf2 = value.getString();
         });
 
         //at this point, the key1 and key2 variables should have the values "value1" and "value 2"

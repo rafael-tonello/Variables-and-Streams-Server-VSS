@@ -13,6 +13,7 @@
 #include <plaintextexporter.h>
 #include <dependencyInjectionManager.h>
 #include <logger.h>
+#include <Confs.h>
 
 namespace API::HTTP{
     using namespace KWShared;
