@@ -138,12 +138,12 @@
     [✔] Shared->Libs->Confs->SimpleConfFileProvider
     [✔] Shared->Libs->DependencyInjectionManager
     [✔] Shared->Misc->TaggedObject
-    [ ] Services->ServerDiscovery
-    [ ] Services->APIs->Http
+    [✔] Services->ServerDiscovery
+    [✔] Services->APIs->Http
 ## Bugs
     [ ] GetVar (vstp) is not returning error to client
 
-## Project Progress (26/28)
+## Project Progress (28/29)
     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░ ~92.8%
 
 ## sugests and things to analyze    
