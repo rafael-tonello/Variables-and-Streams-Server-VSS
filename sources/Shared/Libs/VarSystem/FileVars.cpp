@@ -11,6 +11,7 @@ namespace Shared
 			cout << "Append var "<<varName << endl << flush;
         if (useCache)
         {
+			ramCacheLocker.lock();
             if (this->ramCache.count(cacheName) > 0)
 			{
 				if (this->ramCache[cacheName]->varStateOnFs == AlreadySync)
@@ -24,6 +25,7 @@ namespace Shared
 			currentCacheSize += value.size();
 
             this->ramCache[cacheName]->varStateOnFs = DataToBeAppend;
+			ramCacheLocker.unlock();
         }
         else
         {
@@ -68,6 +70,7 @@ namespace Shared
 			cout << "Set var "<<varName << endl << flush;
         if (useCache)
         {
+			ramCacheLocker.lock();
             if (this->ramCache.count(cacheName) > 0)
 			{
 				currentCacheSize -= this->ramCache[cacheName]->size();
@@ -82,6 +85,8 @@ namespace Shared
 
 			if (this->debugMode)
 				cout << "Added the file "<<varName << " to cache"<< endl << flush;
+			
+			ramCacheLocker.unlock();
         }
         else
         {
@@ -147,11 +152,13 @@ namespace Shared
 				
                 if (this->useCache)
                 {
+					ramCacheLocker.lock();
 					this->ramCache.insert(std::pair<string, Var*>(cacheName, resultVar));
                     //this->ramCache[varName] = new Var(result);
                     this->ramCache[cacheName]->varStateOnFs = AlreadySync;
 
 					int a = this->ramCache.size();
+					ramCacheLocker.unlock();
                 }
 
 				return *resultVar;
@@ -176,16 +183,17 @@ namespace Shared
 	void FileVars::del(string varName)
 	{
 		string varName2 = varName;
-		string cacheName = this->getFileName(varName, false);
+		string cacheName = this->getFileName(varName, false) + "/__value__";
 
 		//delete from cache
-
+		ramCacheLocker.lock();
 		if (this->ramCache.find(cacheName) != this->ramCache.end())
         {
 			currentCacheSize -= ramCache[cacheName]->size();
 			delete ramCache[cacheName];
             this->ramCache.erase(cacheName);
         }
+		ramCacheLocker.unlock();
 
         varName2 += ".__value__";
 		varName2 = this->getFileName(varName2, false);
@@ -262,6 +270,7 @@ namespace Shared
         string varName;
         while (running)
         {
+			ramCacheLocker.lock();
             // for (int cont =0 ; cont < this->ramCache.size(); cont++)
             for (auto const& x : this->ramCache)
             {
@@ -291,11 +300,15 @@ namespace Shared
 						cout << "Writed (sync cache) file"<<varName << endl << flush;
                 }
             }
+			ramCacheLocker.unlock();
 
 			//limits the size of RAM cache
 			int count = 0;
 			auto initialCacheSize = currentCacheSize;
-			for (auto const& x : this->ramCache)
+			ramCacheLocker.lock();
+
+			vector<string> toErase;
+			for (auto &x : this->ramCache)
 			{
 				//ensures the current cache item is already sync to fs and can be deleted
 				if (x.second->varStateOnFs == AlreadySync)
@@ -307,9 +320,13 @@ namespace Shared
 					x.second->set("");
 					auto tmpObject = x.second;
 					delete tmpObject;
-					this->ramCache.erase(x.first);
+					toErase.push_back(x.first);
 				}
 			}
+			for (auto &c: toErase)
+				this->ramCache.erase(c);
+				
+			ramCacheLocker.unlock();
 
 			if (this->debugMode && initialCacheSize != currentCacheSize)
 				cout << "Released " << to_string(initialCacheSize - currentCacheSize) << " bytes from RAM cache" << endl;

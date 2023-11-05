@@ -56,7 +56,7 @@ void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
     {
         auto childs = getChilds(name);
         for(auto &currChild: childs)
-            deleteValue(name + "." + currChild, true);
+            deleteValue(name + "." + currChild,  true);
     }
     
     db->del(name);

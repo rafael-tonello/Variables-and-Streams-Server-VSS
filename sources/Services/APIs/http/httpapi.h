@@ -29,9 +29,14 @@ namespace API::HTTP{
         void onServerRequest(HttpData* in, HttpData* out);
         IVarsExporter *detectExporter(HttpData *request);
 
+        map<string, HttpData*> wsConnections;
+
         string getVarName(HttpData* in);
+        string getVarName(string resource);
         void getVars(HttpData* in, HttpData* out);
         void postVar(HttpData* in, HttpData* out);
+
+        void onServerWebSocketConnected(HttpData *originalRequest, string resource);
 
     public: 
         HttpAPI(int port, DependencyInjectionManager *dim); 
