@@ -7,16 +7,24 @@ API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
 
 
-    server = new KWTinyWebServer(this->port, new WebServerObserverHelper(
-        [&](HttpData* in, HttpData* out){
-            this->onServerRequest(in, out);
-        }),
+    server = new KWTinyWebServer(this->port, 
+        new WebServerObserverHelper(
+            [&](HttpData* in, HttpData* out){
+                this->onServerRequest(in, out);
+            },
+            [&](HttpData *originalRequest, string resource){
+                this->onServerWebSocketConnected(originalRequest, resource);
+            },
+            [](HttpData *originalRequest, string resource, char* data, unsigned long long dataSize){}
+        ),
         {},
         { dim->get<Confs>()->getA("httpDataDir").getString() }
     );
     log.info(string("Http API started a webserver and is listening on port ") + to_string(this->port));
 
     startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
+
+    this->ctrl->apiStarted(this);
 }
 
 
@@ -32,8 +40,6 @@ void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
         getVars(in, out);
     else if (in->method == "POST")
         postVar(in, out);
-    
-
 }
 
 void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
@@ -91,14 +97,18 @@ void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
     }
 }
 
+string API::HTTP::HttpAPI::getVarName(string resource)
+{
+    if (resource.size() > 0 && resource[0] == '/')
+        resource = resource.substr(1);
+    resource = Utils::sr(resource, "/", ".");
+    
+    return resource;
+}
+
 string API::HTTP::HttpAPI::getVarName(HttpData* in)
 {
-    string varName = in->resource;
-    if (varName.size() > 0 && varName[0] == '/')
-        varName = varName.substr(1);
-    varName = Utils::sr(varName, "/", ".");
-    
-    return varName;
+    return getVarName(in->resource);
 }
 
 API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(HttpData *request)
@@ -114,14 +124,37 @@ string API::HTTP::HttpAPI::getApiId()
     return this->apiId;
 }
 
+void API::HTTP::HttpAPI::onServerWebSocketConnected(HttpData *originalRequest, string resource)
+{
+    string addressAsString = to_string((uint64_t)((void*)originalRequest));
+    wsConnections[addressAsString] = originalRequest;
+
+    auto varName = getVarName(resource);
+    
+    this->ctrl->observeVar(varName, addressAsString, "", this);
+}
+
 API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues)
 {
-    return API::ClientSendResult::DISCONNECTED;
+    if (!wsConnections.count(clientId))
+        return API::ClientSendResult::DISCONNECTED;
+
+    for (auto &c: varsnamesMetadataAndValues)
+    {
+        auto varName = std::get<0>(c);
+        auto varValue = std::get<2>(c).getString();
+
+        string data = varName + "=" + varValue;
+
+        this->server->sendWebSocketData(wsConnections[clientId], (char*)(data.c_str()), data.size(), true);
+    }
+
+    return API::ClientSendResult::LIVE;
 }
 
 API::ClientSendResult API::HTTP::HttpAPI::checkAlive(string clientId)
 {
-    return API::ClientSendResult::DISCONNECTED;
+    return wsConnections.count(clientId) > 0 ? API::ClientSendResult::DISCONNECTED : API::ClientSendResult::LIVE;
 }
 
 void API::HTTP::HttpAPI::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
@@ -140,5 +173,5 @@ string API::HTTP::HttpAPI::getListeningInfo()
     if (this->port > -1)
         return "TCP/"+to_string(port);
     else
-        return "Error - No opened port";
+        return "Error - No port opened";
 }

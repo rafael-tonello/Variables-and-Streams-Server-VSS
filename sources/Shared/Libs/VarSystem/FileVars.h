@@ -53,6 +53,8 @@ namespace Shared
 
 			bool running = true;
 
+			mutex ramCacheLocker;
+
 			bool containsKey(string key);
 
 			void deleteDirectoryTree(string directory);
