@@ -46,7 +46,7 @@ void handleSignals();
 Confs* initConfigurations();
 
 //semantic versioning
-string INFO_VERSION = "0.22.0+Sedna";
+string INFO_VERSION = "0.23.0+Sedna";
 
 int main(){
     handleSignals();
