@@ -56,6 +56,14 @@ public:
     {
         vars.clear();
     }
+
+
+
+    string getTypeIdName()
+    {
+        return typeid(InMemoryConfProvider).name();
+    }
+
 };
 
 #endif
