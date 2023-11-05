@@ -5,7 +5,6 @@
 #include <tester.h>
 #include <Confs.h>
 
-using namespace Shared;
 using namespace std;
 class ConfsTester: public Tester{
 private:
