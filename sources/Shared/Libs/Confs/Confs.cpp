@@ -118,3 +118,17 @@ string Confs::applyPlaceHolders(string source)
 {
     return Utils::stringReplace(source, this->placeHolders);
 }
+
+void Confs::informPotentialVariables(string providerTName, vector<string>possibleNames)
+{
+    for (auto &c: providers)
+    {
+        if (c->getTypeIdName() == providerTName)
+        {
+            for (auto potetialVar: possibleNames)
+            {
+                c->informPotentialUsableVariable(potetialVar);
+            }
+        }
+    }
+}

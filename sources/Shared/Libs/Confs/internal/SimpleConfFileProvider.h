@@ -63,6 +63,10 @@ namespace Shared{
             string ret = typeid(SimpleConfFileProvider).name();
             return ret;
         };
+
+        //Confs will use this method to inform variables for each one alias was created. It can be util for this like       
+        //variable monitoring processes
+        void informPotentialUsableVariable(string varName) override {};
     };
 }
 
