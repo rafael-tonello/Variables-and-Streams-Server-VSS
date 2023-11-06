@@ -199,14 +199,5 @@ Confs* initConfigurations()
     conf->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
     conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
 
-
-    conf->createAlias("tvar").addForAnyProvider({"testvar", "TEST_VARIABLE"});
-
-    auto value = conf->getA("tvar");
-
-
-    
-
     return conf;
-
 }
