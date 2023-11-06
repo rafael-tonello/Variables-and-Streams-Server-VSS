@@ -143,12 +143,14 @@
     [✔] Services->ServerDiscovery
     [✔] Services->APIs->Http
     [ ] Services->APIs->Http->Web sockets
-    [ ] Configuratio System 
+    [ ] Configuration System 
+    [ ] CommandLineArgumentsConfsProvider
+    [ ] SoEnvirionmentConfProvider
 ## Bugs
     [ ] GetVar (vstp) is not returning error to client
 
-## Project Progress (28/33)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░ ~93%
+## Project Progress (28/35)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░ ~80%
 
 ## sugests and things to analyze    
     - Restfull and WebSocket API
