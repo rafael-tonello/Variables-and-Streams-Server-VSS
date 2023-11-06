@@ -65,8 +65,8 @@ int main(){
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-    dim.addSingleton<VSTP>(new VSTP(5032, dim));
-    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(5024, &dim));
+    dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort", 5032), dim));
+    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort", 5024), &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 
@@ -195,6 +195,8 @@ Confs* initConfigurations()
     conf->createAlias("maxTimeWaitingClients_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
     conf->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
     conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
+    conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
+    conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
 
 
 
