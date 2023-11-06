@@ -10,7 +10,7 @@ TheController::TheController(DependencyInjectionManager* dim, string systemVersi
     this->confs = dim->get<Confs>();
 
     //Moved to the main.cpp
-    //this->confs->createAlias("maxTimeWaitingClients_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
+    //this->confs->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
 
     if (dim->contains<ThreadPool>())
     {
