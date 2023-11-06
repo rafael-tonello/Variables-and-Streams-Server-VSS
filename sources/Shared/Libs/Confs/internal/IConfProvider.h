@@ -14,6 +14,10 @@ public:
     virtual void listen(function<void(string, DynamicVar)> f) = 0;
     virtual string getTypeIdName() = 0;
 
+    //Confs will use this method to inform variables for each one alias was created. It can be util for this like       
+    //variable monitoring processes
+    virtual void informPotentialUsableVariable(string varName) = 0;
+
 };
 
 #endif

@@ -59,6 +59,7 @@ private:
     vector<tuple<string, string>> placeHolders;
 
     void confChangedInAProvider(string providerName, string name, DynamicVar value);
+    void informPotentialVariables(string providerTName, vector<string>possibleNames);
 
     class ConfAliaser{
     private:
@@ -72,6 +73,8 @@ private:
 
         ConfAliaser &add(string tname, vector<string> possibleNames){
             ctrl->aliases[name].optionalNamesInEachProviders[tname] = possibleNames;
+
+            ctrl->informPotentialVariables(tname, possibleNames);
 
             return *this;            
         }

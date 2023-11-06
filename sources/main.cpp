@@ -20,6 +20,7 @@
 #include <LoggerFileWriter.h>
 #include <ServerDiscovery.h>
 #include <Confs/internal/SimpleConfFileProvider.h>
+#include <Confs/internal/soenvironmentconfprovider.h>
 
 #include <messagebus.h>
 
@@ -57,6 +58,7 @@ int main(){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations());
+
     dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
@@ -181,7 +183,8 @@ void handleSignals()
 Confs* initConfigurations()
 {
     Confs *conf = new Confs();
-    conf->addProvider(new Shared::SimpleConfFileProvider(findConfigurationFile()));
+    conf->addProvider(new SoEnvironmentConfProvider());
+    conf->addProvider(new SimpleConfFileProvider(findConfigurationFile()));
 
 
     conf->createPlaceHolders()
