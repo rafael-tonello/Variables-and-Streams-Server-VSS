@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/VarServer",
-            "args": ["--httpApiPort", "5080"],
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
             "environment": [],

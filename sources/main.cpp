@@ -21,6 +21,7 @@
 #include <ServerDiscovery.h>
 #include <Confs/internal/SimpleConfFileProvider.h>
 #include <Confs/internal/soenvironmentconfprovider.h>
+#include <Confs/internal/commandlineargumentsconfsprovider.h>
 
 #include <messagebus.h>
 
@@ -44,12 +45,12 @@ std::string determinteLogFile();
 bool isRunningInPortableMode();
 void handleSignals();
 
-Confs* initConfigurations();
+Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
 string INFO_VERSION = "0.23.0+Sedna";
 
-int main(){
+int main(int argc, char** argv){
     handleSignals();
     srand((unsigned)time(0)); 
     
@@ -57,8 +58,7 @@ int main(){
 
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
-    dim.addSingleton<Confs>(initConfigurations());
-
+    dim.addSingleton<Confs>(initConfigurations(argc, argv));
     dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
@@ -180,11 +180,13 @@ void handleSignals()
 }
 
 
-Confs* initConfigurations()
+Confs* initConfigurations(int argc, char **argv)
 {
     Confs *conf = new Confs();
+
+    conf->addProvider(new CommandLineArgumentsConfsProvider(argc, argv));
     conf->addProvider(new SoEnvironmentConfProvider());
-    conf->addProvider(new SimpleConfFileProvider(findConfigurationFile()));
+    conf->addProvider(new Shared::SimpleConfFileProvider(findConfigurationFile()));
 
 
     conf->createPlaceHolders()
@@ -195,9 +197,10 @@ Confs* initConfigurations()
     ;
 
 
-    conf->createAlias("maxTimeWaitingClients_seconds").addForAnyProvider({"maxTimeWaitingClients_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
+    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
     conf->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
-    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
+
+    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
     conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
     conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
 
