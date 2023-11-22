@@ -222,7 +222,7 @@ namespace Shared
 			if (validChars.find(c) != string::npos)
 				tmp2 += c;
 			else
-				tmp2 += "?";
+				tmp2 += "_";
 
 		varName = tmp2;
 

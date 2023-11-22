@@ -36,6 +36,8 @@ API::HTTP::HttpAPI::~HttpAPI()
 
 void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
 {
+    log.debug("request received: "+in->resource);
+    
     if (in->method == "GET")
         getVars(in, out);
     else if (in->method == "POST")

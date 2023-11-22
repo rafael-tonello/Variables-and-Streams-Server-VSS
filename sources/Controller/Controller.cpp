@@ -177,7 +177,10 @@ void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> cl
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
             {
-                log->error("TheController", "Client notification failute due 'responsible API not found.");
+                log->error("TheController", Utils::sr("Client notification failute due 'responsible API not found (CliId = '?', Api = '?').", {
+                    clientIdp,
+                    db->get("internal.clients.byId."+clientIdp+".apiId", "").getString(),
+                }));
                 //try  to remove invalid clients (but this cannot happenens :( ))
                 deleteClient(ch);
             }

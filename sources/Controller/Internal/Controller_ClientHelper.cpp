@@ -18,6 +18,8 @@ void Controller_ClientHelper::initialize()
 
 
         }
+
+        cout << "Storging API id "+api->getApiId() + " for the client "+clientId << endl;
         db->set("internal.clients.byId."+clientId+".apiId", api->getApiId());    
         //update client keepAlive and apiId
         this->updateLiveTime();

@@ -123,6 +123,7 @@ namespace Shared {
 
 	bool SysLink::createDirectory(string directoryName)
 	{
+		//string sysCommand = "mkdir -p \""+directoryName+"\" >/dev/null 2>/dev/null";
 		string sysCommand = "mkdir -p \""+directoryName+"\"";
 		system(sysCommand.c_str());
 		return SysLink::directoryExists(directoryName);
