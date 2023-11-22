@@ -209,7 +209,6 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command ==VSTP_ACTIONS::SET_VAR)
     {
-        TimersForDebug::begin("bb");
         auto sv_ctrl_result = this->ctrl->setVar(varName, value).get();
 
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
@@ -517,8 +516,6 @@ API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<stri
             string bufferStr = std::get<0>(c) + metadataStr+ "="+(std::get<2>(c)).getString();
             this->__PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
         }
-        TimersForDebug::end("bb");
-        cout << "total notification time: " << TimersForDebug::get("bb").totalTime_us << "us" << endl;
     
 
         return ClientSendResult::LIVE;
