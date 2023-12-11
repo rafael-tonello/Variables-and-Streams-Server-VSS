@@ -20,11 +20,13 @@ namespace API::HTTP{
     class HttpAPI: public ApiInterface{ 
     private:
         string apiId = "HTTPAPI";
-        int port; // = 5023;
+        int httpPort; // = 5023;
+        int httpsPort; // = 5023;
         void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
         ApiMediatorInterface* ctrl;
-        KWShared::KWTinyWebServer *server;
+        vector<KWShared::KWTinyWebServer *> servers;
         NLogger log;
+        DependencyInjectionManager* dim;
 
         void onServerRequest(HttpData* in, HttpData* out);
         IVarsExporter *detectExporter(HttpData *request);
@@ -38,8 +40,12 @@ namespace API::HTTP{
 
         void onServerWebSocketConnected(HttpData *originalRequest, string resource);
 
+        void initHttpServer();
+        void initHttpsServer();
+        void initServer(int port, bool https, string httpsKey, string httpsPubCert);
+
     public: 
-        HttpAPI(int port, DependencyInjectionManager *dim); 
+        HttpAPI(int httpPort, int httpsPort, DependencyInjectionManager *dim); 
         ~HttpAPI(); 
     public:
         /* ApiInterface implementation */

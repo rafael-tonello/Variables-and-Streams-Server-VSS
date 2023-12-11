@@ -68,7 +68,7 @@ int main(int argc, char** argv){
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort", 5032), dim));
-    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort", 5024), &dim));
+    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort", 5024), dim.get<Confs>()->getA("httpApiHttpsPort", 5025), &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 

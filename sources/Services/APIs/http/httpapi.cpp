@@ -1,13 +1,43 @@
 #include  "httpapi.h" 
  
-API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
+API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionManager* dim)
 { 
-    this->port = port;
+    this->dim = dim;
+    this->httpPort = httpPort;
+    this->httpsPort = httpsPort;
     this->ctrl = dim->get<ApiMediatorInterface>();
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
 
+    initHttpServer();
+    initHttpsServer();
+    startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
 
-    server = new KWTinyWebServer(this->port, 
+    this->ctrl->apiStarted(this);
+}
+ 
+API::HTTP::HttpAPI::~HttpAPI() 
+{ 
+    for (auto &c: servers)
+        delete c;
+
+    servers.clear();
+}
+
+void API::HTTP::HttpAPI::initHttpServer()
+{
+    this->initServer(httpPort, false, "", "");
+    log.info(string("Http API started a webserver and is listening on port ") + to_string(this->httpPort));
+}
+
+void API::HTTP::HttpAPI::initHttpsServer()
+{
+    this->initServer(httpsPort, true, "cert/key.pem", "cert/cert.pem");
+    log.info(string("Https API started a webserver and is listening on port ") + to_string(this->httpsPort));
+}
+
+void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, string httpsPubCert)
+{
+    auto server = new KWTinyWebServer(port, 
         new WebServerObserverHelper(
             [&](HttpData* in, HttpData* out){
                 this->onServerRequest(in, out);
@@ -18,21 +48,15 @@ API::HTTP::HttpAPI::HttpAPI(int port, DependencyInjectionManager* dim)
             [](HttpData *originalRequest, string resource, char* data, unsigned long long dataSize){}
         ),
         {},
-        { dim->get<Confs>()->getA("httpDataDir").getString() }
+        { dim->get<Confs>()->getA("httpDataDir").getString() },
+        NULL,
+        https,
+        httpsKey,
+        httpsPubCert
     );
-    log.info(string("Http API started a webserver and is listening on port ") + to_string(this->port));
 
-    startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
-
-    this->ctrl->apiStarted(this);
+    this->servers.push_back(server);
 }
-
-
- 
-API::HTTP::HttpAPI::~HttpAPI() 
-{ 
-    delete server;
-} 
 
 void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
 {
@@ -148,7 +172,8 @@ API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<t
 
         string data = varName + "=" + varValue;
 
-        this->server->sendWebSocketData(wsConnections[clientId], (char*)(data.c_str()), data.size(), true);
+        for (auto &server: servers)
+            server->sendWebSocketData(wsConnections[clientId], (char*)(data.c_str()), data.size(), true);
     }
 
     return API::ClientSendResult::LIVE;
@@ -162,7 +187,7 @@ API::ClientSendResult API::HTTP::HttpAPI::checkAlive(string clientId)
 void API::HTTP::HttpAPI::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
 {
     bus->listen("discover.startedApis", [&](string message, JsonMaker::JSON args, JsonMaker::JSON &result){
-        if (this->port > -1)
+        if (this->httpPort > -1 || this->httpPort > -1)
         {
             result.setString("name", "HTTP - Http API");
             result.setString("access", getListeningInfo());
@@ -171,9 +196,19 @@ void API::HTTP::HttpAPI::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
 }
 
 string API::HTTP::HttpAPI::getListeningInfo()
-{
-    if (this->port > -1)
-        return "TCP/"+to_string(port);
-    else
-        return "Error - No port opened";
+{   
+    string ret = "";
+    if (httpPort > -1)
+        ret += "TCP/"+to_string(httpPort) + "(http)";
+    
+    if (httpsPort > -1)
+    {
+        if (ret != "") ret += ", ";
+        ret += "TCP/"+to_string(httpsPort) + "(https)";
+    }
+
+    if (ret == "")
+        ret = "Error - No port opened";
+
+    return ret;
 }
