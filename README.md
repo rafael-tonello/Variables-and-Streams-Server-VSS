@@ -128,8 +128,8 @@
     [✔] Erros while setting variable with '*' char should be returned to the API (that will be able to return the error to the client)
     [✔] When a client reconnects, the server needs to update it on all the variables it is looking at
     [✔] Add HTTP Api
-    [ ] Configuration provider for Enviroment variables 
-    [ ] Configuration provider for Command line arguments
+    [✔] Configuration provider for Enviroment variables 
+    [✔] Configuration provider for Command line arguments
 ## Tests
     [✔] Controller
     [✔] ControllerClientHelper
@@ -149,8 +149,8 @@
 ## Bugs
     [ ] GetVar (vstp) is not returning error to client
 
-## Project Progress (28/35)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░ ~80%
+## Project Progress (30/35)
+    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░ ~85%
 
 ## sugests and things to analyze    
     - Restfull and WebSocket API

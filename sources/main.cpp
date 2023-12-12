@@ -48,7 +48,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "0.25.0+Sedna";
+string INFO_VERSION = "1.0.0+Veruna";
 
 int main(int argc, char** argv){
     handleSignals();
