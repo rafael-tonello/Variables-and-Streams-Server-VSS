@@ -1,0 +1,329 @@
+#include  "espflashstorage.h" 
+ 
+ESPFlashStorage::ESPFlashStorage(uint blockSize, LogService *log)
+{
+    this->nLog = log->getNLog("ESPFlashStorage");
+    this->blockSize = blockSize;
+} 
+ 
+ESPFlashStorage::~ESPFlashStorage() 
+{ 
+    //LittleFS.end();
+    SPIFFS.end();
+} 
+
+Error ESPFlashStorage::init()
+{
+    if (!SPIFFS.begin())
+    {
+        auto error = Errors::createError("Cannot initiate LittleFS");
+        nLog.error(error);
+        return error;
+    }
+
+    String fpath = "storage.prefixtree";
+
+    SPIFFS.remove(fpath);
+
+
+    if (SPIFFS.exists(fpath))
+        this->file = SPIFFS.open(fpath, "r+");
+    else
+    {
+        this->file = SPIFFS.open(fpath, "w+");
+    
+        FileHeader tmpheader
+        {
+            .firstblockAddr = sizeof(FileHeader),
+            .deletedSeqAddr = 0
+        };
+
+        this->file.write((uint8_t*)&tmpheader, sizeof(tmpheader));
+
+        //init the firstBlock
+        this->initBlock(tmpheader.firstblockAddr);
+    }
+
+    file.seek(0);
+    this->file.read((uint8_t*)&this->header, sizeof(FileHeader));
+
+    return Errors::NoError;
+
+}
+ 
+ADDR_TYPE ESPFlashStorage::getFirstBlockSeqAddress()
+{
+    //read header block;
+    return this->header.firstblockAddr;
+}
+
+ADDR_TYPE ESPFlashStorage::newBlockSeq()
+{
+    ADDR_TYPE endOfFileAddr = getAddrForANewBlock();
+
+    initBlock(endOfFileAddr);
+
+    return endOfFileAddr;
+}
+
+void ESPFlashStorage::initBlock(ADDR_TYPE address)
+{
+    file.seek(address);
+
+    char* tmp = new char[blockSize];
+    for (int c = 0; c < blockSize; c++) tmp[c] = 0;
+    file.write((uint8_t*)tmp, blockSize);
+    delete[] tmp;
+
+    file.seek(address);
+    ADDR_TYPE w1;
+    uint w2;
+
+    file.read((uint8_t*)&w1, sizeof(w1));
+    file.read((uint8_t*)&w2, sizeof(w2));
+
+}
+
+ADDR_TYPE ESPFlashStorage::getAddrForANewBlock(){
+    //check for a new blcok in the deleted blocks list
+    ADDR_TYPE ret = (ADDR_TYPE)file.size();
+    if (header.deletedSeqAddr != 0)
+    {
+        ret = header.deletedSeqAddr;
+        auto newDeletedBlocksHeading = readNextBlockAddress(ret);
+        linkBlocks(header.deletedSeqAddr, 0);
+        header.deletedSeqAddr = newDeletedBlocksHeading;
+        file.seek(0);
+        this->file.write((uint8_t*)&header, sizeof(header));    
+    }
+    
+    return ret;
+}
+
+void ESPFlashStorage::write(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* buffer, size_t bufferSize, bool allowSpaceRelease)
+{
+    auto [curentBlockAddress, writeBeginAddress] = seekChain(seqAddress, offsetFromSeqBegining);
+
+    auto [finalBlockAddress, finalBlockLastWritePosition] = scrollChain(
+        curentBlockAddress, 
+        writeBeginAddress, 
+        bufferSize, 
+        0, 
+        [&, buffer](uint amountToBeWorked, size_t workPosition){
+            file.write((uint8_t*)(buffer + workPosition), (size_t)amountToBeWorked);
+        }
+    );
+
+    //update second ADDR_TYPE of seqAddress block with the totalSize of data in the block
+    ADDR_TYPE sizeAddr = seqAddress + sizeof(ADDR_TYPE);
+    //size_t currentChainSize = 0;
+    //file.seek(sizeAddr);
+    //file.read((uint8_t*)&currentChainSize, sizeof(currentChainSize));
+    size_t currentChainSize = getChainSize(seqAddress);
+
+    if (currentChainSize < (bufferSize + offsetFromSeqBegining) || allowSpaceRelease)
+    {
+
+        currentChainSize = bufferSize + offsetFromSeqBegining;
+        file.seek(sizeAddr);
+        file.write((uint8_t*)&currentChainSize, sizeof(currentChainSize));
+
+
+        size_t tmp = 0;
+        file.seek(sizeAddr);
+        file.read((uint8_t*)&tmp, sizeof(tmp));
+    }
+    
+    //space release should be done here
+    if (allowSpaceRelease)
+    {
+        auto nextBlockAddr = readNextBlockAddress(finalBlockAddress);
+        if (nextBlockAddr != 0)
+        {
+            internalDeleteBlockSq(nextBlockAddr);
+            linkBlocks(finalBlockAddress, 0);
+        }
+        
+    }
+}
+
+uint ESPFlashStorage::read(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* buffer, size_t bufferSize)
+{
+    uint result = 0;
+    uint totalChainDataSize = getChainSize(seqAddress);
+    if (offsetFromSeqBegining > totalChainDataSize)
+        return 0;
+
+    if (bufferSize + offsetFromSeqBegining > totalChainDataSize)
+    {
+        bufferSize = totalChainDataSize - offsetFromSeqBegining;
+
+    }
+    auto [curentBlockAddress, readBeginAddress] = seekChain(seqAddress, offsetFromSeqBegining);
+    
+    auto [finalBlockAddress, finalBlockLastWritePosition] = scrollChain(
+        curentBlockAddress, 
+        readBeginAddress, 
+        bufferSize, 
+        0, 
+        [&, buffer](uint amountToBeWorked, size_t workPosition){
+            file.read((uint8_t*)(buffer + workPosition), (size_t)amountToBeWorked);
+            result += amountToBeWorked;
+        },
+        true
+    );
+    return result;
+}
+
+tuple<ADDR_TYPE, size_t> ESPFlashStorage::seekChain(ADDR_TYPE initialBlockAddress, uint seekSize, bool readOnly)
+{
+    auto firstBlock_totalChainSize_headersize = sizeof(size_t);
+    return _seekChain(initialBlockAddress, seekSize, 0, sizeof(ADDR_TYPE) + firstBlock_totalChainSize_headersize, readOnly);
+}
+
+tuple<ADDR_TYPE, size_t> ESPFlashStorage::_seekChain(ADDR_TYPE currentBlockAddress, uint seekSize, uint currentSeekPosition, uint currentBlockOffset, bool readOnly)
+{
+
+    auto amountInTheCurrentBlock = (blockSize - currentBlockOffset);
+
+    if (currentSeekPosition + amountInTheCurrentBlock >= seekSize)
+    {
+        amountInTheCurrentBlock = seekSize - currentSeekPosition;
+        return { currentBlockAddress,  currentBlockOffset + amountInTheCurrentBlock};
+    }
+    else
+    {
+        ADDR_TYPE nextBlockAddress = readNextBlockAddress(currentBlockAddress);
+
+        if (nextBlockAddress == 0)
+        {
+            if (readOnly)
+                return { currentBlockAddress,  blockSize-1};
+
+            nextBlockAddress = this->newBlockSeq();
+        }
+
+        return _seekChain(nextBlockAddress, seekSize, currentSeekPosition + amountInTheCurrentBlock, sizeof(ADDR_TYPE), readOnly);
+    }
+}
+
+
+tuple<ADDR_TYPE, size_t> ESPFlashStorage::scrollChain(
+    ADDR_TYPE blockAddress, 
+    uint blockOffset, 
+    size_t totalWorkSize, 
+    size_t currentWorkPos, 
+    function<void(
+        uint amountToBeWorked, 
+        size_t workPosition
+    )> workFunc,
+    bool readOnly
+)
+{
+    //calculate the amount to be write in the current block
+    uint writeSize = (blockSize - blockOffset);
+    if (currentWorkPos + writeSize > totalWorkSize)
+        writeSize = totalWorkSize - currentWorkPos;
+
+    //write data to block
+    file.seek(blockAddress + blockOffset);
+    workFunc(writeSize, currentWorkPos);
+    
+    //write next block
+    auto newCurrentBufferPos = currentWorkPos + writeSize;
+    if (newCurrentBufferPos < totalWorkSize)
+    {
+        auto newBlockAddress = getOrCreateNextBlock(blockAddress, readOnly);
+        if (readOnly && newBlockAddress == 0)
+            return {blockAddress, blockSize-1};
+
+        //offset 1 is because first ADDR_TYPE of block (typeof(ADDR_TYPE) bytes) is reserved for address of next chain block
+        return scrollChain(newBlockAddress, sizeof(ADDR_TYPE), totalWorkSize, newCurrentBufferPos, workFunc);
+    }
+    else
+        return { blockAddress,  blockOffset + writeSize};
+}
+
+
+ADDR_TYPE ESPFlashStorage::readNextBlockAddress(ADDR_TYPE blockAddr)
+{
+    if (blockAddr == 0)
+        return 0;
+
+    file.seek(blockAddr);
+    //fread()
+    ADDR_TYPE result = 0;
+
+    file.read((uint8_t*)&result, sizeof(result));
+
+    return result;
+}
+
+ADDR_TYPE ESPFlashStorage::getOrCreateNextBlock(ADDR_TYPE parentBlockAddress, bool readOnly)
+{
+    ADDR_TYPE currentNextBlockAddress = readNextBlockAddress(parentBlockAddress);
+
+    if (currentNextBlockAddress == 0)
+    {
+        if (readOnly)
+            return 0;
+        
+        currentNextBlockAddress = newBlockSeq();
+
+        linkBlocks(parentBlockAddress, currentNextBlockAddress);
+    }
+
+
+    return currentNextBlockAddress;
+}
+
+void ESPFlashStorage::internalDeleteBlockSq(ADDR_TYPE seqAddress, ADDR_TYPE parentBlockToEraseSeqReference)
+{
+    if (seqAddress == 0)
+        return;
+        
+    auto lastBlockAddr = getAddressOfTheLastBlockInTheSequence(header.deletedSeqAddr);
+
+    if (lastBlockAddr != 0)
+        linkBlocks(lastBlockAddr, seqAddress);
+    else
+    {
+        header.deletedSeqAddr = seqAddress;
+        file.seek(0);
+        this->file.write((uint8_t*)&header, sizeof(header));
+    }
+
+
+    if (parentBlockToEraseSeqReference != 0)
+        linkBlocks(parentBlockToEraseSeqReference, 0);
+}
+
+void ESPFlashStorage::deleteBlockSq(ADDR_TYPE seqAddress)
+{
+    this->internalDeleteBlockSq(seqAddress);
+}
+
+ADDR_TYPE ESPFlashStorage::getAddressOfTheLastBlockInTheSequence(ADDR_TYPE parentBlockAddr)
+{
+    auto nextBlockAddr = readNextBlockAddress(parentBlockAddr);
+    if (nextBlockAddr == 0)
+        return parentBlockAddr;
+    else
+        return getAddressOfTheLastBlockInTheSequence(nextBlockAddr);
+}
+
+void ESPFlashStorage::linkBlocks(ADDR_TYPE parentBlock, ADDR_TYPE childBlock)
+{
+    file.seek(parentBlock);
+    file.write((char*)&childBlock, sizeof(childBlock));
+}
+
+size_t ESPFlashStorage::getChainSize(ADDR_TYPE seqAddress)
+{
+    ADDR_TYPE sizeAddr = seqAddress + sizeof(ADDR_TYPE);
+    size_t currentChainSize = 0;
+    file.seek(sizeAddr);
+    file.read((uint8_t*)&currentChainSize, sizeof(currentChainSize));
+
+    return currentChainSize;
+}

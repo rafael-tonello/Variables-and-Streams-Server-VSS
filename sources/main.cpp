@@ -22,6 +22,7 @@
 #include <Confs/internal/SimpleConfFileProvider.h>
 #include <Confs/internal/soenvironmentconfprovider.h>
 #include <Confs/internal/commandlineargumentsconfsprovider.h>
+#include <Storage/RamCacheDB/ramcachedb.h>
 
 #include <messagebus.h>
 
@@ -48,7 +49,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.0.0+Veruna";
+string INFO_VERSION = "1.1.0+Veruna";
 
 int main(int argc, char** argv){
     handleSignals();
@@ -60,10 +61,11 @@ int main(int argc, char** argv){
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
     dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
-    dim.addSingleton<ThreadPool>(new ThreadPool(20));
+    dim.addSingleton<ThreadPool>(new ThreadPool(2000));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
-    dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    //dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    dim.addSingleton<StorageInterface>(new RamCacheDB());
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});

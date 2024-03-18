@@ -33,6 +33,7 @@ DynamicVar VarSystemLibStorage::get(string name, DynamicVar defaultValue)
 
 vector<string> VarSystemLibStorage::getChilds(string parentName)
 {
+    log->warning("VarSystemLibStorage::getChilds, includesubchilds is not checked yet");
     parentName = escape(parentName);
     vector<string> result;
     auto tmp = db->getChilds(parentName);
@@ -62,7 +63,7 @@ void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
     db->del(name);
 }
 
-void VarSystemLibStorage::forEachChilds(string parentName, function<void(string, DynamicVar)> f)
+void VarSystemLibStorage::forEachChilds(string parentName,function<void(string, DynamicVar)> f)
 {
     parentName = escape(parentName);
     
@@ -73,7 +74,7 @@ void VarSystemLibStorage::forEachChilds(string parentName, function<void(string,
     }
 }
 
-future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
+future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName,function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
 {
     parentName = escape(parentName);
 
