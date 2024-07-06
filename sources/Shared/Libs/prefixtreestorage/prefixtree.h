@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <iostream>
 
 using namespace std;
 
@@ -59,8 +60,43 @@ private:
     function<StrT(T)> tToS;
     IBlockStorage* storage;
     Node rootNode;
-
     mutex locker;
+
+
+    void recursiveGetChilds(Node &node, vector<StrT> &ret, uint maxResults = RETURN_ALL_CHILDS)
+    {   
+        ret.push_back(node.key);
+        if (maxResults != RETURN_ALL_CHILDS && ret.size() >= maxResults)
+            return;
+
+        for (auto &child: node.children)
+        {
+            auto childNode = readNodeFromStorage(child.second);
+            if (childNode.type == Node::NodeType::Invalid)
+                continue;
+
+            recursiveGetChilds(childNode, ret, maxResults);
+            if (maxResults != RETURN_ALL_CHILDS && ret.size() >= maxResults)
+                return;
+        }
+    }
+
+    StrT getPrefix(StrT key1, StrT key2)
+    {
+        StrT prefix = "";
+        size_t index = 0;
+        while (index < key1 StrSize && index < key2 StrSize)
+        {
+            if (key1[index] == key2[index])
+            {
+                prefix += key1[index];
+                index++;
+            }
+            else
+                break;
+        }
+        return prefix;
+    }
 
     /**
      * @brief Locate the child identified by 'key' in the 'currentNode'. If the child does not exists yet, 
@@ -81,6 +117,7 @@ private:
             {
                 if (readOnly)
                     return Node{.type = Node::NodeType::Invalid};
+
                 Node newNode { .key = key };
                 writeNodeToStorage(newNode, true);
                 
@@ -96,24 +133,6 @@ private:
         {
             return Node{.type = Node::NodeType::Invalid};
         }
-    }
-
-    StrT getPrefix(StrT key1, StrT key2)
-    {
-        StrT prefix = "";
-        size_t index = 0;
-        while (index < key1 StrSize && index < key2 StrSize)
-        {
-            if (key1[index] == key2[index])
-            {
-                prefix += key1[index];
-                index++;
-            }
-            else
-                break;
-        }
-
-        return prefix;
     }
 
     /**
@@ -172,52 +191,57 @@ private:
         if (createNewAddress)
             node.address = storage->newBlockSeq();
         
-        auto childrenStorageSize = ((sizeof(char)+sizeof(ADDR_TYPE)) * node.children.size());
-        // uint bufferSize =   (sizeof(uint) + (node.key StrSize)) +
-                            // childrenStorageSize +
-                            // (sizeof(uint) + (node.data StrSize));
-        // char *buffer = new char[bufferSize];
-        uint currIndex = 0;
-        
-        //key size
         uint keySize = (uint)(node.key StrSize);
-        storage->write(node.address, (char*)(&keySize), sizeof(uint), false);
-        currIndex += sizeof(uint);
+        uint singleChildSize = sizeof(char) + sizeof(ADDR_TYPE); // (key + address)
+        uint childrenStorageSize = singleChildSize * node.children.size();
+        uint dataSize = (uint)(node.data StrSize);
 
-        //key
-        storage->write(node.address, currIndex, (char*)node.key.c_str(), keySize, false);
-        currIndex += keySize;
+        uint bufferSize = sizeof(uint) + keySize + sizeof(uint) + childrenStorageSize + sizeof(dataSize) + dataSize;
+        char *buffer = new char[bufferSize];
 
-        //children size
-        storage->write(node.address, currIndex, (char*)(&childrenStorageSize), sizeof(uint), false);
-        currIndex += sizeof(uint);
+        uint currIndex = 0;
+        //put keysize in the 'buffer'
+        for (uint c = 0; c < sizeof(uint); c++)
+            buffer[currIndex++] = ((char*)&keySize)[c];
 
-        //children
-        char* childrenBuffer = new char[childrenStorageSize];
-        uint childrenBufIndex = 0;
+        //put key in the 'buffer'
+        for (uint c = 0; c < keySize; c++)
+            buffer[currIndex++] = node.key[c];
+
+        //put childrenStorageSize in the 'buffer'
+        for (uint c = 0; c < sizeof(uint); c++)
+            buffer[currIndex++] = ((char*)&childrenStorageSize)[c];
+
+        //put children in the 'buffer'
         for (auto &currChildren: node.children)
         {
-            auto tmp = currChildren.second;
-            childrenBuffer[childrenBufIndex++]  = currChildren.first;
+            buffer[currIndex++] = currChildren.first;
             for (int c = 0; c < sizeof(currChildren.second); c++)
             {
-                char dt = ((char*)(&tmp))[c];
-
-                childrenBuffer[childrenBufIndex++]  = dt;
+                char dt = ((char*)(&currChildren.second))[c];
+                buffer[currIndex++] = dt;
             }
         }
-        storage->write(node.address, currIndex, childrenBuffer, childrenStorageSize, false);
-        currIndex += childrenStorageSize;
-        delete []childrenBuffer;
 
-        //data size
-        uint dataSize = (uint)(node.data StrSize);
-        storage->write(node.address, currIndex, (char*)(&dataSize), sizeof(uint), false);
-        currIndex += sizeof(uint);
+        //put dataSize in the 'buffer'
+        for (uint c = 0; c < sizeof(uint); c++)
+            buffer[currIndex++] = ((char*)&dataSize)[c];
 
-        //data
-        storage->write(node.address, currIndex, (char*)node.data.c_str(), dataSize, true);
-        currIndex += node.key StrSize;
+        //put data in the 'buffer'
+        for (uint c = 0; c < dataSize; c++)
+            buffer[currIndex++] = node.data[c];
+
+        //before write.. print to stdout the buffer (hex)
+        //for (uint c = 0; c < bufferSize; c++){
+        //    char tmp = buffer[c];
+        //    cout << (int)tmp << " ";
+        //    //printf("[%02x] ", (int)buffer[c]);
+        //}
+        //printf("\n");
+
+        storage->write(node.address, buffer, bufferSize, true);
+
+        delete[] buffer;
 
         return node.address;
     }
@@ -229,7 +253,7 @@ private:
         //read keysize
         uint keySize = 0;
         storage->read(nodeWithAddress.address, (char*)&keySize, sizeof(uint));
-        currentIndex += 4;
+        currentIndex += sizeof(uint);
 
         //read the key
         char* keyBuffer = new char[keySize];
@@ -295,6 +319,18 @@ private:
         return ret;
     }
 
+    void initRootNode()
+    {
+        //check if the root node already exists or if is the first time here
+        rootNode = Node{.address = storage->getFirstBlockSeqAddress()};
+        
+        //create the root node if it not exists in the block storage
+        if (storage->getChainSize(storage->getFirstBlockSeqAddress()) == 0)
+            writeNodeToStorage(rootNode);
+
+        readNodeFromStorage(rootNode);
+    }
+
     /**
      * @brief Locate a node in the tree. If not in readonly, the tree structure will be changed
      * 
@@ -304,13 +340,12 @@ private:
      * @param readOnly if trye, the tree will be changed to create the node if it does not exists. If false, 'Node{.type = Node::NodeType::Invalid}' will be returned if node is not present
      * @return Node The node or 'Node{.type = Node::NodeType::Invalid}'
      */
-    Node find(StrT key, Node &currentNode, Node &lastValid, Node &parentNode = Node{.type = Node::NodeType::Invalid}, bool readOnly = false)
+    Node find(StrT key, Node &currentNode, Node &lastValid, Node &parentNode, bool readOnly = false)
     {
         lastValid = currentNode;
 
         if (key == currentNode.key)
             return currentNode;
-
 
         auto prefixName = getPrefix(currentNode.key, key);
         auto comparisionPosition = currentNode.key StrSize;
@@ -337,48 +372,37 @@ private:
         }
         return Node{.type = Node::NodeType::Invalid};
     }
-
-
+            
 public:
     PrefixTree(IBlockStorage* storage, function<T(StrT)> StringToTFunc, function<StrT(T)> TToStringFunc): storage(storage), tToS(TToStringFunc), sToT(StringToTFunc)
     {
         initRootNode();
     }
-
-    void initRootNode()
-    {
-        locker.lock();
-        //check if the root node already exists or if is the first time here
-        if (storage->getChainSize(storage->getFirstBlockSeqAddress()) == 0)
-        {
-            //create the root node
-            rootNode = Node{.address = storage->getFirstBlockSeqAddress()};
-            writeNodeToStorage(rootNode);
-        };
-
-        readNodeFromStorage(rootNode);
-        locker.unlock();
-    }
-
+    
     void set(StrT key, T data)
     {
+        locker.lock();
         Node lastValidNode;
         auto invalidNode = Node{.type = Node::NodeType::Invalid};
-
-        locker.lock();
-        Node theNode = this->find(key, this->rootNode, lastValidNode, invalidNode);
+        Node theNode = this->find(key, this->rootNode, lastValidNode, invalidNode, false);
+        if (theNode.type == Node::NodeType::Invalid)
+        {
+            //throw a runtime error
+            locker.unlock();
+            throw runtime_error("Node not found");
+        }
+        
         theNode.data = tToS(data);
-
+        
         this->writeNodeToStorage(theNode);
         locker.unlock();
     }
 
     T get(StrT key, T defaultValue = T())
     {
+        locker.lock();
         Node lastValidNode;
         auto invalidNode = Node{.type = Node::NodeType::Invalid};
-        
-        locker.lock();
         auto result = this->find(key, this->rootNode, lastValidNode, invalidNode, true);
         locker.unlock();
         if (result.type == Node::NodeType::Invalid)
@@ -387,26 +411,45 @@ public:
         return sToT(result.data);
     }
 
-    bool exists(StrT key, T defaultValue = T())
+    bool exists(StrT key)
     {
+        locker.lock();
         Node lastValidNode;
         auto invalidNode = Node{.type = Node::NodeType::Invalid};
-        locker.lock();
         auto result = this->find(key, this->rootNode, lastValidNode, invalidNode, true);
         locker.unlock();
         return result.type != Node::NodeType::Invalid;
     }
 
+    bool contains(StrT key)
+    {
+        return exists(key);
+    }
+
     vector<StrT> searchChilds(StrT key, uint maxResults = RETURN_ALL_CHILDS)
     {
-        Node lastValidNode;
         locker.lock();
-        auto result = this->find(key, this->rootNode, &lastValidNode, Node{.type = Node::NodeType::Invalid}, true);
+        Node lastValidNode;
+        auto invalidNode = Node{.type = Node::NodeType::Invalid};
+        auto result = this->find(key, this->rootNode, lastValidNode, invalidNode, true);
+
+        //lastValidNode should have the checkIndex smaller than the key size
+        if (lastValidNode.key StrSize >= key StrSize)
+        {
+            locker.unlock();
+            return {};
+        }
+
+        //recursive scroll childs
+        vector<StrT> ret;
+        recursiveGetChilds(lastValidNode, ret, maxResults);
         locker.unlock();
+        return ret;
+    }
 
-        //get childs of result
-
-        return {};
+    IBlockStorage* getStorage()
+    {
+        return storage;
     }
 };
 

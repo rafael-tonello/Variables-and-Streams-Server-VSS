@@ -14,6 +14,7 @@
 #include <Confs.h>
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
+#include <Storage/InMemoryDB/inmemorydb.h>
 #include <VarSystem/SysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
@@ -60,12 +61,13 @@ int main(int argc, char** argv){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(0), new LoggerFileWriter(determinteLogFile())}, true));
-    dim.addSingleton<ThreadPool>(new ThreadPool(2000));
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_TRACE), new LoggerFileWriter(determinteLogFile(), LOGGER_LOG_ALL_LEVELS)}, true));
+    dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
     //dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
-    dim.addSingleton<StorageInterface>(new RamCacheDB());
+    dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
+    //dim.addSingleton<StorageInterface>(new PrefixTreeStorage(&dim));
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
@@ -195,12 +197,12 @@ Confs* initConfigurations(int argc, char **argv)
         .add("%PROJECT_DIR%", getApplicationDirectory())
         .add("%APP_DIR%", getApplicationDirectory())
         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
-        .add("%DATA_DIR%", (isRunningInPortableMode() ? getApplicationDirectory() : "") + "/var/VSS/data")
+        .add("%DATA_DIR%", (isRunningInPortableMode() ? getApplicationDirectory() : "") + "/data")
     ;
 
 
     conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
-    conf->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
+    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"});
 
     conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
     conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});

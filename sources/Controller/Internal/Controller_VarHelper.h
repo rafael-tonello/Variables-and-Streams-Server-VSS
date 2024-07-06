@@ -41,7 +41,8 @@ public:
     bool valueIsSetInTheDB();
     Errors::Error lock(uint maxTimeOut_ms = UINT_MAX);
     void unlock();
-    void deleteValueFromDB();
+    //return true ans was deleted and false otherwise
+    bool deleteValueFromDB();
     vector<string> getChildsNames();
     bool isObserving(string clientId, string metadata);
     void addObserver(string clientId, string metadata);

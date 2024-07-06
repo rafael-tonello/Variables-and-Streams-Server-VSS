@@ -1,4 +1,6 @@
 #include  "filestorage.h" 
+
+#include <iostream>
  
 FileStorage::FileStorage(uint blockSize, string fname)
 {
@@ -25,11 +27,35 @@ Error FileStorage::init()
 {
     if (fileExists(fname))
     {
-        file.open(fname, std::fstream::in | std::fstream::out | std::fstream::ate | std::fstream::binary);
+        //open a existent file (for read and write, do not trunc data)
+        file.open(fname, std::fstream::in | std::fstream::out | std::fstream::binary);
+
+
+
+        if (file.is_open() == false)
+        {
+            auto errorNumber = errno;
+            //get errono message
+            auto error = Errors::createError("Error opening file: " + string(strerror(errno)) + " (errno " + to_string(errorNumber) + ")");
+
+            return error;
+        }
     }
     else
-    {
+    {   
+        system(string("cd ~; pwd").c_str());
+        system(("touch " + fname).c_str());
+        //create a new file for read and write
         file.open(fname, std::fstream::in | std::fstream::out | std::fstream::trunc | std::fstream::binary);
+
+        if (file.is_open() == false)
+        {
+            auto errorNumber = errno;
+            //get errono message
+            auto error = Errors::createError("Error opening file: " + string(strerror(errno)) + " (errno " + to_string(errorNumber) + ")");
+
+            return error;
+        }
 
         FileHeader tmpheader
         {
@@ -38,12 +64,14 @@ Error FileStorage::init()
         };
 
         this->file.write((char*)&tmpheader, sizeof(tmpheader));
+        //file.flush();
 
         //init the firstBlock
         this->initBlock(tmpheader.firstblockAddr);
     }
 
     file.seekg(0);
+    
     this->file.read((char*)&this->header, sizeof(FileHeader));
 
     return "";
@@ -56,16 +84,13 @@ ADDR_TYPE FileStorage::getFirstBlockSeqAddress()
     return this->header.firstblockAddr;
 }
 
-ADDR_TYPE FileStorage::internalNewBlockSeq()
-{
-    ADDR_TYPE endOfFileAddr = getAddrForANewBlock();
-    return endOfFileAddr;
-}
-
 ADDR_TYPE FileStorage::newBlockSeq()
 {
-    auto ret = internalNewBlockSeq();
-    return ret;
+    ADDR_TYPE endOfFileAddr = getAddrForANewBlock();
+
+    initBlock(endOfFileAddr);
+
+    return endOfFileAddr;
 }
 
 void FileStorage::initBlock(ADDR_TYPE address)
@@ -75,15 +100,10 @@ void FileStorage::initBlock(ADDR_TYPE address)
     char* tmp = new char[blockSize];
     for (int c = 0; c < blockSize; c++) tmp[c] = 0;
     file.write((char*)tmp, blockSize);
+    //file.flush();
     delete[] tmp;
 
     file.seekg(address);
-    ADDR_TYPE w1;
-    uint w2;
-
-    file.read((char*)&w1, sizeof(w1));
-    file.read((char*)&w2, sizeof(w2));
-
 }
 
 size_t FileStorage::getFileSize(fstream &f){
@@ -96,12 +116,15 @@ ADDR_TYPE FileStorage::getAddrForANewBlock(){
     ADDR_TYPE ret = getFileSize(file);
     if (header.deletedSeqAddr != 0)
     {
+        std::cout<< "reusing adeleted block\n";
+
         ret = header.deletedSeqAddr;
         auto newDeletedBlocksHeading = readNextBlockAddress(ret);
         linkBlocks(header.deletedSeqAddr, 0);
         header.deletedSeqAddr = newDeletedBlocksHeading;
         file.seekp(0);
         this->file.write((char*)&header, sizeof(header));    
+        //file.flush();
     }
     
     return ret;
@@ -118,6 +141,7 @@ void FileStorage::write(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* 
         0, 
         [&, buffer](uint amountToBeWorked, size_t workPosition){
             file.write((char*)(buffer + workPosition), (size_t)amountToBeWorked);
+            //file.flush();
         }
     );
 
@@ -126,7 +150,7 @@ void FileStorage::write(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* 
     //size_t currentChainSize = 0;
     //file.seek(sizeAddr);
     //file.read((char*)&currentChainSize, sizeof(currentChainSize));
-    size_t currentChainSize = internalGetChainSize(seqAddress);
+    size_t currentChainSize = getChainSize(seqAddress);
 
     if (currentChainSize < (bufferSize + offsetFromSeqBegining) || allowSpaceRelease)
     {
@@ -134,6 +158,7 @@ void FileStorage::write(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* 
         currentChainSize = bufferSize + offsetFromSeqBegining;
         file.seekp(sizeAddr);
         file.write((char*)&currentChainSize, sizeof(currentChainSize));
+        //file.flush();
 
 
         size_t tmp = 0;
@@ -157,7 +182,7 @@ void FileStorage::write(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* 
 uint FileStorage::read(ADDR_TYPE seqAddress, uint offsetFromSeqBegining, char* buffer, size_t bufferSize)
 {
     uint result = 0;
-    uint totalChainDataSize = internalGetChainSize(seqAddress);
+    uint totalChainDataSize = getChainSize(seqAddress);
     if (offsetFromSeqBegining > totalChainDataSize)
         return 0;
 
@@ -190,7 +215,6 @@ tuple<ADDR_TYPE, size_t> FileStorage::seekChain(ADDR_TYPE initialBlockAddress, u
 
 tuple<ADDR_TYPE, size_t> FileStorage::_seekChain(ADDR_TYPE currentBlockAddress, uint seekSize, uint currentSeekPosition, uint currentBlockOffset, bool readOnly)
 {
-
     auto amountInTheCurrentBlock = (blockSize - currentBlockOffset);
 
     if (currentSeekPosition + amountInTheCurrentBlock >= seekSize)
@@ -207,7 +231,7 @@ tuple<ADDR_TYPE, size_t> FileStorage::_seekChain(ADDR_TYPE currentBlockAddress, 
             if (readOnly)
                 return { currentBlockAddress,  blockSize-1};
 
-            nextBlockAddress = this->internalNewBlockSeq();
+            nextBlockAddress = this->newBlockSeq();
         }
 
         return _seekChain(nextBlockAddress, seekSize, currentSeekPosition + amountInTheCurrentBlock, sizeof(ADDR_TYPE), readOnly);
@@ -276,7 +300,7 @@ ADDR_TYPE FileStorage::getOrCreateNextBlock(ADDR_TYPE parentBlockAddress, bool r
         if (readOnly)
             return 0;
         
-        currentNextBlockAddress = internalNewBlockSeq();
+        currentNextBlockAddress = newBlockSeq();
 
         linkBlocks(parentBlockAddress, currentNextBlockAddress);
     }
@@ -299,6 +323,7 @@ void FileStorage::internalDeleteBlockSq(ADDR_TYPE seqAddress, ADDR_TYPE parentBl
         header.deletedSeqAddr = seqAddress;
         file.seekp(0);
         this->file.write((char*)&header, sizeof(header));
+        //file.flush();
     }
 
 
@@ -324,8 +349,10 @@ void FileStorage::linkBlocks(ADDR_TYPE parentBlock, ADDR_TYPE childBlock)
 {
     file.seekp(parentBlock);
     file.write((char*)&childBlock, sizeof(childBlock));
+    //file.flush();
 }
-size_t FileStorage::internalGetChainSize(ADDR_TYPE seqAddress)
+
+size_t FileStorage::getChainSize(ADDR_TYPE seqAddress)
 {
     ADDR_TYPE sizeAddr = seqAddress + sizeof(ADDR_TYPE);
     size_t currentChainSize = 0;
@@ -333,10 +360,4 @@ size_t FileStorage::internalGetChainSize(ADDR_TYPE seqAddress)
     file.read((char*)&currentChainSize, sizeof(currentChainSize));
 
     return currentChainSize;
-}
-
-size_t FileStorage::getChainSize(ADDR_TYPE seqAddress)
-{
-    auto ret = internalGetChainSize(seqAddress);
-    return ret;
 }

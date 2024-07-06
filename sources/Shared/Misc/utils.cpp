@@ -31,8 +31,6 @@ void Utils::named_lock(string session_name, named_lock_f f, int timeout_ms)
         Utils::names_locks_mutexes[session_name]->unlock(); 
         throw;
     }
-
-
 }
 
 void Utils::named_lock_forceunlock(string session_name)

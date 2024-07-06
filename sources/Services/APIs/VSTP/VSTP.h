@@ -45,6 +45,8 @@ namespace API {
         static string RESPONSE_BEGIN;
         static string RESPONSE_END;
         static string SET_VAR;
+        static string DELETE_VAR;
+        static string DELETE_VAR_RESULT;
         static string GET_VAR;
         static string GET_VAR_RESPONSE;
         static string SUBSCRIBE_VAR;

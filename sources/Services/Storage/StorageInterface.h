@@ -18,9 +18,32 @@ public:
     virtual bool hasValue(string name) = 0;
     virtual void deleteValue(string name, bool deleteChildsInACascade = false) = 0;
     virtual ~StorageInterface(){}
-    virtual void forEachChilds(string parentName, function<void(string, DynamicVar)> f) = 0;
-    virtual future<void> forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) = 0;
+    
+    virtual void forEachChilds(string parentName, function<void(string, DynamicVar)> f){
+        auto childs = getChilds(parentName);
+        for (auto &curr: childs)
+            f(curr, this->get(curr, ""));
+    }
+    virtual future<void> forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel){
+        auto names = this->getChilds(parentName);
+        vector<future<void>> *pendingTasks = new vector<future<void>>;
+        for (auto &c: names)
+        {
+            pendingTasks->push_back(taskerForParallel->enqueue([&](string name){
+                f(name, this->get(name, ""));
+            }, c));
+        }
 
+        auto ret = taskerForParallel->enqueue([&, pendingTasks](){
+            for (auto &c: *pendingTasks)
+                c.wait();
+
+            pendingTasks->clear();
+            delete pendingTasks;
+        });
+
+        return ret;
+    }
 }; 
  
 #endif 

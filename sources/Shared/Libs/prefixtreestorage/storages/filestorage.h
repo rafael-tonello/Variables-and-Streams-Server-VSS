@@ -5,7 +5,8 @@
 
 
 #include <fstream>
-#include <mutex>
+#include <string.h>
+#include <errors.h>
 
 using namespace std;
 
@@ -51,8 +52,6 @@ private:
 
     bool fileExists(string f);
     size_t getFileSize(fstream &f);
-    size_t internalGetChainSize(ADDR_TYPE seqAddress);
-    ADDR_TYPE internalNewBlockSeq();
 public:
     FileStorage(uint blockSize, string fname); 
     ~FileStorage(); 
