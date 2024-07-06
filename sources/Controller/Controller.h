@@ -91,7 +91,6 @@ namespace Controller{
         future<GetVarResult> getVar(string name, DynamicVar defaultValue);
         future<Errors::Error> setVar(string name, DynamicVar value);
         future<Errors::Error> delVar(string varname);
-
         
         future<Errors::Error> lockVar(string varName, uint maxTimeOut_ms = UINT_MAX);
         future<Errors::Error> unlockVar(string varName);

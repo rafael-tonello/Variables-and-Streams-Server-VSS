@@ -1,31 +1,33 @@
  #include "VSTP.h"
 
-string API::VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS = "sci";
+string API::VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS = "serverinfo";
 string API::VSTP_ACTIONS::PING = "ping";
 string API::VSTP_ACTIONS::PONG = "pong";
-string API::VSTP_ACTIONS::SUGGEST_NEW_CLI_ID = "nid";
-string API::VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID = "cid";
+string API::VSTP_ACTIONS::SUGGEST_NEW_CLI_ID = "sugestednewid";
+string API::VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID = "setid";
 string API::VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED = "aoc";
-string API::VSTP_ACTIONS::RESPONSE_BEGIN = "br";
-string API::VSTP_ACTIONS::RESPONSE_END = "er";
-string API::VSTP_ACTIONS::SET_VAR = "sv";
-string API::VSTP_ACTIONS::GET_VAR = "gv";
-string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "gvr";
-string API::VSTP_ACTIONS::SUBSCRIBE_VAR = "subv";
-string API::VSTP_ACTIONS::UNSUBSCRIBE_VAR = "usv";
-string API::VSTP_ACTIONS::VAR_CHANGED = "vc";
-string API::VSTP_ACTIONS::GET_CHILDS = "gc";
-string API::VSTP_ACTIONS::GET_CHILDS_RESPONSE = "gcr";
-string API::VSTP_ACTIONS::LOCK_VAR = "lv";
-string API::VSTP_ACTIONS::UNLOCK_VAR = "uv";
-string API::VSTP_ACTIONS::LOCK_VAR_RESULT = "lvr";
-string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "uvd";
-string API::VSTP_ACTIONS::SERVER_BEGIN_HEADERS = "sbh";
-string API::VSTP_ACTIONS::SERVER_END_HEADERS = "seh";
+string API::VSTP_ACTIONS::RESPONSE_BEGIN = "beginresponse";
+string API::VSTP_ACTIONS::RESPONSE_END = "endresponse";
+string API::VSTP_ACTIONS::SET_VAR = "set";
+string API::VSTP_ACTIONS::DELETE_VAR = "delete";
+string API::VSTP_ACTIONS::DELETE_VAR_RESULT = "deleteresult";
+string API::VSTP_ACTIONS::GET_VAR = "get";
+string API::VSTP_ACTIONS::GET_VAR_RESPONSE = "varvalue";
+string API::VSTP_ACTIONS::SUBSCRIBE_VAR = "subscribe";
+string API::VSTP_ACTIONS::UNSUBSCRIBE_VAR = "unsubscribe";
+string API::VSTP_ACTIONS::VAR_CHANGED = "varchanged";
+string API::VSTP_ACTIONS::GET_CHILDS = "getchilds";
+string API::VSTP_ACTIONS::GET_CHILDS_RESPONSE = "childs";
+string API::VSTP_ACTIONS::LOCK_VAR = "lock";
+string API::VSTP_ACTIONS::UNLOCK_VAR = "unlock";
+string API::VSTP_ACTIONS::LOCK_VAR_RESULT = "lockresult";
+string API::VSTP_ACTIONS::UNLOCK_VAR_DONE = "unlockdone";
+string API::VSTP_ACTIONS::SERVER_BEGIN_HEADERS = "beginserverheaders";
+string API::VSTP_ACTIONS::SERVER_END_HEADERS = "endserverheaders";
 string API::VSTP_ACTIONS::HELP = "help";
 string API::VSTP_ACTIONS::SET_TELNET_SESSION = "telnet";
-string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS = "vls";
-string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT = "vlsr";
+string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS = "lockstatus";
+string API::VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS_RESULT = "lockstatusresult";
 string API::VSTP_ACTIONS::ERROR = "error";
 
 API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
@@ -164,7 +166,6 @@ void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, string commandWithError
     this->sendErrorToClient(cli, Errors::Error(errorMessage));
 }
 
-
 void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 {
     if (newId == "")
@@ -181,7 +182,6 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
     cli->tags["id"] = newId;
     clientsById[newId]  = cli;
 }
-
 
 void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
 {
@@ -217,6 +217,19 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
     }
+    else if (command ==VSTP_ACTIONS::DELETE_VAR)
+    {
+        auto dv_ctrl_result = this->ctrl->delVar(varName).get();
+
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
+        if (dv_ctrl_result != Errors::NoError)
+            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::DELETE_VAR, dv_ctrl_result);
+
+        string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result.message;
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::DELETE_VAR_RESULT, varName + "=" + resultMsg);
+        
+        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
+    }
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
         //store a clientSocket id in a variable
@@ -249,21 +262,26 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
             return;
         }
 
+        log->debug("Locking var "+varName);
         auto lockFuture = this->ctrl->lockVar(varName, timeout);
         auto result = lockFuture.get();
         string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result.message;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=" + resultMsg);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
+        log->debug("Variable "+varName+" is now locked. Response was writed with sucess");
     }
     else if (command == VSTP_ACTIONS::UNLOCK_VAR)
     {
         //note: with the actual structure and socket system, this operation will block que socket reading until the var is sucessful locked
+        log->debug("Unlocking var "+varName);
         auto lockFuture = this->ctrl->unlockVar(varName);
         lockFuture.get();
+        log->debug("writing unlockvar response");
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::UNLOCK_VAR_DONE, varName);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
+        log->debug("Variable "+varName+" is now unlocked. Response was writed with sucess");
     }
     else if (command == VSTP_ACTIONS::CHECK_VAR_LOCK_STATUS)
     {
@@ -370,8 +388,10 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
             clientSocket.sendString("Unknown command '"+command+". Use 'help' command to get more information about commands.'\n");
         }
     }
-}
 
+    if (command != VSTP_ACTIONS::PING)
+        this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+}
 
 void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data)
 {
@@ -380,6 +400,7 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
     string buffer = command + CMDPAYLOADSEPARATOR + data + "\n";
 
+    this->log->debug("sending '"+buffer+"' to client");
     clientSocket.sendString(buffer);
 }
 

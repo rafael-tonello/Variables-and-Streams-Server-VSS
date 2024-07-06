@@ -75,7 +75,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
 future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 {
-    return tasker->enqueue([&, maxTimeOut_ms](string varNamep){
+    return tasker->enqueue([=](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         return varHelper.lock(maxTimeOut_ms);
 
@@ -284,8 +284,10 @@ future<Errors::Error> TheController::delVar(string varname)
     return tasker->enqueue([&](string varnamep)
     {
         Controller_VarHelper varHelper(log, db, varnamep);
-        varHelper.deleteValueFromDB();
-        return Errors::NoError;
+        if (varHelper.deleteValueFromDB())
+            return Errors::NoError;
+        else
+            return Errors::Error("Error deleting variable '"+varname+"'. Maybe the variable doesn't exist");
     }, varname);
 }
 

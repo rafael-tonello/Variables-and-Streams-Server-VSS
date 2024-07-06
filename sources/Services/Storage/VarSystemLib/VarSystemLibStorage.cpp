@@ -5,10 +5,7 @@ VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim)
     this->confs = dim->get<Confs>();
     this->log = dim->get<ILogger>()->getNamedLoggerP("VarSystemLibStorage");
 
-    //Moved to main.cpp
-    //confs->createAlias("varsDbDirectory").addForAnyProvider({"varsDbDirectory", "--varsDirectory", "--varsDbDirectory", "VSS_VARS_DB_DIRECTORY"});
-
-    confs->listenA("varsDbDirectory", [&](DynamicVar value)
+    confs->listenA("dbDirectory", [&](DynamicVar value)
     {
         this->log->info("Database directory: " + value.getString());
         this->databaseLocation = value.getString();

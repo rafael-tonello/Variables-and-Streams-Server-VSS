@@ -64,56 +64,61 @@ Errors::Error Controller_VarHelper::setValue(DynamicVar value)
 
 bool Controller_VarHelper::isLocked()
 {
-    auto lockValue = this->getFlag("lock", "0").getString();
+    auto  lockValue = this->getFlag("lock", "0").getString();
+
     return lockValue != "0" && lockValue != "";
 }
 
 Errors::Error Controller_VarHelper::lock(uint maxTimeOut_ms)
 {
+    log->debug("Locking var "+this->name);
     maxTimeOut_ms *= 1000;
         
     uint timeout_count = 0;
-        string finalVName = this->name + "._lock";
-        //ir variable if currently locked, add an observer to it "._lock" property and wait the change of this to 0
+    string finalVName = this->name + "._lock";
+    //ir variable if currently locked, add an observer to it "._lock" property and wait the change of this to 0
 
-        function<bool()> tryLockFunc = [&]()
-        {
-            //try lock var
-            bool lockSucess = false;
-            Utils::named_lock("varLockerSystem", [&]{
-                if (this->getFlag("lock", "0").getString() == "0")
-                {
-                    //set the var property '._lock' to 1 (use setVar to change the ._lock)
-                    db->set(finalVName, "1");
-                    lockSucess = db->get(finalVName, "0").getString() == "1";
-                }
-            });
-
-            return lockSucess;
-        };
-
-        //await var be 0 to try another lock
-        bool lockedWithSucess = false;
-        while (!lockedWithSucess)
-        {
-            lockedWithSucess = tryLockFunc();
-
-            if (!lockedWithSucess)
+    function<bool()> tryLockFunc = [=]()
+    {
+        //try lock var
+        bool lockSucess = false;
+        Utils::named_lock("varLockerSystem", [&]{
+            
+            if (!this->isLocked())
             {
-                if (timeout_count >= maxTimeOut_ms)
-                    return Errors::Error_TimeoutReached;
-
-                auto sleepTime = 1000 + rand() % 9000;
-                timeout_count += sleepTime;
-                usleep(sleepTime);
+                //set the var property '._lock' to 1 (use setVar to change the ._lock)
+                db->set(finalVName, "1");
+                auto writeValue = db->get(finalVName, "0").getString();
+                lockSucess = writeValue == "1";
             }
-        }
+        });
 
-        return Errors::NoError;
+        return lockSucess;
+    };
+
+    //await var be 0 to try another lock
+    bool lockedWithSucess = false;
+    while (!lockedWithSucess)
+    {
+        lockedWithSucess = tryLockFunc();
+
+        if (!lockedWithSucess)
+        {
+            if (timeout_count >= maxTimeOut_ms)
+                return Errors::Error_TimeoutReached;
+
+            auto sleepTime = 1000 + rand() % 9000;
+            timeout_count += sleepTime;
+            usleep(sleepTime);
+        }
+    }
+
+    return Errors::NoError;
 }
 
 void Controller_VarHelper::unlock()
 {
+    log->debug("UnLocking var "+this->name);
     Utils::named_lock("varLockerSystem", [&]{
         this->setFlag("lock", "0");
     });
@@ -267,9 +272,14 @@ vector<string> Controller_VarHelper::getMetadatasOfAClient(string clientId)
     return result;
 }
 
-void Controller_VarHelper::deleteValueFromDB()
+//return true ans was deleted and false otherwise
+bool Controller_VarHelper::deleteValueFromDB()
 {
+    if (db->get(name, "___NotFound___") == "___NotFound___")
+        return false;
+
     db->deleteValue(name, false);
+    return true;
 }
 
 

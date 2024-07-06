@@ -37,6 +37,7 @@ namespace API::HTTP{
         string getVarName(string resource);
         void getVars(HttpData* in, HttpData* out);
         void postVar(HttpData* in, HttpData* out);
+        void deleteVar(HttpData* in, HttpData* out);
 
         void onServerWebSocketConnected(HttpData *originalRequest, string resource);
 
