@@ -1,7 +1,16 @@
-#ifndef __SPEEDVIAVSTP.TEST__H__
-#define __SPEEDVIAVSTP.TEST__H__
+#ifndef __SPEEDVIAVSTP_TEST__H__
+#define __SPEEDVIAVSTP_TEST__H__ 
 #include <tester.h>
 #include <logger.h>
+#include <TmpDBInMemory.h>
+#include <dependencyInjectionManager.h>
+#include <LoggerLambdaWriter.h>
+#include <IConfProvider.h>
+#include <InMemoryConfProvider.h>
+#include <Confs.h>
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 struct SpeedViaVstpTestLogInfo
 {

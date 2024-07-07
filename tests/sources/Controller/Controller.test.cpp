@@ -81,7 +81,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -102,7 +102,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
     
@@ -137,7 +137,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -149,7 +149,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -229,9 +229,9 @@ void ControllerTester::test_function_getVar()
         auto retValue = this->ctrl->getVar("", "default value").get();
 
         return TestResult{
-            retValue.errorStatus != Errors::NoError, 
+            retValue.status != Errors::NoError, 
             "Any error message", 
-            retValue.errorStatus.message
+            retValue.status
         };
     });
 
