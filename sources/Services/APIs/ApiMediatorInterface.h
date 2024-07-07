@@ -15,7 +15,7 @@ namespace API
 {
     typedef function<void(string name, DynamicVar value, void* args, string id)> observerCallback;
     using VarList = vector<tuple<std::string, DynamicVar>>;
-    using GetVarResult = Errors::ResultWithErrorStatus<VarList>;
+    using GetVarResult = Errors::ResultWithStatus<VarList>;
 
     class ApiMediatorInterface
     {
@@ -24,7 +24,7 @@ namespace API
         virtual future<GetVarResult> getVar(string name, DynamicVar defaultValue) = 0;
         virtual future<Errors::Error> setVar(string name, DynamicVar value) = 0;
         virtual future<Errors::Error> delVar(string varname) = 0;
-        virtual future<Errors::ResultWithErrorStatus<vector<string>>> getChildsOfVar(string parentName) = 0;
+        virtual future<Errors::ResultWithStatus<vector<string>>> getChildsOfVar(string parentName) = 0;
 
         
         virtual future<Errors::Error> lockVar(string varName, uint maxTimeOut_ms = UINT_MAX) = 0;

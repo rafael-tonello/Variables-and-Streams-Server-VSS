@@ -38,10 +38,10 @@ OBJ=$(subst .cpp,.o,$(temp))
 CC=clang++
 
 
+#		-pedantic
 CC_FLAGS=-D__TESTING__\
         -ansi      \
 		-c			\
-		-pedantic  \
 		-pthread   \
 		-std=c++20 \
 		-lssl      \
@@ -50,9 +50,9 @@ CC_FLAGS=-D__TESTING__\
 
 
 
+#		-pedantic
 LK_FLAGS=-D__TESTING__\
         -ansi      \
-		-pedantic  \
 		-pthread   \
 		-std=c++20 \
 		-lssl      \

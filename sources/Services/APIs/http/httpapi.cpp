@@ -76,7 +76,7 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
     
     auto result = ctrl->getVar(varName, "").get();
 
-    if (result.errorStatus == Errors::NoError)
+    if (result.status == Errors::NoError)
     {
 
         auto exporter = detectExporter(in);
@@ -96,7 +96,7 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
     {
         out->httpStatus = 400;
         out->httpMessage = "Bad request";
-        out->setContentString(result.errorStatus.message);
+        out->setContentString(result.status);
     }
 }
 
@@ -115,13 +115,13 @@ void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
     {
         out->httpStatus = 403;
         out->httpMessage = "Forbidden";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
     else
     {
         out->httpStatus = 500;
         out->httpMessage = "Internal server error";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
 }
 
@@ -140,13 +140,13 @@ void API::HTTP::HttpAPI::deleteVar(HttpData* in, HttpData* out)
     {
         out->httpStatus = 403;
         out->httpMessage = "Forbidden";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
     else
     {
         out->httpStatus = 500;
         out->httpMessage = "Internal server error";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
 }
 

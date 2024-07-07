@@ -32,17 +32,16 @@ OBJ=$(subst .cpp,.o,$(subst ./sources,./build/objects,$(C_SOURCE)))
 CC=clang++
 
 
+#		-pedantic
 CC_FLAGS=-c			\
-		-pedantic  \
 		-pthread   \
 		-std=c++20 \
 		-lssl      \
 		-lcrypto   \
 		$(CUSTOM_INCLUDE_PATH)
 
-
-LK_FLAGS=-pedantic  \
-		-pthread   \
+#		-pedantic 
+LK_FLAGS= -pthread   \
 		-std=c++20 \
 		-lssl      \
 		-lcrypto   \

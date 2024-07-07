@@ -155,14 +155,14 @@ void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int var
 
 void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, Errors::Error error)
 {
-    log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
+    log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error);
     //log->info2("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error.message);
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error);
 }
 
 void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError)
 {
-    string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError.message;
+    string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError;
     this->sendErrorToClient(cli, Errors::Error(errorMessage));
 }
 
@@ -225,7 +225,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         if (dv_ctrl_result != Errors::NoError)
             this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::DELETE_VAR, dv_ctrl_result);
 
-        string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result.message;
+        string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::DELETE_VAR_RESULT, varName + "=" + resultMsg);
         
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
@@ -265,7 +265,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         log->debug("Locking var "+varName);
         auto lockFuture = this->ctrl->lockVar(varName, timeout);
         auto result = lockFuture.get();
-        string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result.message;
+        string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=" + resultMsg);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
@@ -318,7 +318,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::GET_CHILDS)
     {
         auto resultFromController  = this->ctrl->getChildsOfVar(varName).get();
-        if (resultFromController.errorStatus == Errors::NoError)
+        if (resultFromController.status == Errors::NoError)
         {
             vector<string> result = resultFromController.result;
             string response = "";
@@ -345,9 +345,9 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
         else
         {
-            log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.errorStatus.message);
+            log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.errorStatus);
+            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
         }
     }

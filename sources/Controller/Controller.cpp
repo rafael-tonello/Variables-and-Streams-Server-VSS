@@ -75,7 +75,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
 future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 {
-    return tasker->enqueue([=](string varNamep){
+    return tasker->enqueue([=, this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         return varHelper.lock(maxTimeOut_ms);
 
@@ -219,7 +219,7 @@ future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
         if (namep == "")
         {
             log->warning("TheController", Errors::Error_TheVariableNameCannotBeEmpty);
-            return GetVarResult(Errors::Error_TheVariableNameCannotBeEmpty, {});
+            return GetVarResult({}, Errors::Error_TheVariableNameCannotBeEmpty);
         }
 
         function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
@@ -291,19 +291,19 @@ future<Errors::Error> TheController::delVar(string varname)
     }, varname);
 }
 
-future<Errors::ResultWithErrorStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
+future<Errors::ResultWithStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
 {
     return tasker->enqueue([&](string parentNamep)
     {
         if (parentNamep.find('*') != string::npos)
         {
             log->error("TheController", Errors::Error_WildcardCanotBeUsesForGetVarChilds);
-            return Errors::ResultWithErrorStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, (vector<string>){});
+            return Errors::ResultWithStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, {});
         }
 
         Controller_VarHelper varHelper(log, db, parentNamep);
         auto result = varHelper.getChildsNames();
-        return Errors::ResultWithErrorStatus<vector<string>>(Errors::NoError, result);
+        return Errors::ResultWithStatus<vector<string>>(Errors::NoError, result);
     }, parentName);
 
 }
