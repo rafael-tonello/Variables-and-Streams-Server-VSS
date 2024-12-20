@@ -12,12 +12,16 @@ CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
 
 
 
+#get files using dectect_include_files.sh to prevent multiple definion errors with submodules
+
 # .c files
-C_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.cpp' -or -name '*.c' -or -name '*.s')
+
+
+C_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension cpp" "withCheckOfFileExistenceAfterExtensionChange")
 
 # .h files
-H_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.hpp' -or -name '*.h' -or -name '*.inc')
-
+H_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension h" "withCheckOfFileExistenceAfterExtensionChange")
+ 	
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
@@ -30,7 +34,6 @@ OBJ=$(subst .cpp,.o,$(subst ./sources,./build/objects,$(C_SOURCE)))
 # Compiler and linker
 #CC=g++
 CC=clang++
-
 
 #		-pedantic
 CC_FLAGS=-c			\
