@@ -112,6 +112,7 @@ this_detectIncludedFiles(){
             for cppFile2 in ${this_CppFiles[@]}; do
                 if [[ $cppFile2 == *$includedFile ]]; then
                     this_registerUsedFile "$cppFile2"
+                    break;
                 fi
             done
         done
