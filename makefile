@@ -17,17 +17,17 @@ CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
 # .c files
 
 
-C_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension cpp" "withCheckOfFileExistenceAfterExtensionChange")
+C_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension cpp" "withCheckOfFilesExistenceAfterExtensionChange")
 
 # .h files
-H_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension h" "withCheckOfFileExistenceAfterExtensionChange")
+H_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension h" "withCheckOfFilesExistenceAfterExtensionChange")
  	
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
 	@ clear
 	@ mkdir ./build | true
-	@ cp -r ./sources/assets/* ./build | true
+	@ cp -r ./sources/assets/* ./build >/dev/null 2>&1 | true
  
 # Object files
 OBJ=$(subst .cpp,.o,$(subst ./sources,./build/objects,$(C_SOURCE)))
