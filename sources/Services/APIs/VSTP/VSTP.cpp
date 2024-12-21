@@ -94,7 +94,12 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     sendIdToClient(cli, cli->tags["id"]);
     //sentTotalVarsAlreadyBeingObserved(cli, 0);
 
-    log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id ","'"+cli->tags["id"]+"'","and friendly name", "'"+getCliFriendlyName(cli) + "'"});
+    TCPServer_PortConf *portConf = (TCPServer_PortConf*)&cli->inputSocketInfo;
+    
+    // check if cli->inputSocketInfo is a TCPServer_PortConf
+    
+    log->info((DVV){"Client", cli->address, "connected and received the id ","'"+cli->tags["id"]+"'","and friendly name", "'"+getCliFriendlyName(cli) + "'"});
+    
 
     sendEndHeaderToClient(cli);
     
@@ -363,11 +368,11 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         if (oldId != payload)
         {
             this->updateClientsByIdList(&clientSocket, payload);
-            log->info((DVV){"Client", clientSocket.address, "(remote port",clientSocket.port,") changed its id from", oldId, "to", payload});
+            log->info((DVV){"Client", clientSocket.address, "(address",clientSocket.address,") changed its id from", oldId, "to", payload});
         }
         else
         {
-            log->info((DVV){"The client", clientSocket.address, "(remote port",clientSocket.port,") requested an id change with its actual id (", oldId,")"});
+            log->info((DVV){"The client", clientSocket.address, "(address",clientSocket.address,") requested an id change with its actual id (", oldId,")"});
         }
 
         //event if client do not change its id, notify the controller so it can update the client about its observing vars.
@@ -583,7 +588,7 @@ string API::VSTP::getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditi
     string ret = cli->tags["friendlyName"];
 
     if (includeClieIdAndAditionalInfomation)
-    ret += " (ID: "+cli->tags["id"]+", remote host: "+cli->address+", remote port: "+to_string(cli->port)+")";
+    ret += " (ID: "+cli->tags["id"]+", address: "+cli->address+")";
 
     return ret;
 }
