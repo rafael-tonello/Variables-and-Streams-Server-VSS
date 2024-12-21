@@ -3,7 +3,7 @@
 # My third makefile
  
 # Name of the project
-PROJ_NAME=VarServer
+BIN_NAME=vss
 
 
 CUSTOM_INCLUDE_PATH_TMP := $(shell find ./sources ! -path '*/.git/*' -type d)
@@ -17,10 +17,10 @@ CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
 # .c files
 
 
-C_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension cpp" "withCheckOfFilesExistenceAfterExtensionChange")
+C_SOURCE := $(shell ./makefile.aux/detect_include_files.sh "withAlternativeExtension cpp" "withCheckOfFilesExistenceAfterExtensionChange")
 
 # .h files
-H_SOURCE := $(shell ./detect_include_files.sh "withAlternativeExtension h" "withCheckOfFilesExistenceAfterExtensionChange")
+H_SOURCE := $(shell ./makefile.aux/detect_include_files.sh "withAlternativeExtension h" "withCheckOfFilesExistenceAfterExtensionChange")
  	
 
 prebuild:
@@ -63,13 +63,13 @@ debug: CC_FLAGS+=-g
 debug: CC_FLAGS+=-ggdb
 debug: LK_FLAGS+=-g
 debug: LK_FLAGS+=-ggdb
-debug: prebuild $(PROJ_NAME)
+debug: prebuild $(BIN_NAME)
 	
 all: CC_FLAGS+=-O3
 all: LK_FLAGS+=-O3
-all: prebuild $(PROJ_NAME)
+all: prebuild $(BIN_NAME)
  
-$(PROJ_NAME): $(OBJ)
+$(BIN_NAME): $(OBJ)
 	@ echo 'Building binary using GCC linker: $@'
 	$(CC) $^ $(LK_FLAGS) -o build/$@
 	@ echo 'Finished building binary: $@'
@@ -86,9 +86,18 @@ $(PROJ_NAME): $(OBJ)
 	mkdir -p $(dir $@)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
+
+install:
+	@ makefile.aux/install.sh __fomrMakeFile__ install "$(BIN_NAME)"
+
+uninstall:
+	@ makefile.aux/install.sh __fomrMakeFile__ uninstall "$(BIN_NAME)"
+
+purge:
+	@ makefile.aux/install.sh __fomrMakeFile__ uninstall "$(BIN_NAME)"
 	
 clean:
-	@ $(RM) ./build/objects/*.o $(PROJ_NAME) *~
+	@ $(RM) ./build/objects/*.o $(BIN_NAME)
 	@ rm -rf ./build/objects
  
 .PHONY: all clean

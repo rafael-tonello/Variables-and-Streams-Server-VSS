@@ -197,7 +197,6 @@ Confs* initConfigurations(int argc, char **argv)
         .add("%PROJECT_DIR%", getApplicationDirectory())
         .add("%APP_DIR%", getApplicationDirectory())
         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
-        .add("%DATA_DIR%", (isRunningInPortableMode() ? getApplicationDirectory() : "") + "/data")
     ;
 
 
@@ -207,6 +206,9 @@ Confs* initConfigurations(int argc, char **argv)
     conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
     conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
     conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
+
+    conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"});
+    conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"});
 
     return conf;
 }

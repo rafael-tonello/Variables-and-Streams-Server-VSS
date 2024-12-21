@@ -7,6 +7,7 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     this->httpsPort = httpsPort;
     this->ctrl = dim->get<ApiMediatorInterface>();
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
+    this->conf = dim->get<Confs>();
 
     initHttpServer();
     initHttpsServer();
@@ -31,7 +32,18 @@ void API::HTTP::HttpAPI::initHttpServer()
 
 void API::HTTP::HttpAPI::initHttpsServer()
 {
-    this->initServer(httpsPort, true, "cert/key.pem", "cert/cert.pem");
+    //httpApiCertFile httpApiKeyFile
+    string certFile = dim->get<Confs>()->getA("httpApiCertFile").getString();
+    string keyFile = dim->get<Confs>()->getA("httpApiKeyFile").getString();
+
+    if (certFile == "" || keyFile == "")
+    {
+        log.error("The HTTPS API is not started because the certFile or keyFile is not setted");
+        return;
+    }
+
+    this->initServer(httpsPort, true, keyFile, certFile);
+    
     log.info(string("Https API started a webserver and is listening on port ") + to_string(this->httpsPort));
 }
 
