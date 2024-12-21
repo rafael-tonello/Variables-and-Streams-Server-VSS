@@ -12,29 +12,26 @@ CUSTOM_INCLUDE_PATH_TMP2 := $(shell find ./sources ! -path '*/.git/*' -type d) $
 CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP2))
 
 
-C_SOURCE_TMP := $(shell find ../sources  ! -path '*/.git/*' ! -path '*/tests/*' ! -path '*main.cpp' -name '*.cpp' -or -name '*.c' -or -name '*.s')
-C_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.cpp' -or -name '*.c' -or -name '*.s') $(C_SOURCE_TMP)
-
 # .cpp files
-C_SOURCE_TMP := $(shell ./detect_include_files.sh \
+C_SOURCE_TMP := $(shell ./makefile.aux/detect_include_files.sh \
 						"withAlternativeExtension cpp" \
 						"withCheckOfFilesExistenceAfterExtensionChange" \
 						"withPath ../sources" \
 						"withNoMainHAndCpp" \
 				)
-C_SOURCE := $(shell ./detect_include_files.sh \
+C_SOURCE := $(shell ./makefile.aux/detect_include_files.sh \
 						"withAlternativeExtension cpp" \
 						"withCheckOfFilesExistenceAfterExtensionChange" \
 				) $(C_SOURCE_TMP)
 
 # .h files
-H_SOURCE_TMP := $(shell ./detect_include_files.sh \
+H_SOURCE_TMP := $(shell ./makefile.aux/detect_include_files.sh \
 						"withAlternativeExtension h" \
 						"withCheckOfFilesExistenceAfterExtensionChange" \
 						"withPath ../sources" \
 						"withNoMainHAndCpp" \
 				)
-H_SOURCE := $(shell ./detect_include_files.sh \
+H_SOURCE := $(shell ./makefile.aux/detect_include_files.sh \
 						"withAlternativeExtension h" \
 						"withCheckOfFilesExistenceAfterExtensionChange" \
 				) $(H_SOURCE_TMP)
@@ -121,7 +118,12 @@ $(PROJ_NAME): $(OBJ)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
 	
-	
+install:
+	@ echo 'This is a test project and cannot be installed. To execute the testes, enter the build folder and execute the "tests" binary.'
+
+uninstall:
+	@ echo 'This is a test project and cannot be uninstalled. To remove the  testes (for example, to build the project again), just delete the "build" folder.'
+
 clean:
 	@ rm -rf ./build/objects
  
