@@ -71,8 +71,8 @@ int main(int argc, char** argv){
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-    dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort", 5032), dim));
-    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort", 5024), dim.get<Confs>()->getA("httpApiHttpsPort", 5025), &dim));
+    dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort"), dim));
+    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort"), dim.get<Confs>()->getA("httpApiHttpsPort"), &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 
@@ -200,15 +200,16 @@ Confs* initConfigurations(int argc, char **argv)
     ;
 
 
-    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
-    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"});
+    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
+    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/database");
 
-    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
-    conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
-    conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
+    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/http_data");
+    conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
+    conf->createAlias("httpApiHttpsPort").addForAnyProvider({"httpsApiPort", "--httpsApiPort", "VSS_HTTPS_API_PORT"}).setDefaultValue(5025);
+    conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5032);
 
-    conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"});
-    conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"});
+    conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssCert.pem");
+    conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
 
     return conf;
 }

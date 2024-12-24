@@ -10,7 +10,7 @@ VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim)
         this->log->info("Database directory: " + value.getString());
         this->databaseLocation = value.getString();
         db = shared_ptr<FileVars>(new FileVars(value.getString(), true));
-    }, "~/.local/VSS/varsDb");
+    });
 } 
  
 void VarSystemLibStorage::set(string name, DynamicVar v)

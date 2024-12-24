@@ -50,6 +50,7 @@ struct ConfAliasInfo{
     map<string, vector<string>> optionalNamesInEachProviders;
     vector<function<void(DynamicVar)>> listeners = {};
     DynamicVar lastValidValue;
+    DynamicVar defaultValue;
 };
 
 class Confs{
@@ -101,6 +102,11 @@ private:
             return *this;
         }
 
+        ConfAliaser &setDefaultValue(DynamicVar defaultValue){
+            ctrl->aliases[name].defaultValue = defaultValue;
+            return *this;
+        }
+
     };
 
     class ConfPlaceHolder{
@@ -127,6 +133,11 @@ public:
     ConfPlaceHolder createPlaceHolders();
 
     //identify the alias and scrolls over all providers. The first one with the configuration will be used to return the value.
+    //
+    //The defaultValue will be returned if it is not empty and no provider has the configuration.
+    //If defaultValue is empty and no provider has the configuration, the function will return the default value setted
+    //in the definition of the alias. It allow you tu use a diferent default value for each alias, but it is not recomended, because
+    //it can lead to incorrent behavior in different parts of the system. If you are not sure about the default value, just let it empty.
     DynamicVar getA(string alias, DynamicVar defaultValue = "");
 
     void listenA(string alias, function<void(DynamicVar)> f, bool callFImedially = true, DynamicVar defaultValueForImediateFCall = "");
