@@ -107,11 +107,13 @@ this_detectIncludedFiles(){
 
         #for each included file found in the #include directive
         for includedFile in $cppFileIncludes; do
+            includedFile="/$includedFile"
             
             #check if the included file is in the list of cppFiles and, if true, register it (the check is made scrolling the list of cppFiles - yep, again)
             for cppFile2 in ${this_CppFiles[@]}; do
                 if [[ $cppFile2 == *$includedFile ]]; then
                     this_registerUsedFile "$cppFile2"
+                    break;
                 fi
             done
         done

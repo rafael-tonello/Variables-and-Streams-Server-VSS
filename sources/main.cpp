@@ -15,7 +15,7 @@
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
 #include <Storage/InMemoryDB/inmemorydb.h>
-#include <VarSystem/SysLink.h>
+#include <VarSystem/FVSysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
