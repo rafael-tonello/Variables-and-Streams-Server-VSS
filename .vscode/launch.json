@@ -8,7 +8,7 @@
             "name": "(gdb) Build debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/VarServer",
+            "program": "${workspaceFolder}/build/vss",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",

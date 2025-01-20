@@ -191,7 +191,7 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
 {
     if (command != VSTP_ACTIONS::PING)
-        this->log->debug((DVV){"processCommand received a new command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+        this->log->debug((DVV){"received command from client "+clientSocket.tags["id"] + " ("+clientSocket.address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
         
     string strData;
     string key;
@@ -405,7 +405,7 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
     string buffer = command + CMDPAYLOADSEPARATOR + data + "\n";
 
-    this->log->debug("sending '"+buffer+"' to client");
+    this->log->debug("sending '"+buffer+"' to client "+clientSocket.tags["id"] + " ("+clientSocket.address+")");
     clientSocket.sendString(buffer);
 }
 
@@ -597,35 +597,22 @@ void API::VSTP::displayHelpMenu(ClientInfo* cli)
 {
     cli->sendString(string("VSTP rotocol version ") + string(VSTP_PROTOCOL_VERSION) + string("\n"));
     cli->sendString(string("\n"));
-    cli->sendString(string("    Usage: vsp_command;arguments\n"));
+    cli->sendString(string("    Usage <command> [arguments]\n"));
     cli->sendString(string("    Usage (2, using space instead ';'): vsp_command arguments\n"));
     cli->sendString(string("\n"));
     //                      --------------------------------------------------------------------------------
-    cli->sendString(string("    Available commands: \n"));
+    cli->sendString(string("    Commands: \n"));
     cli->sendString(string("        help - Display this menu\n"));
-    cli->sendString(string("        sv varname=value - Changes or create the variable 'varname' with value\n"));
-    cli->sendString(string("                           'value';\n"));
-    cli->sendString(string("        gv varname       - Gets the value of variable 'varname'. Wildcard\n"));
-    cli->sendString(string("                           (* char) can be used here;\n"));
-    cli->sendString(string("        lv varname       - Locks the variable 'varname' ('sv' and others\n"));
-    cli->sendString(string("                           commands will not be able to change the variable);\n"));
-    cli->sendString(string("        uv varname       - Unlocks the variable 'varname';\n"));
-    cli->sendString(string("        vls varname      - Returns 'locked' if 'varname' is locked and\n"));
-    cli->sendString(string("                           'unlocked' if 'varname' is unlocked;\n"));
-    cli->sendString(string("        subv varname       - Subscribe the variable 'varname'. A notification will\n"));
-    cli->sendString(string("                           be sent when variable is changed;\n"));
-    cli->sendString(string("        usv varname      - Cancels the subscription to variable 'varname';\n"));
-    cli->sendString(string("        gc varname       - Get variable 'varname' childs. Note: The system uses\n"));
-    cli->sendString(string("                           object name notation and uses the dot (.) as name\n"));
-    cli->sendString(string("                           separator;\n"));
-    cli->sendString(string("        ping             - Pings the server. Server will replay with 'pong;';\n"));
-    cli->sendString(string("        cid              - Update the client id. It is used to resume a previous\n"));
-    cli->sendString(string("                           VSTP session. The server will reply with all observed\n"));
-    cli->sendString(string("                           variables and theirs respective values;\n"));
-    cli->sendString(string("        telnet           - Informs the server that the current session is a\n"));
-    cli->sendString(string("                           telnet session. Server will adapt messages to enable\n"));
-    cli->sendString(string("                           a more easy use over a telnet session (like remove\n"));
-    cli->sendString(string("                           \\' from the end of received commands)\n"));
+    cli->sendString(string("        set <varname>=<value> - Changes or create the variable 'varname' with value 'value';\n"));
+    cli->sendString(string("        get <varname>         - Gets the value of variable 'varname'. Wildcard(* char) can be used here;\n"));
+    cli->sendString(string("        lock <varname>        - Locks the variable 'varname' ('sv' and others commands will not be able to change the variable);\n"));
+    cli->sendString(string("        u nlock <varname>      - Unlocks the variable 'varname';\n"));
+    cli->sendString(string("        lockstatus <varname>  - Returns 'locked' (if 'varname' is locked) or 'unlocked' (if 'varname' is unlocked);\n"));
+    cli->sendString(string("        subscribe <varname>   - Subscribe the variable 'varname'. The server will send a message to the client when the variable changes;\n"));
+    cli->sendString(string("        unsubscribe <varname> - Cancels the subscription to the variable 'varname';\n"));
+    cli->sendString(string("        getchilds <varname>   - Get variable 'varname' childs. Note: The system uses object name notation and uses the dot (.) as name separator;\n"));
+    cli->sendString(string("        ping                  - Pings the server. Server will replay with 'pong;';\n"));
+    cli->sendString(string("        setid                 - Update the client id. It is used to resume a previous VSTP session. The server will reply with all observed variables and theirs respective values;\n"));
+    cli->sendString(string("        telnet                - Informs the server that the current session is a telnet session. Server will adapt messages to enable a more easy use over a telnet session (like remove \\' from the end of received commands)\n"));
     cli->sendString(string("\n"));
-
 }
