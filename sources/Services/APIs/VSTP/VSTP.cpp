@@ -416,24 +416,10 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
 string API::VSTP::byteEscape(string originalText)
 {
-    //stringstream ret("");
-
     return Utils::sr(originalText, {
         {"\n", string(1, scape_char) + string("n")},
         {string(1, scape_char), string(1, scape_char+scape_char)}
     });
-
-    //for (auto &c: originalText)
-    //{
-    //    if (c == '\n')
-    //        ret << scape_char << 'n';
-    //    else if (c == scape_char)
-    //        ret << scape_char << scape_char;
-    //    else
-    //        ret << c;
-    //}
-//
-    //return ret.str();
 }
 
 string API::VSTP::byteUnescape(string text)
