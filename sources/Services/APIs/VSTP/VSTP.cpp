@@ -471,7 +471,7 @@ bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output, bool
 
 void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
 {
-    log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
+    //log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
     string command = "";
     string payload = "";
 
