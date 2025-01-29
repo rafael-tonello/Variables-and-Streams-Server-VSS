@@ -63,9 +63,15 @@ private:
     mutex locker;
 
 
-    void recursiveGetChilds(Node &node, vector<StrT> &ret, uint maxResults = RETURN_ALL_CHILDS)
+    void recursiveGetChilds(Node &node, vector<StrT> &ret, uint maxResults = RETURN_ALL_CHILDS, function<bool(Node &node)> filter = nullptr, bool processChildsOfNodesExcludedByFilter = true)
     {   
-        ret.push_back(node.key);
+        if (filter != nullptr && filter(node))
+        {
+            ret.push_back(node.key);
+            if (!processChildsOfNodesExcludedByFilter)
+                return;
+        }
+
         if (maxResults != RETURN_ALL_CHILDS && ret.size() >= maxResults)
             return;
 
@@ -75,7 +81,7 @@ private:
             if (childNode.type == Node::NodeType::Invalid)
                 continue;
 
-            recursiveGetChilds(childNode, ret, maxResults);
+            recursiveGetChilds(childNode, ret, maxResults, filter, processChildsOfNodesExcludedByFilter);
             if (maxResults != RETURN_ALL_CHILDS && ret.size() >= maxResults)
                 return;
         }
@@ -374,11 +380,29 @@ private:
     }
             
 public:
+    /**
+     * @brief Construct a new Prefix Tree object
+     * @param storage The storage to be used. The storage should be initialized before pass it to the PrefixTree. Inside the folder 'storages' 
+     * there is some storages that could be used. you also can write your own storage class by implementing the IBlockStorage interface
+     * @param StringToTFunc A function that should convert a string to a T object. This funciton is very important, because the PrefixTree uses string internally
+     * @param TToStringFunc A function that should convert a T object to a string. Is the opposite of the StringToTFunc
+     */
     PrefixTree(IBlockStorage* storage, function<T(StrT)> StringToTFunc, function<StrT(T)> TToStringFunc): storage(storage), tToS(TToStringFunc), sToT(StringToTFunc)
     {
         initRootNode();
     }
+
+    //PrefixTree(string filename, function<T(StrT)> StringToTFunc, function<StrT(T)> TToStringFunc, uint blockSize = 64): tToS(TToStringFunc), sToT(StringToTFunc)
+    //{
+    //    FileStorage storage(blockSize, filename);
+    //    storage.init();
+//
+    //    initRootNode();
+    //}
     
+    /**
+     * @brief Stores a key-value pair in the tree. If the key already exists, the value will be updated
+     */
     void set(StrT key, T data)
     {
         locker.lock();
@@ -398,6 +422,9 @@ public:
         locker.unlock();
     }
 
+    /**
+     * @brief Get the value of a key. If the key does not exists, the defaultValue will be returned
+     */
     T get(StrT key, T defaultValue = T())
     {
         locker.lock();
@@ -410,7 +437,37 @@ public:
         
         return sToT(result.data);
     }
+    /**
+     * @brief removes a key from the tree. Internally, a empty value will be write to the key value (the node itself will not be removed, because it could have childs)
+     * the remotion of the node value should release space inside the IStorage in use (according to the implementation of the IStorage)
+     */
+    void remove(StrT key){
+        locker.lock();
+        Node lastValidNode;
+        auto invalidNode = Node{.type = Node::NodeType::Invalid};
+        Node theNode = this->find(key, this->rootNode, lastValidNode, invalidNode, false);
+        if (theNode.type == Node::NodeType::Invalid)
+        {
+            //throw a runtime error
+            locker.unlock();
+            return;
+        }
+        
+        theNode.data = "";
+        
+        this->writeNodeToStorage(theNode);
+        locker.unlock();
+    }
 
+    /**
+     * @brief Alias to remove
+     */
+    void del(StrT key){ remove(key); }
+    
+
+    /**
+     * @brief Check if a key exists in the tree
+     */
     bool exists(StrT key)
     {
         locker.lock();
@@ -418,15 +475,27 @@ public:
         auto invalidNode = Node{.type = Node::NodeType::Invalid};
         auto result = this->find(key, this->rootNode, lastValidNode, invalidNode, true);
         locker.unlock();
-        return result.type != Node::NodeType::Invalid;
+        return result.type != Node::NodeType::Invalid || result.data == "";
     }
 
+    /**
+     * @brief Alias to exists
+     */
     bool contains(StrT key)
     {
         return exists(key);
     }
 
-    vector<StrT> searchChilds(StrT key, uint maxResults = RETURN_ALL_CHILDS)
+    /**
+     * search for childs of a key. The search is recursive and include childs of childs and so on.
+     * @param key The key to search for childs
+     * @param maxResults The maximum number of results to be returned. If RETURN_ALL_CHILDS is passed, all childs will be returned
+     * @param filter A function that will be called for each node. If the function returns true, the node will be included in the result. If false, the node will be excluded
+     * @param processChildsOfNodesExcludedByFilter If true, the childs of nodes excluded by the 'filter' function will be processed. If false, the childs of excluded nodes 
+     * will also be excluded
+     */
+    //onlyNodesWithValues allow a "on the fly" filter, returning only nodes with values
+    vector<StrT> searchChilds(StrT key, uint maxResults = RETURN_ALL_CHILDS, function<bool(Node &node)> filter = nullptr, bool processChildsOfNodesExcludedByFilter = true)
     {
         locker.lock();
         Node lastValidNode;
@@ -442,11 +511,14 @@ public:
 
         //recursive scroll childs
         vector<StrT> ret;
-        recursiveGetChilds(lastValidNode, ret, maxResults);
+        recursiveGetChilds(lastValidNode, ret, maxResults, filter, processChildsOfNodesExcludedByFilter);
         locker.unlock();
         return ret;
     }
 
+    /**
+     * @brief Get the storage object
+     */
     IBlockStorage* getStorage()
     {
         return storage;

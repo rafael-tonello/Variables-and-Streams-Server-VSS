@@ -9,8 +9,8 @@ FileStorage::FileStorage(uint blockSize, string fname)
 } 
  
 FileStorage::~FileStorage() 
-{ 
-    
+{
+    file.close();
 } 
 
 bool FileStorage::fileExists(string f)
@@ -43,7 +43,7 @@ Error FileStorage::init()
     }
     else
     {   
-        system(string("cd ~; pwd").c_str());
+        //system(string("cd $HOME").c_str());
         system(("touch " + fname).c_str());
         //create a new file for read and write
         file.open(fname, std::fstream::in | std::fstream::out | std::fstream::trunc | std::fstream::binary);
