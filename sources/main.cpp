@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_TRACE), new LoggerFileWriter(determinteLogFile(), LOGGER_LOG_ALL_LEVELS)}, true));
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_TRACE), new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2)}, true));
     dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
