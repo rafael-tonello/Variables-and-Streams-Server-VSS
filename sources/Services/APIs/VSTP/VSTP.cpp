@@ -53,7 +53,9 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     this->port = port;
 
     this->server = new TCPServer();
-    auto startResult = this->server->startListen((vector<int>){ port });
+    auto startResult = this->server->startListen({
+        shared_ptr<TCPServer_SocketInputConf>(new TCPServer_PortConf(port))
+    });
 
     if (startResult.startedPorts.size() > 0)
     {
@@ -74,7 +76,10 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     {
         for (auto &p: startResult.failedPorts)
         {
-            auto [portinfo, error] = p;
+            //auto [portinfo, error] = p;
+            auto portinfo= std::get<0>(p);
+            auto error = std::get<1>(p);
+
             TCPServer_PortConf *castedPort = (TCPServer_PortConf*)portinfo.get();
             this->log->error("Cannot start the tcp server at port "+to_string(castedPort->port)+": " + error + ". VSTP API service is not running.");
         }
