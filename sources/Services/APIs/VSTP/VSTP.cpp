@@ -50,12 +50,12 @@ API::VSTP::~VSTP()
 
 void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 {
-    bool sucess;
     this->port = port;
 
-    this->server = new TCPServer(port, sucess);
+    this->server = new TCPServer();
+    auto startResult = this->server->startListen((vector<int>){ port });
 
-    if (sucess)
+    if (startResult.startedPorts.size() > 0)
     {
         this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
             if (event == CONN_EVENT::CONNECTED)
@@ -72,7 +72,13 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     }
     else
     {
-        this->log->error("Cannot start the tcp server at port "+to_string(port)+". VSTP API service is not running");
+        for (auto &p: startResult.failedPorts)
+        {
+            auto [portinfo, error] = p;
+            TCPServer_PortConf *castedPort = (TCPServer_PortConf*)portinfo.get();
+            this->log->error("Cannot start the tcp server at port "+to_string(castedPort->port)+": " + error + ". VSTP API service is not running.");
+        }
+
         this->port = -1;
         return;
     }
