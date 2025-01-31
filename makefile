@@ -25,7 +25,7 @@ H_SOURCE := $(shell ./makefile.aux/detect_include_files.sh "withAlternativeExten
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
-	@ clear
+	@ clear | true
 	@ mkdir ./build | true
 	@ cp -r ./sources/assets/* ./build >/dev/null 2>&1 | true
  
