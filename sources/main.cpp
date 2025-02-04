@@ -65,8 +65,8 @@ int main(int argc, char** argv){
     dim.addSingleton<ThreadPool>(new ThreadPool(20));
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
-    //dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
-    dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
+    dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    //dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
     //dim.addSingleton<StorageInterface>(new PrefixTreeStorage(&dim));
     /*two points to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/

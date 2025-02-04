@@ -5,7 +5,7 @@ VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim)
     this->confs = dim->get<Confs>();
     this->log = dim->get<ILogger>()->getNamedLoggerP("VarSystemLibStorage");
 
-    confs->listenA("dbDirectory", [&](DynamicVar value)
+    confs->listenA("DbDirectory", [&](DynamicVar value)
     {
         this->log->info("Database directory: " + value.getString());
         this->databaseLocation = value.getString();

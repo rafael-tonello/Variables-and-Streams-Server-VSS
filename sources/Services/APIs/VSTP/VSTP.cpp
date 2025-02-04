@@ -386,7 +386,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
             log->info((DVV){"The client", clientSocket.address, "(address",clientSocket.address,") requested an id change with its actual id (", oldId,")"});
         }
 
-        //event if client do not change its id, notify the controller so it can update the client about its observing vars.
+        //even if client do not change its id, notify the controller so it can update the client about its observing vars.
         int varsAlreadyBeingObserved = 0;
         this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);

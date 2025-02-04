@@ -316,6 +316,8 @@ string TheController::clientConnected(string clientId, ApiInterface* api, int &o
     Controller_ClientHelper client = Controller_ClientHelper(db, clientId, api);
     observingVarsCount = client.getObservingVarsCount();
 
+    this->log->debug("The client '"+clientId+"' has "+to_string(observingVarsCount)+" observing variables. Updating client about the current values.");
+
     updateClientAboutObservatingVars(client);
 
     return clientId;
@@ -333,8 +335,6 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
         {
             //vector<tuple<varname, customIdsAndMetainfo, value>>
             vector<tuple<string, string, DynamicVar>> result;
-            
-            Controller_VarHelper tmpVar(log, this->db, currVarToSearch);
 
             auto varSearchResult = this->getVar(currVarToSearch, "").get().result;
             for (auto &c: varSearchResult)
@@ -350,6 +350,7 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
                     });
             }
 
+            this->log->debug("Upading client about the variable '"+currVarToSearch+"'");
             if (controller_ClientHelperP.notify(result) != API::ClientSendResult::LIVE)
             {
                 mustCheckClientLiveTime = true;
