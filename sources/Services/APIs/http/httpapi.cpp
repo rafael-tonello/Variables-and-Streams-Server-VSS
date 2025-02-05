@@ -67,6 +67,15 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
         httpsPubCert
     );
 
+    //server->__serverName = "Var Streams Server, version ""
+    server->setServerInfo(
+        "Var Stream Server " 
+        + string(dim->get<string>("systemVersion")->c_str()) 
+        //+ ", " 
+        //+ server->getServerName() 
+        //+ " " + server->getServerVersion()
+    );
+
     this->servers.push_back(server);
 }
 
