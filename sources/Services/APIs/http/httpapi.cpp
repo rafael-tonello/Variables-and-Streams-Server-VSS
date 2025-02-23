@@ -61,7 +61,8 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
         ),
         {},
         { dim->get<Confs>()->getA("httpDataDir").getString() },
-        NULL,
+        dim->get<ThreadPool>(),
+        //new ThreadPool(10, 0, "VSSHTTPAPI"),
         https,
         httpsKey,
         httpsPubCert
