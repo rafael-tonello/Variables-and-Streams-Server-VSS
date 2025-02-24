@@ -30,7 +30,6 @@ DynamicVar VarSystemLibStorage::get(string name, DynamicVar defaultValue)
 
 vector<string> VarSystemLibStorage::getChilds(string parentName)
 {
-    log->warning("VarSystemLibStorage::getChilds, includesubchilds is not checked yet");
     parentName = escape(parentName);
     vector<string> result;
     auto tmp = db->getChilds(parentName);

@@ -50,7 +50,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.3.0+Veruna";
+string INFO_VERSION = "1.3.1+Veruna";
 
 int main(int argc, char** argv){
     handleSignals();
@@ -61,8 +61,10 @@ int main(int argc, char** argv){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_TRACE), new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2)}, true));
-    dim.addSingleton<ThreadPool>(new ThreadPool(20));
+    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2), new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2)}, false));
+    dim.addSingleton<ThreadPool>(new ThreadPool(20, 0, "VSSTHPOOL_"));
+    //threadpool2 can be used to prevent deadlocks with the main ThreadPool1. You also can use threadpool1 withtout threadlimit to prevent deadlocks
+    dim.addSingleton<ThreadPool>(new ThreadPool(10, 0, "VSSTHPOOL2_"), { "ThreadPool2" }); 
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));

@@ -138,7 +138,7 @@ namespace API {
              * @param the amount of data (number of bytes) received
              * @param clientSocket a SocketInfo object eith information about the socket client
              */
-            void processCommand(string command, string payload, ClientInfo& clientSocket);
+            void processCommand(string command, string payload, ClientInfo &clientSocket);
             //a helper function to __protocol_VSTP_write
             void __PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data);
 
@@ -160,6 +160,7 @@ namespace API {
             void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
 
             ThreadPool *scheduler;
+            ThreadPool *SecondaryScheduler;
 
 
         public:

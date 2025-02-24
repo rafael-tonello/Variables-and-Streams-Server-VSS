@@ -48,6 +48,7 @@ public:
     void addObserver(string clientId, string metadata);
     void removeCliObservings(string clientId);
     void removeObserving(string clientId, string metadata);
+    void _internal_removeObserving(string clientId, string metadata);
     void foreachObservations(FObservationsForEachFunction f);
 
     /// @brief Return a vector with client ids and metadata

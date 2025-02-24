@@ -35,6 +35,7 @@ API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
     this->log =   dim.get<ILogger>()->getNamedLoggerP("API::VSTP");
     this->ctrl = dim.get<ApiMediatorInterface>();
     this->scheduler = dim.get<ThreadPool>();
+    this->SecondaryScheduler = dim.get<ThreadPool>("ThreadPool2");
     this->initServer(port, dim.get<ThreadPool>());
     this->startListenMessageBus(dim.get<MessageBus<JsonMaker::JSON>>());
 
@@ -201,8 +202,8 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 
 void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
 {
-    if (command != VSTP_ACTIONS::PING)
-        this->log->debug((DVV){"received command from client "+clientSocket.tags["id"] + " ("+clientSocket.address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    //if (command != VSTP_ACTIONS::PING)
+    //    this->log->debug((DVV){"received command from client "+clientSocket.tags["id"] + " ("+clientSocket.address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
         
     string strData;
     string key;
@@ -405,8 +406,8 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
     }
 
-    if (command != VSTP_ACTIONS::PING)
-        this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    //if (command != VSTP_ACTIONS::PING)
+    //    this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
 }
 
 void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data)
@@ -477,7 +478,9 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
     //payload = byteUnescape(payload);
 
     
-    scheduler->enqueue([&, command, payload, cli](){
+    //use the secondary scheduler because this tasks needs to wait for futures that depends on primary scheduler and, as primary scheduler,
+    //has a limited number of threads, it can run out in a deadlock;
+    SecondaryScheduler->enqueue([&, command, payload, cli](){
         this->processCommand(command, payload, *cli);
     });
 }

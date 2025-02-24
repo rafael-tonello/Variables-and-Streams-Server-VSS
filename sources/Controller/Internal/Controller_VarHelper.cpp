@@ -178,36 +178,41 @@ void Controller_VarHelper::removeCliObservings(string clientId)
 void Controller_VarHelper::removeObserving(string clientId, string metadata)
 {
     runLocked([&](){
-
-        int actualVar_observersCount = db->get(name + "._observers.list.count", 0).getInt();
-
-        for (int c = actualVar_observersCount-1; c>=0; c--)
-        {
-            auto currItemName = db->get(R("NM._observers.list.IDX.clientId", {{"NM", name}, {"IDX", to_string(c)}}), "").getString();
-            auto currMetadata = db->get(R("NM._observers.list.IDX.metadata", {{"NM", name}, {"IDX", to_string(c)}}), "").getString();
-            if ( currItemName == clientId && currMetadata == metadata)
-            {
-                for (int c2 = c; c2 < actualVar_observersCount-1; c2++)
-                {
-                    auto currId = db->get(R("?._observers.list.?.clientId", {name, to_string(c2+1)}), "").getString();
-                    auto currMetadata = db->get(R("?._observers.list.?.metadata", {name, to_string(c2+1)}), "").getString();
-
-                    db->set(R("?._observers.list.?.clientId", {name, to_string(c2)}), currId);
-                    db->set(R("?._observers.list.?.metadata", {name, to_string(c2)}), currMetadata);
-                    db->set(R("?._observers.byId.?.byMetadata.?", {name, currId, currMetadata}), c2);
-                }
-                
-                //remove the last item from the _observers.list
-                db->deleteValue(R("?._observers.list.?", {name, to_string(actualVar_observersCount-1)}), true);
-
-                actualVar_observersCount--;
-                db->set(name + "._observers.list.count", actualVar_observersCount);
-
-                //remove the item from _observers.byId
-                db->deleteValue(R("?._observers.byId.?", {name, clientId}), true);
-            }
-        }
+        _internal_removeObserving(clientId, metadata);
     });
+}
+
+
+void Controller_VarHelper::_internal_removeObserving(string clientId, string metadata)
+{
+    int actualVar_observersCount = db->get(name + "._observers.list.count", 0).getInt();
+
+    for (int c = actualVar_observersCount-1; c>=0; c--)
+    {
+        auto currItemName = db->get(R("NM._observers.list.IDX.clientId", {{"NM", name}, {"IDX", to_string(c)}}), "").getString();
+        auto currMetadata = db->get(R("NM._observers.list.IDX.metadata", {{"NM", name}, {"IDX", to_string(c)}}), "").getString();
+        if ( currItemName == clientId && currMetadata == metadata)
+        {
+            for (int c2 = c; c2 < actualVar_observersCount-1; c2++)
+            {
+                auto currId = db->get(R("?._observers.list.?.clientId", {name, to_string(c2+1)}), "").getString();
+                auto currMetadata = db->get(R("?._observers.list.?.metadata", {name, to_string(c2+1)}), "").getString();
+
+                db->set(R("?._observers.list.?.clientId", {name, to_string(c2)}), currId);
+                db->set(R("?._observers.list.?.metadata", {name, to_string(c2)}), currMetadata);
+                db->set(R("?._observers.byId.?.byMetadata.?", {name, currId, currMetadata}), c2);
+            }
+            
+            //remove the last item from the _observers.list
+            db->deleteValue(R("?._observers.list.?", {name, to_string(actualVar_observersCount-1)}), true);
+
+            actualVar_observersCount--;
+            db->set(name + "._observers.list.count", actualVar_observersCount);
+
+            //remove the item from _observers.byId
+            db->deleteValue(R("?._observers.byId.?", {name, clientId}), true);
+        }
+    }
 }
 
 bool Controller_VarHelper::valueIsSetInTheDB()
