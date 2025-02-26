@@ -14,7 +14,7 @@
 
 struct SpeedViaVstpTestLogInfo
 {
-    Logger* sender = NULL;
+    ILogger* sender = NULL;
     string msg = "";
     int level = 0;
     string name = "";

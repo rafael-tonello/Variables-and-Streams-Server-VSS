@@ -177,7 +177,7 @@ void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> cl
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
             {
-                log->error("TheController", Utils::sr("Client notification failute due 'responsible API not found (CliId = '?', Api = '?').", {
+                log->error("TheController", Utils::srm("Client notification failute due 'responsible API not found (CliId = '?', Api = '?').", {
                     clientIdp,
                     db->get("internal.clients.byId."+clientIdp+".apiId", "").getString(),
                 }));

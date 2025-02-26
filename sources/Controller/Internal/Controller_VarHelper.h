@@ -18,6 +18,7 @@ using namespace std;
 
 using FObservationsForEachFunction = function<void(string currentClientId, string metadata)>;
 #define R Utils::sr
+#define RM Utils::srm
 
 class Controller_VarHelper { 
 private:

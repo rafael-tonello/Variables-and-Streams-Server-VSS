@@ -31,6 +31,8 @@ void Utils::named_lock(string session_name, named_lock_f f, int timeout_ms)
         Utils::names_locks_mutexes[session_name]->unlock(); 
         throw;
     }
+
+
 }
 
 void Utils::named_lock_forceunlock(string session_name)
@@ -508,7 +510,7 @@ string Utils::stringReplace(string source, vector<tuple<string, string>> replace
     return source;
 }
 
-string Utils::stringReplace(string source, vector<string> by, string marker, bool use_TheArgBy_Circularly)
+string Utils::stringReplaceMarker(string source, vector<string> by, string marker, bool use_TheArgBy_Circularly)
 {
     stringstream ret;
     auto pos = source.find(marker);
@@ -636,4 +638,32 @@ string Utils::rtrim(string s) {
 // trim from both ends (in place)
 string Utils::trim(std::string s) {
     return rtrim(ltrim(s));
+}
+
+string Utils::escapeString(string source)
+{
+    string ret = source;
+    ret = Utils::stringReplace(ret, {
+        {"\\", "\\\\"},
+        {"\"", "\\\""},
+        {"\n", "\\n"},
+        {"\r", "\\r"},
+        {"\t", "\\t"}
+    });
+
+    return ret;
+}
+
+string Utils::unescapeString(string source)
+{
+    string ret = source;
+    ret = Utils::stringReplace(ret, {
+        {"\\n", "\n"},
+        {"\\r", "\r"},
+        {"\\t", "\t"},
+        {"\\\"", "\""},
+        {"\\\\", "\\"}
+    });
+
+    return ret;
 }

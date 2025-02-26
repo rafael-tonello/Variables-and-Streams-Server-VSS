@@ -20,7 +20,7 @@ void SpeedViaVstpTest::run(string context)
 {
     if (context != "speedviavstp") return;
 
-    auto logger = new Logger({new LoggerLambdaWriter([&](Logger* sender, string msg, int level, string name, std::time_t dateTime)
+    auto logger = new Logger({new LoggerLambdaWriter([&](ILogger* sender, string msg, int level, string name, std::time_t dateTime)
     {
         this->lastLogInfo = {sender, msg, level, name};
         cout << "\t\t\t\t[" << name << "] " << msg << endl;

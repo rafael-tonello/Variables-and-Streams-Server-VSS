@@ -150,11 +150,11 @@ void Controller_VarHelper::addObserver(string clientId, string metadata)
 
         int actualVar_observersCount = db->get(name + "._observers.list.count", 0).getInt();
         
-        db->set(R("?._observers.list.?.clientId", {name, to_string(actualVar_observersCount)}), clientId);
-        db->set(R("?._observers.list.?.metadata", {name, to_string(actualVar_observersCount)}), metadata);
+        db->set(RM("?._observers.list.?.clientId", {name, to_string(actualVar_observersCount)}), clientId);
+        db->set(RM("?._observers.list.?.metadata", {name, to_string(actualVar_observersCount)}), metadata);
 
-        db->set(R("?._observers.byId.?.byMetadata.?", {name, clientId, metadata}), actualVar_observersCount);
-        db->set(R("?._observers.list.count", {name}), actualVar_observersCount+1);
+        db->set(RM("?._observers.byId.?.byMetadata.?", {name, clientId, metadata}), actualVar_observersCount);
+        db->set(RM("?._observers.list.count", {name}), actualVar_observersCount+1);
     });
 }
 
@@ -166,8 +166,8 @@ void Controller_VarHelper::removeCliObservings(string clientId)
 
         for (int c = actualVar_observersCount-1; c>=0; c--)
         {
-            auto currItemName = db->get(R("?._observers.list.?.clientId", {name, to_string(c)}), "").getString();
-            auto currMetadata = db->get(R("?._observers.list.?.metadata", {name, to_string(c)}), "").getString();
+            auto currItemName = db->get(RM("?._observers.list.?.clientId", {name, to_string(c)}), "").getString();
+            auto currMetadata = db->get(RM("?._observers.list.?.metadata", {name, to_string(c)}), "").getString();
             if ( currItemName == clientId)
 
             removeObserving(currItemName, currMetadata);
@@ -195,22 +195,22 @@ void Controller_VarHelper::_internal_removeObserving(string clientId, string met
         {
             for (int c2 = c; c2 < actualVar_observersCount-1; c2++)
             {
-                auto currId = db->get(R("?._observers.list.?.clientId", {name, to_string(c2+1)}), "").getString();
-                auto currMetadata = db->get(R("?._observers.list.?.metadata", {name, to_string(c2+1)}), "").getString();
+                auto currId = db->get(RM("?._observers.list.?.clientId", {name, to_string(c2+1)}), "").getString();
+                auto currMetadata = db->get(RM("?._observers.list.?.metadata", {name, to_string(c2+1)}), "").getString();
 
-                db->set(R("?._observers.list.?.clientId", {name, to_string(c2)}), currId);
-                db->set(R("?._observers.list.?.metadata", {name, to_string(c2)}), currMetadata);
-                db->set(R("?._observers.byId.?.byMetadata.?", {name, currId, currMetadata}), c2);
+                db->set(RM("?._observers.list.?.clientId", {name, to_string(c2)}), currId);
+                db->set(RM("?._observers.list.?.metadata", {name, to_string(c2)}), currMetadata);
+                db->set(RM("?._observers.byId.?.byMetadata.?", {name, currId, currMetadata}), c2);
             }
             
             //remove the last item from the _observers.list
-            db->deleteValue(R("?._observers.list.?", {name, to_string(actualVar_observersCount-1)}), true);
+            db->deleteValue(RM("?._observers.list.?", {name, to_string(actualVar_observersCount-1)}), true);
 
             actualVar_observersCount--;
             db->set(name + "._observers.list.count", actualVar_observersCount);
 
             //remove the item from _observers.byId
-            db->deleteValue(R("?._observers.byId.?", {name, clientId}), true);
+            db->deleteValue(RM("?._observers.byId.?", {name, clientId}), true);
         }
     }
 }
@@ -235,8 +235,8 @@ vector<tuple<string, string>> Controller_VarHelper::getObservations()
 
     for (int c = 0; c < actualVar_observersCount; c++)
     {
-        auto clientId = db->get(R("?._observers.list.?.clientId", {name, to_string(c)}), "").getString();
-        auto metadata = db->get(R("?._observers.list.?.metadata", {name, to_string(c)}), "").getString();
+        auto clientId = db->get(RM("?._observers.list.?.clientId", {name, to_string(c)}), "").getString();
+        auto metadata = db->get(RM("?._observers.list.?.metadata", {name, to_string(c)}), "").getString();
         if (clientId != "")
             result.push_back({clientId, metadata});
     }
@@ -247,7 +247,7 @@ vector<tuple<string, string>> Controller_VarHelper::getObservations()
 vector<tuple<string, string>> Controller_VarHelper::getObservationsOfAClient(string clientId)
 {
     vector<tuple<string, string>> result;
-    auto childs = db->getChilds(R("?._observers.byId.?.byMetadata", {name, clientId}));
+    auto childs = db->getChilds(RM("?._observers.byId.?.byMetadata", {name, clientId}));
     for (auto &curr: childs)
     {
         if (curr.find('.') != string::npos)
@@ -265,7 +265,7 @@ vector<string> Controller_VarHelper::getMetadatasOfAClient(string clientId)
     vector<string> result;
 
     //auto childs = db->getChilds(R("{name}._observers.byId.{cliId}.byMetadata", {{"{name}", name}, {"{cliId}", clientId}}));
-    auto childs = db->getChilds(R("?._observers.byId.?.byMetadata", {name, clientId}));
+    auto childs = db->getChilds(RM("?._observers.byId.?.byMetadata", {name, clientId}));
     for (auto &curr: childs)
     {
         if (curr.find('.') != string::npos)

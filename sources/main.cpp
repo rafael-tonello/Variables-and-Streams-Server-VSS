@@ -52,6 +52,10 @@ Confs* initConfigurations(int argc, char** argv);
 //semantic versioning
 string INFO_VERSION = "1.4.0+Haumea";
 
+#define KIB *1024
+#define MIB *1024*1024
+
+
 int main(int argc, char** argv){
     handleSignals();
     srand((unsigned)time(0)); 
@@ -61,16 +65,24 @@ int main(int argc, char** argv){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2), new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2)}, false));
+    
+    dim.addSingleton<ILogger>(new Logger({
+        new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2),
+        new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2, true, dim.get<Confs>()->getA("maxLogFileSize", 50 MIB))
+    }, false));
+    
     dim.addSingleton<ThreadPool>(new ThreadPool(20, 0, "VSSTHPOOL_"));
+    
     //threadpool2 can be used to prevent deadlocks with the main ThreadPool1. You also can use threadpool1 withtout threadlimit to prevent deadlocks
     dim.addSingleton<ThreadPool>(new ThreadPool(10, 0, "VSSTHPOOL2_"), { "ThreadPool2" }); 
+    
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
     dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
     //dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
     //dim.addSingleton<StorageInterface>(new PrefixTreeStorage(&dim));
-    /*two points to controller (to allow systems to find it by all it types):
+    
+    /*two pointers to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
     dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort"), dim));
@@ -201,6 +213,8 @@ Confs* initConfigurations(int argc, char **argv)
         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
     ;
 
+    //max log file size (logger library will compress the file if it is bigger than this value)
+    conf->createAlias("maxLogFileSize").addForAnyProvider({"maxLogFileSize", "--maxLogFileSize", "VSS_MAX_LOG_FILE_SIZE"}).setDefaultValue(50 MIB);
     
     //max time to consider a client complettly disconnected (not just a network problem)
     conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
