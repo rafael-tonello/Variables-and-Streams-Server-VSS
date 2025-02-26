@@ -68,7 +68,7 @@ int main(int argc, char** argv){
     
     dim.addSingleton<ILogger>(new Logger({
         new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2),
-        new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2, true, dim.get<Confs>()->getA("maxLogFileSize", 50 MIB))
+        new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2, true, dim.get<Confs>()->getA("maxLogFileSize", 50 MIB).getInt())
     }, false));
     
     dim.addSingleton<ThreadPool>(new ThreadPool(20, 0, "VSSTHPOOL_"));
