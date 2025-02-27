@@ -125,8 +125,11 @@
                     continue
                 fi
 
+                local commit="$_r"
+                local shortCommit=$(echo $commit | cut -c1-7)
+
                 app.coutLogInfo "running default pipeline for branch $branch"
-                app.defaultPipeline "$branch"
+                app.defaultPipeline "$branch" "$shortCommit"
                 if [ $? -ne 0 ]; then
                     _error="Error while running default pipeline for branch '$branch': $_error"
                     app.error "$_error"
@@ -306,7 +309,7 @@
     }
 
     #_r receives the artifact name
-    app.defaultPipeline(){ local branch="$1"; local _display_pipeline_="$2"; _delete_folder_after_done_="$3"
+    app.defaultPipeline(){ local branch="$1"; local _aditionalArtifactInfo_="$2"; local _display_pipeline_="$3"; _delete_folder_after_done_="$4"
         #params validation {
             if [ -z "$branch" ]; then
                 _error="defaultPipeline -> Branch is required"
@@ -421,6 +424,10 @@
             local currentArchitechture=$(uname -m)
             app.info "Creating and uploading artifacts ..."
             local artifactName="$settings_projectName-$branch-$currentArchitechture"
+            if [ !-z "$_aditionalArtifactInfo_" ]; then
+                artifactName="$artifactName-$_aditionalArtifactInfo_"
+            fi
+
             local outputFile="$artifactName.tar.gz"
             app.coutLogInfo "copying build folder to $artifactName"
             cp -r ./build "$artifactName"
@@ -484,7 +491,7 @@
 
         app.info "$notificationContent"
 
-        app.defaultPipeline "$tag" false false
+        app.defaultPipeline "$tag" "" false false
         if [ $? -ne 0 ]; then
             _error="Could not run default pipeline for tag '$tag': $_error"
             app.error="$_error"
