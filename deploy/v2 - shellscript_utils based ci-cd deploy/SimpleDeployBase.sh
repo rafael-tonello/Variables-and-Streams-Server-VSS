@@ -127,8 +127,6 @@ this->init(){ local ProjectName="$1"; local repositoryUrl="$2"; local _auto_star
         local type=${_r[1]}
         #remove first _r element
 
-        echo "--------------------------------------------------- type: $type"
-
         case $type in
             "gitcommit")
                 this->_waitingPreviousOperation=true
@@ -140,13 +138,11 @@ this->init(){ local ProjectName="$1"; local repositoryUrl="$2"; local _auto_star
 
                 if [ "$this->_cnqe_prom->class" == "promise" ]; then
                     this->_cnqe_prom->then _(){
-                        echo "--------------------------------------------------- git commit sucess"
                         finalizeRef "this->_cnqe_prom" true
                         this->_waitingPreviousOperation=false
                         this->consumeNextQueueElement
                     }()_
                     this->_cnqe_prom->catch _(){
-                        echo "--------------------------------------------------- git commit error"
                         finalizeRef "this->_cnqe_prom" true
                         this->_waitingPreviousOperation=false
                         this->consumeNextQueueElement
@@ -169,13 +165,11 @@ this->init(){ local ProjectName="$1"; local repositoryUrl="$2"; local _auto_star
 
                 if [ "$this->_cnqe_prom2->class" == "promise" ]; then
                     this->_cnqe_prom2->then _(){
-                        echo "--------------------------------------------------- git tag sucess"
                         finalizeRef "this->_cnqe_prom2" true
                         this->_waitingPreviousOperation=false
                         this->consumeNextQueueElement
                     }()_
                     this->_cnqe_prom2->catch _(){
-                        echo "--------------------------------------------------- git tag error"
                         finalizeRef "this->_cnqe_prom2" true
                         this->_waitingPreviousOperation=false
                         this->consumeNextQueueElement

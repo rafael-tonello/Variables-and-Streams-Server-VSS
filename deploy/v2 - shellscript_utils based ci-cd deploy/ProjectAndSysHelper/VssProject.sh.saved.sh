@@ -105,6 +105,7 @@ __app___ProjAndSysHelper_checkout(){ __app___ProjAndSysHelper___branch_or_tag="$
     }
 
     __app___ProjAndSysHelper_runTests(){ __app___ProjAndSysHelper___rnt_onDone="$1"
+        
         __app___ProjAndSysHelper_log_info "----- [ Running tests ] -----"
 
         if [ ! -f "$__app___ProjAndSysHelper_projectDirectory/tests/build/tests" ]; then
@@ -199,43 +200,59 @@ __app___ProjAndSysHelper_checkout(){ __app___ProjAndSysHelper___branch_or_tag="$
 
 # vss replacement functions (delivery) {
     __app___ProjAndSysHelper_deployToProduction(){ local tag="$1"; local onDone="$2"; local state="$3"; local error="$4"
+        echo "__app___ProjAndSysHelper_deployToProduction called with tag: $tag, state $state, error: $error and onDone: $onDone"
         __app___ProjAndSysHelper_log_debug "__app___ProjAndSysHelper_deployToProduction called with tag: $tag, state $state, error: $error and onDone: $onDone"
 
         if [ ! -z "$error" ]; then
+            echo "entered in error case"
             __app___ProjAndSysHelper_utils_derivateError2 "Error replacing vss"
             __app___ProjAndSysHelper_log_error "$_error"
             eval "$onDone 1 \"$_error\""
             return 1
         fi
-        
+
+
+        echo 1
+        echo "checking state: "
         if [ -z "$state" ]; then
+            echo 2
             __app___ProjAndSysHelper_deployToProduction "$tag" "$onDone" "stopVssGuard"
         elif [ "$state" == "stopVssGuard" ]; then
+            echo 3
             __app___ProjAndSysHelper_stopVssGuard "__app___ProjAndSysHelper_deployToProduction "$tag" "$onDone" "replaceFiles""
         elif [ "$state" == "replaceFiles" ]; then
+            echo 4
             __app___ProjAndSysHelper_replaceVssBinaries "__app___ProjAndSysHelper_deployToProduction "$tag" "$onDone" "runVssGuard""
         elif [ "$state" == "runVssGuard" ]; then
+            echo 5
+            echo "running __app___ProjAndSysHelper_runVssGuard function"
             __app___ProjAndSysHelper_runVssGuard "__app___ProjAndSysHelper_deployToProduction "$tag" "$onDone" "done""
         elif [ "$state" == "done" ]; then
+            echo 6
             __app___ProjAndSysHelper_log_info "Vss replaced"
             __app___ProjAndSysHelper_telegram_sendInfoMessage "Vss replaced in production"
             eval "$onDone 0"
         else
-            _error=VssProject::deployToProduction called with an invalid state: $state
-            __app___ProjAndSysHelper_log_error "$_error"
-            eval "$onDone 1 \"$_error\""
+            echo "invalid state $state"
+            if [ "$state" == "runVssGuard" ]; then
+                echo "agora detectou"
+            fi
+            echo 7
         fi
+        echo 8
     }
 
     __app___ProjAndSysHelper_stopVssGuard(){ __app___ProjAndSysHelper_tmpOnDone="$1";
         __app___ProjAndSysHelper_log_info "stopping vss guard"
         echo "stop" > ~/vss/control
 
+        echo "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[calling wait for ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
         scheduler_waitFor anonimousFunction_27 anonimousFunction_28 10
 
     }
 
     __app___ProjAndSysHelper_replaceVssBinaries(){ __app___ProjAndSysHelper__rvb_tmpOnDone="$1"
+
         __app___ProjAndSysHelper_log_info "replacing vss binary file"
         __app___ProjAndSysHelper_log_debug "running cp -r \"$__app___ProjAndSysHelper_projectDirectory/build/\"* ~/vss/bin/ > /tmp/vssreplbin 2>&1"
         cp -r "$__app___ProjAndSysHelper_projectDirectory/build/"* ~/vss/bin/ > /tmp/vssreplbin 2>&1
@@ -250,10 +267,12 @@ __app___ProjAndSysHelper_checkout(){ __app___ProjAndSysHelper___branch_or_tag="$
     }
 
     __app___ProjAndSysHelper_runVssGuard(){ __app___ProjAndSysHelper__rvs_tmpOnDone="$1"
+        echo "looooooooooooooooooooooooooooooooooooooooooooooooooooooool"
         __app___ProjAndSysHelper_log_info "Requesting vss start to the vss guard"
-
+        #scheduler_waitFor(){ local checkCallback=$1; local doneCallback=$2; local _timeoutsec_=$3; local _taskCheckInterval_=$4
         echo "run" > ~/vss/control
 
+        echo "calling w ait for"
         scheduler_waitFor anonimousFunction_29 anonimousFunction_30 10
     }
 
@@ -398,6 +417,7 @@ function anonimousFunction_27(){
             echo "checking"
             local vssGudartControlContent=$(cat ~/vss/control)
             if [ "$vssGudartControlContent" == "stopped" ]; then
+                echo "Ok, vss guard stopped"
                 return 0
             fi
             return 1
@@ -405,15 +425,20 @@ function anonimousFunction_27(){
 
 function anonimousFunction_28(){ 
             if [ "$_error" != "" ]; then
+                echo "exiting with error"
                 __app___ProjAndSysHelper_utils_derivateError2 "Error stopping vss guard"
                 eval "$__app___ProjAndSysHelper_tmpOnDone \"$_error\""
             else
+                echo "exiting with sucess"
+                echo "evaluating '$__app___ProjAndSysHelper_tmpOnDone'"
                 eval "$__app___ProjAndSysHelper_tmpOnDone"
             fi
          }
 
 function anonimousFunction_29(){ 
+            echo "checking vss guard status"
             local vssGudartControlContent=$(cat ~/vss/control)
+            echo "current vss guart status: $vssGudartControlContent"
             __app___ProjAndSysHelper_log_debug "vssGudartControlContent = $vssGudartControlContent"
             if [ "$vssGudartControlContent" == "running" ]; then
                 return 0
@@ -422,8 +447,10 @@ function anonimousFunction_29(){
          }
 
 function anonimousFunction_30(){ 
+            echo "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.. terminou!!!!"
             if [ "$_error" != "" ]; then
                 __app___ProjAndSysHelper_utils_derivateError2 "Error running vss guard"
+                __app___ProjAndSysHelper_log_error "$_error"
                 eval "$__app___ProjAndSysHelper__rvs_tmpOnDone \"$_error\""
             else
                 __app___ProjAndSysHelper_log_info "Vss guard started"

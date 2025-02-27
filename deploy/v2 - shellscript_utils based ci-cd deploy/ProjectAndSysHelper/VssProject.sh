@@ -1,5 +1,5 @@
 inherits "IProjectAnsSys" "$this->name"
-
+saveFile=true
 this->init(){
     new promise this->_initRetProm
 
@@ -235,6 +235,7 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
     }
 
     this->runTests(){ this->__rnt_onDone="$1"
+        
         this->log->info "----- [ Running tests ] -----"
 
         if [ ! -f "$this->projectDirectory/tests/build/tests" ]; then
@@ -359,50 +360,69 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
 
 # vss replacement functions (delivery) {
     this->deployToProduction(){ local tag="$1"; local onDone="$2"; local state="$3"; local error="$4"
+        echo "this->deployToProduction called with tag: $tag, state $state, error: $error and onDone: $onDone"
         this->log->debug "this->deployToProduction called with tag: $tag, state $state, error: $error and onDone: $onDone"
 
         if [ ! -z "$error" ]; then
+            echo "entered in error case"
             this->utils->derivateError2 "Error replacing vss"
             this->log->error "$_error"
             eval "$onDone 1 \"$_error\""
             return 1
         fi
-        
+
+
+        echo 1
+        echo "checking state: "
         if [ -z "$state" ]; then
+            echo 2
             this->deployToProduction "$tag" "$onDone" "stopVssGuard"
         elif [ "$state" == "stopVssGuard" ]; then
+            echo 3
             this->stopVssGuard "this->deployToProduction "$tag" "$onDone" "replaceFiles""
         elif [ "$state" == "replaceFiles" ]; then
+            echo 4
             this->replaceVssBinaries "this->deployToProduction "$tag" "$onDone" "runVssGuard""
         elif [ "$state" == "runVssGuard" ]; then
+            echo 5
+            echo "running this->runVssGuard function"
             this->runVssGuard "this->deployToProduction "$tag" "$onDone" "done""
         elif [ "$state" == "done" ]; then
+            echo 6
             this->log->info "Vss replaced"
             this->telegram->sendInfoMessage "Vss replaced in production"
             eval "$onDone 0"
         else
-            _error=VssProject::deployToProduction called with an invalid state: $state
-            this->log->error "$_error"
-            eval "$onDone 1 \"$_error\""
+            echo "invalid state $state"
+            if [ "$state" == "runVssGuard" ]; then
+                echo "agora detectou"
+            fi
+            echo 7
         fi
+        echo 8
     }
 
     this->stopVssGuard(){ this->tmpOnDone="$1";
         this->log->info "stopping vss guard"
         echo "stop" > ~/vss/control
 
+        echo "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[calling wait for ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
         scheduler->waitFor _(){
             echo "checking"
             local vssGudartControlContent=$(cat ~/vss/control)
             if [ "$vssGudartControlContent" == "stopped" ]; then
+                echo "Ok, vss guard stopped"
                 return 0
             fi
             return 1
         }()_ _(){
             if [ "$_error" != "" ]; then
+                echo "exiting with error"
                 this->utils->derivateError2 "Error stopping vss guard"
                 eval "$this->tmpOnDone \"$_error\""
             else
+                echo "exiting with sucess"
+                echo "evaluating '$this->tmpOnDone'"
                 eval "$this->tmpOnDone"
             fi
         }()_ 10
@@ -410,6 +430,7 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
     }
 
     this->replaceVssBinaries(){ this->_rvb_tmpOnDone="$1"
+
         this->log->info "replacing vss binary file"
         this->log->debug "running cp -r \"$this->projectDirectory/build/\"* ~/vss/bin/ > /tmp/vssreplbin 2>&1"
         cp -r "$this->projectDirectory/build/"* ~/vss/bin/ > /tmp/vssreplbin 2>&1
@@ -424,20 +445,26 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
     }
 
     this->runVssGuard(){ this->_rvs_tmpOnDone="$1"
+        echo "looooooooooooooooooooooooooooooooooooooooooooooooooooooool"
         this->log->info "Requesting vss start to the vss guard"
-
+        #scheduler_waitFor(){ local checkCallback=$1; local doneCallback=$2; local _timeoutsec_=$3; local _taskCheckInterval_=$4
         echo "run" > ~/vss/control
 
+        echo "calling w ait for"
         scheduler->waitFor _(){
+            echo "checking vss guard status"
             local vssGudartControlContent=$(cat ~/vss/control)
+            echo "current vss guart status: $vssGudartControlContent"
             this->log->debug "vssGudartControlContent = $vssGudartControlContent"
             if [ "$vssGudartControlContent" == "running" ]; then
                 return 0
             fi
             return 1
         }()_ _(){
+            echo "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.. terminou!!!!"
             if [ "$_error" != "" ]; then
                 this->utils->derivateError2 "Error running vss guard"
+                this->log->error "$_error"
                 eval "$this->_rvs_tmpOnDone \"$_error\""
             else
                 this->log->info "Vss guard started"

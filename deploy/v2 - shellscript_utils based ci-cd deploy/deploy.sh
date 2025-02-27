@@ -28,7 +28,7 @@ TlgChatId="165633302"
 
         #calls base "constructor" (the init method)
         this->SimpleDeployBase->init "VarStreamServer" "$GitRepo" false
-        #this->logTerminalWriter->_logLevel=0
+        this->logTerminalWriter->_logLevel=0
 
         # initializes the project and system helper {
             #autoinit=false; new "ProjectAndSysHelper/MockProject" "this->ProjAndSysHelper"
