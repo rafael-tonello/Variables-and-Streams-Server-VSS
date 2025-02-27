@@ -136,7 +136,7 @@
         done
 
         app.coutLogInfo "checking for new tags"
-        app.getNewTag
+        app.getNewOrUpdatedTag
         if [ -z "$_error" ]; then
             if [ -z "$_r" ]; then
                 _error="Bug: An error ocurred. A tag should be returned, but nothing was found"
@@ -238,6 +238,7 @@
         fi
 
         local lastCommit=$(git log origin/$branchName -1 --pretty=format:"%H")
+        
         if [ -$? -ne 0 ]; then
             _error="Could not get last commit for branch '$branchName'"
             _error="$_error"
@@ -262,7 +263,7 @@
 
     #_r receives the last tag if new tags are found. _error receives the error
     #message if any error occurs or nothing is found
-    app.getNewTag(){ local _save_last_tag_if_found_def_true_="$1"
+    app.getNewOrUpdatedTag(){ local _save_last_tag_if_found_def_true_="$1"
         if [ -z "$_save_last_tag_if_found_def_true_" ]; then
             _save_last_tag_if_found_def_true_=true
         fi
@@ -284,11 +285,15 @@
             return 1
         fi
 
-        app.storage.get "lastTag" ""; local lastSavedTag="$_r"
+        #get tag commit and use tag-commit as the tag id (it allow the detection of updated tags)
+        local lastTagCommit=$(git rev-list -n 1 $lastTag)
+        lastTagWithCommit="$lastTag-$lastTagCommit"
+
+        app.storage.get "lastTagWithCommit" ""; local lastSavedTagWithCommit="$_r"
         _r=""
-        if [ "$lastTag" != "$lastSavedTag" ]; then
+        if [ "$lastTagWithCommit" != "$lastSavedTagWithCommit" ]; then
             if $_save_last_tag_if_found_def_true_; then
-                app.storage.set "lastTag" "$lastTag"
+                app.storage.set "lastTagWithCommit" "$lastTagWithCommit"
             fi
             
             _r="$lastTag"
@@ -418,7 +423,8 @@
             local artifactName="$settings_projectName-$branch-$currentArchitechture"
             local outputFile="$artifactName.tar.gz"
             app.coutLogInfo "copying build folder to $artifactName"
-            cp -r ./build $artifactName
+            cp -r ./build "$artifactName"
+            rm -rf "$artifactName/objects"
             tar -czf $outputFile $artifactName > tar.log 2>&1
             if [ -$? -ne 0 ]; then
                 _error="5. Upload artifacts -> Could not create artifacts"
