@@ -15,7 +15,7 @@
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
 #include <Storage/InMemoryDB/inmemorydb.h>
-#include <VarSystem/SysLink.h>
+#include <VarSystem/FVSysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
@@ -23,6 +23,7 @@
 #include <Confs/internal/SimpleConfFileProvider.h>
 #include <Confs/internal/soenvironmentconfprovider.h>
 #include <Confs/internal/commandlineargumentsconfsprovider.h>
+#include <Storage/RamCacheDB/ramcachedb.h>
 
 #include <messagebus.h>
 
@@ -49,7 +50,11 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.0.0+Veruna";
+string INFO_VERSION = "1.4.0+Haumea";
+
+#define KIB *1024
+#define MIB *1024*1024
+
 
 int main(int argc, char** argv){
     handleSignals();
@@ -60,18 +65,28 @@ int main(int argc, char** argv){
     dim.addSingleton<string>(&INFO_VERSION, {"version", "systemVersion", "infoVersion", "INFO_VERSION", "SYSTEM_VERSION"});
 
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
-    dim.addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(LOGGER_LOGLEVEL_TRACE), new LoggerFileWriter(determinteLogFile(), LOGGER_LOG_ALL_LEVELS)}, true));
-    dim.addSingleton<ThreadPool>(new ThreadPool(20));
+    
+    dim.addSingleton<ILogger>(new Logger({
+        new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2),
+        new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2, true, dim.get<Confs>()->getA("maxLogFileSize", 50 MIB).getInt())
+    }, false));
+    
+    dim.addSingleton<ThreadPool>(new ThreadPool(20, 0, "VSSTHPOOL_"));
+    
+    //threadpool2 can be used to prevent deadlocks with the main ThreadPool1. You also can use threadpool1 withtout threadlimit to prevent deadlocks
+    dim.addSingleton<ThreadPool>(new ThreadPool(10, 0, "VSSTHPOOL2_"), { "ThreadPool2" }); 
+    
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
-    //dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
-    dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
+    dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    //dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
     //dim.addSingleton<StorageInterface>(new PrefixTreeStorage(&dim));
-    /*two points to controller (to allow systems to find it by all it types):
+    
+    /*two pointers to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
     dim.addSingleton<TheController>(new TheController(&dim, INFO_VERSION), {typeid(TheController).name(), typeid(ApiMediatorInterface).name()});
-    dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort", 5032), dim));
-    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort", 5024), dim.get<Confs>()->getA("httpApiHttpsPort", 5025), &dim));
+    dim.addSingleton<VSTP>(new VSTP(dim.get<Confs>()->getA("vstpApiPort"), dim));
+    dim.addSingleton<API::HTTP::HttpAPI>(new API::HTTP::HttpAPI(dim.get<Confs>()->getA("httpApiPort"), dim.get<Confs>()->getA("httpApiHttpsPort"), &dim));
     dim.addSingleton<ServerDiscovery>(new ServerDiscovery(dim, INFO_VERSION));
 
 
@@ -196,16 +211,32 @@ Confs* initConfigurations(int argc, char **argv)
         .add("%PROJECT_DIR%", getApplicationDirectory())
         .add("%APP_DIR%", getApplicationDirectory())
         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
-        .add("%DATA_DIR%", (isRunningInPortableMode() ? getApplicationDirectory() : "") + "/data")
     ;
 
+    //max log file size (logger library will compress the file if it is bigger than this value)
+    conf->createAlias("maxLogFileSize").addForAnyProvider({"maxLogFileSize", "--maxLogFileSize", "VSS_MAX_LOG_FILE_SIZE"}).setDefaultValue(50 MIB);
+    
+    //max time to consider a client complettly disconnected (not just a network problem)
+    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
 
-    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"});
-    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"});
+    //where database files should be stored
+    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/database");
 
-    conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"});
-    conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
-    conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"});
+    //HTTP API
+        //directory to store http data (temp files, cookies, ...)
+        conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/http_data");
+        //HTTP port (note that it different from the HTTPS port)
+        conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
+
+        //HTTPS port
+        conf->createAlias("httpApiHttpsPort").addForAnyProvider({"httpsApiPort", "--httpsApiPort", "VSS_HTTPS_API_PORT"}).setDefaultValue(5025);
+        //HTTPs certificate and key files
+        conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssCert.pem");
+        conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
+
+    //VSTP API
+        conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5032);
+
 
     return conf;
 }

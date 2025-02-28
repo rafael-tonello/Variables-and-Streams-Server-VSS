@@ -75,7 +75,7 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 
 future<Errors::Error> TheController::lockVar(string varName, uint maxTimeOut_ms)
 {
-    return tasker->enqueue([=](string varNamep){
+    return tasker->enqueue([=, this](string varNamep){
         Controller_VarHelper varHelper(log, db, varNamep);
         return varHelper.lock(maxTimeOut_ms);
 
@@ -177,7 +177,7 @@ void TheController::notifyClientsAboutVarChange(vector<tuple<string, string>> cl
             }
             else if (resultError == Controller_ClientHelperError::API_NOT_FOUND)
             {
-                log->error("TheController", Utils::sr("Client notification failute due 'responsible API not found (CliId = '?', Api = '?').", {
+                log->error("TheController", Utils::srm("Client notification failute due 'responsible API not found (CliId = '?', Api = '?').", {
                     clientIdp,
                     db->get("internal.clients.byId."+clientIdp+".apiId", "").getString(),
                 }));
@@ -219,7 +219,7 @@ future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
         if (namep == "")
         {
             log->warning("TheController", Errors::Error_TheVariableNameCannotBeEmpty);
-            return GetVarResult(Errors::Error_TheVariableNameCannotBeEmpty, {});
+            return GetVarResult({}, Errors::Error_TheVariableNameCannotBeEmpty);
         }
 
         function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
@@ -291,19 +291,19 @@ future<Errors::Error> TheController::delVar(string varname)
     }, varname);
 }
 
-future<Errors::ResultWithErrorStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
+future<Errors::ResultWithStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
 {
     return tasker->enqueue([&](string parentNamep)
     {
         if (parentNamep.find('*') != string::npos)
         {
             log->error("TheController", Errors::Error_WildcardCanotBeUsesForGetVarChilds);
-            return Errors::ResultWithErrorStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, (vector<string>){});
+            return Errors::ResultWithStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, {});
         }
 
         Controller_VarHelper varHelper(log, db, parentNamep);
         auto result = varHelper.getChildsNames();
-        return Errors::ResultWithErrorStatus<vector<string>>(Errors::NoError, result);
+        return Errors::ResultWithStatus<vector<string>>(Errors::NoError, result);
     }, parentName);
 
 }
@@ -315,6 +315,8 @@ string TheController::clientConnected(string clientId, ApiInterface* api, int &o
 
     Controller_ClientHelper client = Controller_ClientHelper(db, clientId, api);
     observingVarsCount = client.getObservingVarsCount();
+
+    this->log->debug("The client '"+clientId+"' has "+to_string(observingVarsCount)+" observing variables. Updating client about the current values.");
 
     updateClientAboutObservatingVars(client);
 
@@ -333,8 +335,6 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
         {
             //vector<tuple<varname, customIdsAndMetainfo, value>>
             vector<tuple<string, string, DynamicVar>> result;
-            
-            Controller_VarHelper tmpVar(log, this->db, currVarToSearch);
 
             auto varSearchResult = this->getVar(currVarToSearch, "").get().result;
             for (auto &c: varSearchResult)
@@ -350,6 +350,7 @@ void TheController::updateClientAboutObservatingVars(Controller_ClientHelper con
                     });
             }
 
+            this->log->debug("Upading client about the variable '"+currVarToSearch+"'");
             if (controller_ClientHelperP.notify(result) != API::ClientSendResult::LIVE)
             {
                 mustCheckClientLiveTime = true;

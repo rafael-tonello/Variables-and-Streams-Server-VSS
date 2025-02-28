@@ -248,3 +248,89 @@ With all explained, lets see how to continue how VSTP session in the both situat
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vss Helper Text
+
+
+Vss is var stream server. A system that sotore variables that can be shared between process. Clients suposed to observate variables, and be notified when variables of interest are modified instead of polling the server.
+As Vss is a key-value store system, it is possible to store any kind of data, and can be used as a general purpose data store or database.
+
+Vss use multiple configuration source and are very flexible to configure it. It is possible to configure it using a configuration file, environment variables, or command line arguments. Of course, it is possible to use all of them at the same time. In the case of conflict, the order of precedence is command line arguments, environment variables, and, finally, the configuration file.
+
+Portable Mode: Portable mode means you are running VSS in a directory with a confs.conf file and not from /usr/bin (installed in the system)
+Integrated Mode: Integrated mode means you are running VSS from /usr/bin (installed in the system)
+
+
+General Configurations:
+
+    maxTimeWaitingClient_seconds: Maximum time waiting for clients to reconnect in a case of connection lost. Default is 12 hours.
+        Configuration File  : maxTimeWaitingClient_seconds
+        Command line        : --maxTimeWaitingForClients 
+        Environment variable: VSS_MAX_TIME_WAITING_CLIENTS
+
+    dbDirectory: Directory to store the database files. Default is %APP_DIR%/data/database.
+        Configuration File  : dbDirectory
+        Command line        : --dbDirectory
+        Environment variable: VSS_DB_DIRECTORY
+        
+    httpDataDir: Directory to store the http data files. Default is %APP_DIR%/data/http_data.
+        Configuration File  : httpDataDir
+        Command line        : --httpDataDir
+        Environment variable: VSS_HTTP_DATA_DIRECTORY
+
+    httpApiPort: Port to listen for http api requests. Default is 5024.
+        Configuration File  : httpApiPort
+        Command line        : --httpApiPort
+        Environment variable: VSS_HTTP_API_PORT
+
+    httpApiHttpsPort: Port to listen for https api requests. Default is 5025.
+        Configuration File  : httpApiHttpsPort
+        Command line        : --httpApiHttpsPort
+        Environment variable: VSS_HTTPS_API_PORT
+
+    vstpApiPort: Port to listen for vstp api requests. Default is 5032.
+        Configuration File  : vstpApiPort
+        Command line        : --vstpApiPort
+        Environment variable: VSS_VSTP_API_PORT
+
+    httpApiCertFile: File with the certificate to use in the https server. Default is %APP_DIR%/ssl/cert/vssCert.pem.
+        Configuration File  : httpApiCertFile
+        Command line        : --httpApiCertFile
+        Environment variable: VSS_HTTP_API_CERT_FILE
+
+    httpApiKeyFile: File with the key to use in the https server. Default is %APP_DIR%/ssl/cert/vssKey.pem.
+        Configuration File  : httpApiKeyFile
+        Command line        : --httpApiKeyFile
+        Environment variable: VSS_HTTP_API_KEY_FILE
+
+    Important information about the default values: Default values will only be used if the value is not provided in the configuration file, environment variables, or command line arguments. Default values are the latest resource to be used. This helper text session is only about the command line arguments. The other configuration will be explained bellow.
+        
+Command line call:
+    vss [options]
+
+    Options:
+        -h, --help: Show this help message and exit.    
+        -v, --version: Show version information and exit.
+        --maxTimeWaitingForClients: Maximum time waiting for clients to reconnect in a case of connection lost. Default is 12 hours.
+        --dbDirectory: Directory to store the database files. Default is %APP_DIR%/data/database.
+        --httpDataDir: Directory to store the http data files. Default is %APP_DIR%/data/http_data.
+        --httpApiPort: Port to listen for http api requests. Default is 5024.
+        --httpApiHttpsPort: Port to listen for https api requests. Default is 5025.
+        --vstpApiPort: Port to listen for vstp api requests. Default is 5032.
+        --httpApiCertFile: File with the certificate to use in the https server. Default is %APP_DIR%/ssl/cert/vssCert.pem.
+        --httpApiKeyFile: File with the key to use in the https server. Default is %APP_DIR%/ssl/cert/vssKey.pem.
+
+    Important information about the default values: Default values will only be used if the value is not provided in the configuration file, environment variables, or command line arguments. Default values are the latest resource to be used. This helper text session is only about the command line arguments. The other configuration will be explained bellow.

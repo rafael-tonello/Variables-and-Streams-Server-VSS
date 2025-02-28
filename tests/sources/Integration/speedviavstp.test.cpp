@@ -20,22 +20,20 @@ void SpeedViaVstpTest::run(string context)
 {
     if (context != "speedviavstp") return;
 
-    auto logger = new Logger({ 
-        new LoggerLambdaWriter([&](Logger* sender, string msg, int level, string name, std::time_t dateTime)
-        {
-            this->lastLogInfo = {sender, msg, level, name};
-            cout << "\t\t\t\t[" << name << "] " << msg << endl;
-        })
-    });
+    auto logger = new Logger({new LoggerLambdaWriter([&](ILogger* sender, string msg, int level, string name, std::time_t dateTime)
+    {
+        this->lastLogInfo = {sender, msg, level, name};
+        cout << "\t\t\t\t[" << name << "] " << msg << endl;
+    })});
 
-    IConfProvider *confProvider = new InMemoryConfProvider(
+    auto confProvider = new InMemoryConfProvider(
     {
         std::make_tuple("maxTimeWaitingClient_seconds", "10")
     });
 
     dim.addSingleton<ILogger>(logger);
     dim.addSingleton<ThreadPool>(new ThreadPool(4));
-    dim.addSingleton<Confs>(confProvider, {typeid(Confs).name()});
+    dim.addSingleton<IConfProvider>(confProvider, { string(typeid(Confs).name())});
     dim.addSingleton<StorageInterface>(&database);
 
     

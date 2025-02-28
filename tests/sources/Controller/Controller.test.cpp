@@ -4,7 +4,7 @@ ControllerTester::ControllerTester()
 {
 
     auto logger = new Logger({ 
-        new LoggerLambdaWriter([&](Logger* sender, string msg, int level, string name, std::time_t dateTime)
+        new LoggerLambdaWriter([&](ILogger* sender, string msg, int level, string name, std::time_t dateTime)
         {
             this->lastLogInfo = {sender, msg, level, name};
             cout << "\t\t\t\t[" << name << "] " << msg << endl;
@@ -81,7 +81,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -102,7 +102,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
     
@@ -137,7 +137,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -149,7 +149,7 @@ void ControllerTester::test_function_setVar()
         return TestResult{
             result != Errors::NoError, 
             "any error message ( != \"\")", 
-            result.message
+            result
         };
     });
 
@@ -229,9 +229,9 @@ void ControllerTester::test_function_getVar()
         auto retValue = this->ctrl->getVar("", "default value").get();
 
         return TestResult{
-            retValue.errorStatus != Errors::NoError, 
+            retValue.status != Errors::NoError, 
             "Any error message", 
-            retValue.errorStatus.message
+            retValue.status
         };
     });
 

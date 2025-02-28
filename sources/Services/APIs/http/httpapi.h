@@ -27,6 +27,7 @@ namespace API::HTTP{
         vector<KWShared::KWTinyWebServer *> servers;
         NLogger log;
         DependencyInjectionManager* dim;
+        Confs *conf;
 
         void onServerRequest(HttpData* in, HttpData* out);
         IVarsExporter *detectExporter(HttpData *request);

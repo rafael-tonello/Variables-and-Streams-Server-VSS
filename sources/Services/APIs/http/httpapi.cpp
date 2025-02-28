@@ -7,6 +7,7 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     this->httpsPort = httpsPort;
     this->ctrl = dim->get<ApiMediatorInterface>();
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
+    this->conf = dim->get<Confs>();
 
     initHttpServer();
     initHttpsServer();
@@ -31,7 +32,18 @@ void API::HTTP::HttpAPI::initHttpServer()
 
 void API::HTTP::HttpAPI::initHttpsServer()
 {
-    this->initServer(httpsPort, true, "cert/key.pem", "cert/cert.pem");
+    //httpApiCertFile httpApiKeyFile
+    string certFile = dim->get<Confs>()->getA("httpApiCertFile").getString();
+    string keyFile = dim->get<Confs>()->getA("httpApiKeyFile").getString();
+
+    if (certFile == "" || keyFile == "")
+    {
+        log.error("The HTTPS API is not started because the certFile or keyFile is not setted");
+        return;
+    }
+
+    this->initServer(httpsPort, true, keyFile, certFile);
+    
     log.info(string("Https API started a webserver and is listening on port ") + to_string(this->httpsPort));
 }
 
@@ -49,10 +61,20 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
         ),
         {},
         { dim->get<Confs>()->getA("httpDataDir").getString() },
-        NULL,
+        dim->get<ThreadPool>(),
+        //new ThreadPool(10, 0, "VSSHTTPAPI"),
         https,
         httpsKey,
         httpsPubCert
+    );
+
+    //server->__serverName = "Var Streams Server, version ""
+    server->setServerInfo(
+        "Var Stream Server " 
+        + string(dim->get<string>("systemVersion")->c_str()) 
+        //+ ", " 
+        //+ server->getServerName() 
+        //+ " " + server->getServerVersion()
     );
 
     this->servers.push_back(server);
@@ -76,7 +98,7 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
     
     auto result = ctrl->getVar(varName, "").get();
 
-    if (result.errorStatus == Errors::NoError)
+    if (result.status == Errors::NoError)
     {
 
         auto exporter = detectExporter(in);
@@ -96,7 +118,7 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
     {
         out->httpStatus = 400;
         out->httpMessage = "Bad request";
-        out->setContentString(result.errorStatus.message);
+        out->setContentString(result.status);
     }
 }
 
@@ -115,13 +137,13 @@ void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
     {
         out->httpStatus = 403;
         out->httpMessage = "Forbidden";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
     else
     {
         out->httpStatus = 500;
         out->httpMessage = "Internal server error";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
 }
 
@@ -140,13 +162,13 @@ void API::HTTP::HttpAPI::deleteVar(HttpData* in, HttpData* out)
     {
         out->httpStatus = 403;
         out->httpMessage = "Forbidden";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
     else
     {
         out->httpStatus = 500;
         out->httpMessage = "Internal server error";
-        out->setContentString(result.message);
+        out->setContentString(result);
     }
 }
 

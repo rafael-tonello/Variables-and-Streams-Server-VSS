@@ -1,53 +1,37 @@
-#ifndef _ERRORS_H_
-#define _ERRORS_H_
+#ifndef __ERRORS__H__ 
+#define __ERRORS__H__ 
 
 #include <string>
+#include <utils.h>
 
-class Errors{
-public:
-    class Error{
-    private:
-        static uint codeGenerationCount;
-        uint code;
+using namespace std;
+namespace Errors{
+    using Error = string;
 
-        uint getNewCode(){
-            return Error::codeGenerationCount++;
-        }
+    extern Error NoError;
+
+    extern Error Error_VariableWithWildCardCantBeSet;
+    extern Error Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar;
+    extern Error Error_VariablesStartedWithUnderscornAreJustForInternal;
+    extern Error Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting;
+    extern Error Error_WildcardCanotBeUsesForGetVarChilds;
+    extern Error Error_TheVariableNameCannotBeEmpty;
+    extern Error Error_TimeoutReached;
+
+    Error createError(string message);
+    Error createError(string message, Error nestedError);
+    void forNestedErrors(Error errorWithNestedErrors, function<void(Error err)> f);
+
+    template <typename T>
+    class ResultWithStatus{
     public:
-        std::string message;
-        Error(uint errorCode, std::string errorMessage): code(errorCode), message(errorMessage){
-            if (errorCode > Error::codeGenerationCount)
-                Error::codeGenerationCount = errorCode;
-        }
-        Error(std::string errorMessage): message(errorMessage){
-            code = getNewCode();
-        }
-        
-        operator std::string(){return message; }
-        bool operator==(const Error &err1) {return err1.code == this->code; }
-        friend bool operator==(const Error &err1, const Error &err2) {return err1.code == err2.code; }
+        T result;
+        Error status = Errors::NoError;
 
-        //bool operator!=(const Error &err1) {return err1.code != this->code; }
-        //friend bool operator!=(const Error &err1, const Error &err2) {return err1.code != err2.code; }
+        ResultWithStatus(){}
+        ResultWithStatus(T result, Error error): result(result), status(error){}
+        ResultWithStatus(Error error, T result): status(error), result(result){}
     };
 
-    template<typename TResult>
-    class ResultWithErrorStatus{
-    public:
-        TResult result;
-        Error errorStatus;
-
-        ResultWithErrorStatus(TResult result, Error errorStatus): result(result), errorStatus(errorStatus){};
-        ResultWithErrorStatus(Error errorStatus, TResult result): result(result), errorStatus(errorStatus){};
-    };
-
-    static Error NoError;
-    static Error Error_VariableWithWildCardCantBeSet;
-    static Error Error_TheVariable_name_IsLocketAndCantBeChangedBySetVar;
-    static Error Error_VariablesStartedWithUnderscornAreJustForInternal;
-    static Error Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting;
-    static Error Error_WildcardCanotBeUsesForGetVarChilds;
-    static Error Error_TheVariableNameCannotBeEmpty;
-    static Error Error_TimeoutReached;
-};
+}
 #endif

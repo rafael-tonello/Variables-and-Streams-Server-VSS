@@ -17,7 +17,7 @@ using namespace Controller;
 
 struct ControllerTesterLastLogInfo
 {
-    Logger* sender;
+    ILogger* sender;
     string msg;
     int level;
     string name;

@@ -126,9 +126,9 @@ using namespace std;
         static string sr(string source, vector<tuple<string, string>> replaceAndByTuples){return stringReplace(source, replaceAndByTuples);};
 
         //replaces each char '?' by one of item of 'by' vector. ANother or string can be replaced by '?' in the 'marker' argument
-        static string stringReplace(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false);
+        static string stringReplaceMarker(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false);
         //replaces each char '?' by one of item of 'by' vector. ANother or string can be replaced by '?' in the 'marker' argument
-        static string sr(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false){ return stringReplace(source, by, marker, use_TheArgBy_Circularly);};
+        static string srm(string source, vector<string> by, string marker = "?", bool use_TheArgBy_Circularly = false){ return stringReplaceMarker(source, by, marker, use_TheArgBy_Circularly);};
         
         static bool isNumber(string source);
 
@@ -142,6 +142,9 @@ using namespace std;
         static inline string ltrim(string s);
         static inline string rtrim(string s);
         static inline string trim(std::string s);
+
+        static string escapeString(string source);
+        static string unescapeString(string source);
 
         template <typename S, typename T>
         static vector<T> mapVector(vector<S> source, function<T(S)> f)

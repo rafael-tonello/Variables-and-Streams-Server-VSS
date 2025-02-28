@@ -6,26 +6,42 @@
 PROJ_NAME=tests
 
 CUSTOM_INCLUDE_PATH_TMP1 := $(shell find ../sources ! -path '*/.git/*' -type d)
+
 CUSTOM_INCLUDE_PATH_TMP2 := $(shell find ./sources ! -path '*/.git/*' -type d) $(CUSTOM_INCLUDE_PATH_TMP1)
 # Add a prefix to INC_DIRS. So moduleA would become -ImoduleA. GCC understands this -I flag
 CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP2))
 
 
-
-# .c files
-C_SOURCE_TMP := $(shell find ../sources  ! -path '*/.git/*' ! -path '*/tests/*' ! -path '*main.cpp' -name '*.cpp' -or -name '*.c' -or -name '*.s')
-C_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.cpp' -or -name '*.c' -or -name '*.s') $(C_SOURCE_TMP)
+# .cpp files
+C_SOURCE_TMP := $(shell ./makefile.aux/detect_include_files.sh \
+						"withAlternativeExtension cpp" \
+						"withCheckOfFilesExistenceAfterExtensionChange" \
+						"withPath ../sources" \
+						"withNoMainHAndCpp" \
+				)
+C_SOURCE := $(shell ./makefile.aux/detect_include_files.sh \
+						"withAlternativeExtension cpp" \
+						"withCheckOfFilesExistenceAfterExtensionChange" \
+				) $(C_SOURCE_TMP)
 
 # .h files
-H_SOURCE_TMP := $(shell find ../sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.hpp' -or -name '*.h' -or -name '*.inc')
-H_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.hpp' -or -name '*.h' -or -name '*.inc') $(H_SOURCE_TMP)
-
+H_SOURCE_TMP := $(shell ./makefile.aux/detect_include_files.sh \
+						"withAlternativeExtension h" \
+						"withCheckOfFilesExistenceAfterExtensionChange" \
+						"withPath ../sources" \
+						"withNoMainHAndCpp" \
+				)
+H_SOURCE := $(shell ./makefile.aux/detect_include_files.sh \
+						"withAlternativeExtension h" \
+						"withCheckOfFilesExistenceAfterExtensionChange" \
+				) $(H_SOURCE_TMP)
+$(warning $(H_SOURCE))
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
-	@ clear
+#	@ clear
 	@ mkdir ./build | true
-	@ cp -r ./sources/assets/* ./build | true
+	@ cp -r ./sources/assets/* ./build >/dev/null 2>&1 | true
  
 # Object files
 temp:=$(subst ../sources,./build/objects/main,$(C_SOURCE))
@@ -38,10 +54,10 @@ OBJ=$(subst .cpp,.o,$(temp))
 CC=clang++
 
 
+#		-pedantic
 CC_FLAGS=-D__TESTING__\
         -ansi      \
 		-c			\
-		-pedantic  \
 		-pthread   \
 		-std=c++20 \
 		-lssl      \
@@ -50,9 +66,9 @@ CC_FLAGS=-D__TESTING__\
 
 
 
+#		-pedantic
 LK_FLAGS=-D__TESTING__\
         -ansi      \
-		-pedantic  \
 		-pthread   \
 		-std=c++20 \
 		-lssl      \
@@ -102,7 +118,12 @@ $(PROJ_NAME): $(OBJ)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
 	
-	
+install:
+	@ echo 'This is a test project and cannot be installed. To execute the testes, enter the build folder and execute the "tests" binary.'
+
+uninstall:
+	@ echo 'This is a test project and cannot be uninstalled. To remove the  testes (for example, to build the project again), just delete the "build" folder.'
+
 clean:
 	@ rm -rf ./build/objects
  

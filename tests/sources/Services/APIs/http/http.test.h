@@ -1,5 +1,5 @@
-#ifndef __HTTP.TEST__H__ 
-#define __HTTP.TEST__H__ 
+#ifndef __HTTP_TEST__H__ 
+#define __HTTP_TEST__H__ 
 
 #include <tester.h>
 #include <string>
@@ -41,7 +41,8 @@ public:
 
     static Header createFromHeaderText(string headerText)
     {
-
+        //todo: implement
+        return Header();
     }
 };
 

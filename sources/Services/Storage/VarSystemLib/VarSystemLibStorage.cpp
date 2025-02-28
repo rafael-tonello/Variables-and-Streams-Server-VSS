@@ -5,12 +5,12 @@ VarSystemLibStorage::VarSystemLibStorage(DependencyInjectionManager* dim)
     this->confs = dim->get<Confs>();
     this->log = dim->get<ILogger>()->getNamedLoggerP("VarSystemLibStorage");
 
-    confs->listenA("dbDirectory", [&](DynamicVar value)
+    confs->listenA("DbDirectory", [&](DynamicVar value)
     {
         this->log->info("Database directory: " + value.getString());
         this->databaseLocation = value.getString();
         db = shared_ptr<FileVars>(new FileVars(value.getString(), true));
-    }, "~/.local/VSS/varsDb");
+    });
 } 
  
 void VarSystemLibStorage::set(string name, DynamicVar v)
@@ -59,7 +59,7 @@ void VarSystemLibStorage::deleteValue(string name, bool deleteChildsInACascade)
     db->del(name);
 }
 
-void VarSystemLibStorage::forEachChilds(string parentName, function<void(string, DynamicVar)> f)
+void VarSystemLibStorage::forEachChilds(string parentName,function<void(string, DynamicVar)> f)
 {
     parentName = escape(parentName);
     
@@ -70,7 +70,7 @@ void VarSystemLibStorage::forEachChilds(string parentName, function<void(string,
     }
 }
 
-future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
+future<void> VarSystemLibStorage::forEachChilds_parallel(string parentName,function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) 
 {
     parentName = escape(parentName);
 

@@ -35,6 +35,7 @@ API::VSTP::VSTP(int port, DependencyInjectionManager &dim)
     this->log =   dim.get<ILogger>()->getNamedLoggerP("API::VSTP");
     this->ctrl = dim.get<ApiMediatorInterface>();
     this->scheduler = dim.get<ThreadPool>();
+    this->SecondaryScheduler = dim.get<ThreadPool>("ThreadPool2");
     this->initServer(port, dim.get<ThreadPool>());
     this->startListenMessageBus(dim.get<MessageBus<JsonMaker::JSON>>());
 
@@ -50,12 +51,14 @@ API::VSTP::~VSTP()
 
 void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 {
-    bool sucess;
     this->port = port;
 
-    this->server = new TCPServer(port, sucess);
+    this->server = new TCPServer();
+    auto startResult = this->server->startListen({
+        shared_ptr<TCPServer_SocketInputConf>(new TCPServer_PortConf(port))
+    });
 
-    if (sucess)
+    if (startResult.startedPorts.size() > 0)
     {
         this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
             if (event == CONN_EVENT::CONNECTED)
@@ -72,7 +75,16 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     }
     else
     {
-        this->log->error("Cannot start the tcp server at port "+to_string(port)+". VSTP API service is not running");
+        for (auto &p: startResult.failedPorts)
+        {
+            //auto [portinfo, error] = p;
+            auto portinfo= std::get<0>(p);
+            auto error = std::get<1>(p);
+
+            TCPServer_PortConf *castedPort = (TCPServer_PortConf*)portinfo.get();
+            this->log->error("Cannot start the tcp server at port "+to_string(castedPort->port)+": " + error + ". VSTP API service is not running.");
+        }
+
         this->port = -1;
         return;
     }
@@ -94,7 +106,12 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
     sendIdToClient(cli, cli->tags["id"]);
     //sentTotalVarsAlreadyBeingObserved(cli, 0);
 
-    log->info((DVV){"Cient", cli->address, "(remote port:",cli->port,") connected and received the id ","'"+cli->tags["id"]+"'","and friendly name", "'"+getCliFriendlyName(cli) + "'"});
+    TCPServer_PortConf *portConf = (TCPServer_PortConf*)&cli->inputSocketInfo;
+    
+    // check if cli->inputSocketInfo is a TCPServer_PortConf
+    
+    log->info((DVV){"Client", cli->address, "connected and received the id ","'"+cli->tags["id"]+"'","and friendly name", "'"+getCliFriendlyName(cli) + "'"});
+    
 
     sendEndHeaderToClient(cli);
     
@@ -155,14 +172,14 @@ void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int var
 
 void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, Errors::Error error)
 {
-    log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
+    log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error);
     //log->info2("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error.message);
+    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error);
 }
 
 void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError)
 {
-    string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError.message;
+    string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError;
     this->sendErrorToClient(cli, Errors::Error(errorMessage));
 }
 
@@ -185,8 +202,8 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
 
 void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
 {
-    if (command != VSTP_ACTIONS::PING)
-        this->log->debug((DVV){"processCommand received a new command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    //if (command != VSTP_ACTIONS::PING)
+    //    this->log->debug((DVV){"received command from client "+clientSocket.tags["id"] + " ("+clientSocket.address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
         
     string strData;
     string key;
@@ -225,7 +242,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         if (dv_ctrl_result != Errors::NoError)
             this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::DELETE_VAR, dv_ctrl_result);
 
-        string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result.message;
+        string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::DELETE_VAR_RESULT, varName + "=" + resultMsg);
         
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
@@ -265,7 +282,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         log->debug("Locking var "+varName);
         auto lockFuture = this->ctrl->lockVar(varName, timeout);
         auto result = lockFuture.get();
-        string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result.message;
+        string resultMsg = result == Errors::NoError ? "sucess": "failure:"+result;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=" + resultMsg);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
@@ -318,7 +335,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::GET_CHILDS)
     {
         auto resultFromController  = this->ctrl->getChildsOfVar(varName).get();
-        if (resultFromController.errorStatus == Errors::NoError)
+        if (resultFromController.status == Errors::NoError)
         {
             vector<string> result = resultFromController.result;
             string response = "";
@@ -345,9 +362,9 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
         else
         {
-            log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.errorStatus.message);
+            log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.errorStatus);
+            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
         }
     }
@@ -363,14 +380,14 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         if (oldId != payload)
         {
             this->updateClientsByIdList(&clientSocket, payload);
-            log->info((DVV){"Client", clientSocket.address, "(remote port",clientSocket.port,") changed its id from", oldId, "to", payload});
+            log->info((DVV){"Client", clientSocket.address, "(address",clientSocket.address,") changed its id from", oldId, "to", payload});
         }
         else
         {
-            log->info((DVV){"The client", clientSocket.address, "(remote port",clientSocket.port,") requested an id change with its actual id (", oldId,")"});
+            log->info((DVV){"The client", clientSocket.address, "(address",clientSocket.address,") requested an id change with its actual id (", oldId,")"});
         }
 
-        //event if client do not change its id, notify the controller so it can update the client about its observing vars.
+        //even if client do not change its id, notify the controller so it can update the client about its observing vars.
         int varsAlreadyBeingObserved = 0;
         this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
@@ -389,8 +406,8 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
     }
 
-    if (command != VSTP_ACTIONS::PING)
-        this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    //if (command != VSTP_ACTIONS::PING)
+    //    this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
 }
 
 void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data)
@@ -400,7 +417,7 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
     string buffer = command + CMDPAYLOADSEPARATOR + data + "\n";
 
-    this->log->debug("sending '"+buffer+"' to client");
+    this->log->debug("sending '"+buffer+"' to client "+clientSocket.tags["id"] + " ("+clientSocket.address+")");
     clientSocket.sendString(buffer);
 }
 
@@ -411,24 +428,10 @@ void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, 
 
 string API::VSTP::byteEscape(string originalText)
 {
-    //stringstream ret("");
-
     return Utils::sr(originalText, {
         {"\n", string(1, scape_char) + string("n")},
         {string(1, scape_char), string(1, scape_char+scape_char)}
     });
-
-    //for (auto &c: originalText)
-    //{
-    //    if (c == '\n')
-    //        ret << scape_char << 'n';
-    //    else if (c == scape_char)
-    //        ret << scape_char << scape_char;
-    //    else
-    //        ret << c;
-    //}
-//
-    //return ret.str();
 }
 
 string API::VSTP::byteUnescape(string text)
@@ -466,7 +469,7 @@ bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output, bool
 
 void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
 {
-    log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
+    //log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
     string command = "";
     string payload = "";
 
@@ -475,7 +478,9 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
     //payload = byteUnescape(payload);
 
     
-    scheduler->enqueue([&, command, payload, cli](){
+    //use the secondary scheduler because this tasks needs to wait for futures that depends on primary scheduler and, as primary scheduler,
+    //has a limited number of threads, it can run out in a deadlock;
+    SecondaryScheduler->enqueue([&, command, payload, cli](){
         this->processCommand(command, payload, *cli);
     });
 }
@@ -583,7 +588,7 @@ string API::VSTP::getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditi
     string ret = cli->tags["friendlyName"];
 
     if (includeClieIdAndAditionalInfomation)
-    ret += " (ID: "+cli->tags["id"]+", remote host: "+cli->address+", remote port: "+to_string(cli->port)+")";
+    ret += " (ID: "+cli->tags["id"]+", address: "+cli->address+")";
 
     return ret;
 }
@@ -592,35 +597,22 @@ void API::VSTP::displayHelpMenu(ClientInfo* cli)
 {
     cli->sendString(string("VSTP rotocol version ") + string(VSTP_PROTOCOL_VERSION) + string("\n"));
     cli->sendString(string("\n"));
-    cli->sendString(string("    Usage: vsp_command;arguments\n"));
+    cli->sendString(string("    Usage <command> [arguments]\n"));
     cli->sendString(string("    Usage (2, using space instead ';'): vsp_command arguments\n"));
     cli->sendString(string("\n"));
     //                      --------------------------------------------------------------------------------
-    cli->sendString(string("    Available commands: \n"));
+    cli->sendString(string("    Commands: \n"));
     cli->sendString(string("        help - Display this menu\n"));
-    cli->sendString(string("        sv varname=value - Changes or create the variable 'varname' with value\n"));
-    cli->sendString(string("                           'value';\n"));
-    cli->sendString(string("        gv varname       - Gets the value of variable 'varname'. Wildcard\n"));
-    cli->sendString(string("                           (* char) can be used here;\n"));
-    cli->sendString(string("        lv varname       - Locks the variable 'varname' ('sv' and others\n"));
-    cli->sendString(string("                           commands will not be able to change the variable);\n"));
-    cli->sendString(string("        uv varname       - Unlocks the variable 'varname';\n"));
-    cli->sendString(string("        vls varname      - Returns 'locked' if 'varname' is locked and\n"));
-    cli->sendString(string("                           'unlocked' if 'varname' is unlocked;\n"));
-    cli->sendString(string("        subv varname       - Subscribe the variable 'varname'. A notification will\n"));
-    cli->sendString(string("                           be sent when variable is changed;\n"));
-    cli->sendString(string("        usv varname      - Cancels the subscription to variable 'varname';\n"));
-    cli->sendString(string("        gc varname       - Get variable 'varname' childs. Note: The system uses\n"));
-    cli->sendString(string("                           object name notation and uses the dot (.) as name\n"));
-    cli->sendString(string("                           separator;\n"));
-    cli->sendString(string("        ping             - Pings the server. Server will replay with 'pong;';\n"));
-    cli->sendString(string("        cid              - Update the client id. It is used to resume a previous\n"));
-    cli->sendString(string("                           VSTP session. The server will reply with all observed\n"));
-    cli->sendString(string("                           variables and theirs respective values;\n"));
-    cli->sendString(string("        telnet           - Informs the server that the current session is a\n"));
-    cli->sendString(string("                           telnet session. Server will adapt messages to enable\n"));
-    cli->sendString(string("                           a more easy use over a telnet session (like remove\n"));
-    cli->sendString(string("                           \\' from the end of received commands)\n"));
+    cli->sendString(string("        set <varname>=<value> - Changes or create the variable 'varname' with value 'value';\n"));
+    cli->sendString(string("        get <varname>         - Gets the value of variable 'varname'. Wildcard(* char) can be used here;\n"));
+    cli->sendString(string("        lock <varname>        - Locks the variable 'varname' ('sv' and others commands will not be able to change the variable);\n"));
+    cli->sendString(string("        u nlock <varname>      - Unlocks the variable 'varname';\n"));
+    cli->sendString(string("        lockstatus <varname>  - Returns 'locked' (if 'varname' is locked) or 'unlocked' (if 'varname' is unlocked);\n"));
+    cli->sendString(string("        subscribe <varname>   - Subscribe the variable 'varname'. The server will send a message to the client when the variable changes;\n"));
+    cli->sendString(string("        unsubscribe <varname> - Cancels the subscription to the variable 'varname';\n"));
+    cli->sendString(string("        getchilds <varname>   - Get variable 'varname' childs. Note: The system uses object name notation and uses the dot (.) as name separator;\n"));
+    cli->sendString(string("        ping                  - Pings the server. Server will replay with 'pong;';\n"));
+    cli->sendString(string("        setid                 - Update the client id. It is used to resume a previous VSTP session. The server will reply with all observed variables and theirs respective values;\n"));
+    cli->sendString(string("        telnet                - Informs the server that the current session is a telnet session. Server will adapt messages to enable a more easy use over a telnet session (like remove \\' from the end of received commands)\n"));
     cli->sendString(string("\n"));
-
 }

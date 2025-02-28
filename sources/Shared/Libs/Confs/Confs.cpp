@@ -100,7 +100,13 @@ DynamicVar Confs::getA(string alias, DynamicVar defaultValue)
                 }
             }
         }
+
+        if (defaultValue.getString() == "")
+        {
+            return applyPlaceHolders(aliasInfo.defaultValue);
+        }
     }
+
     return defaultValue;
 }
 

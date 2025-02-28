@@ -18,6 +18,7 @@ using namespace std;
 
 using FObservationsForEachFunction = function<void(string currentClientId, string metadata)>;
 #define R Utils::sr
+#define RM Utils::srm
 
 class Controller_VarHelper { 
 private:
@@ -48,6 +49,7 @@ public:
     void addObserver(string clientId, string metadata);
     void removeCliObservings(string clientId);
     void removeObserving(string clientId, string metadata);
+    void _internal_removeObserving(string clientId, string metadata);
     void foreachObservations(FObservationsForEachFunction f);
 
     /// @brief Return a vector with client ids and metadata

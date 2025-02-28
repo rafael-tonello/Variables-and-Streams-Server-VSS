@@ -95,7 +95,7 @@ namespace Controller{
         future<Errors::Error> lockVar(string varName, uint maxTimeOut_ms = UINT_MAX);
         future<Errors::Error> unlockVar(string varName);
         bool isVarLocked(string varName);
-        future<Errors::ResultWithErrorStatus<vector<string>>> getChildsOfVar(string parentName);
+        future<Errors::ResultWithStatus<vector<string>>> getChildsOfVar(string parentName);
         string getSystemVersion();
         
     };
