@@ -256,6 +256,10 @@
             fi
 
             _r="$lastCommit"
+            _r_commitAuthor=$(git log -1 --pretty=format:"%an" $lastCommit)
+            _r_commitDate=$(git log -1 --pretty=format:"%ad" $lastCommit)
+            _r_commitMessage=$(git log -1 --pretty=format:"%s" $lastCommit)
+            _r_commitMessage=$(echo "$_r_commitMessage" | sed 's/"/\\"/g')
             _error=""
             return 0
         else
@@ -300,6 +304,10 @@
             fi
             
             _r="$lastTag"
+            _r_commitAuthor=$(git log -1 --pretty=format:"%an" $lastTagCommit)
+            _r_commitDate=$(git log -1 --pretty=format:"%ad" $lastTagCommit)
+            _r_commitMessage=$(git log -1 --pretty=format:"%s" $lastTagCommit)
+            _r_commitMessage=$(echo "$_r_commitMessage" | sed 's/"/\\"/g')
             _error=""
             return 0
         else
@@ -424,7 +432,7 @@
             local currentArchitechture=$(uname -m)
             app.info "Creating and uploading artifacts ..."
             local artifactName="$settings_projectName-$branch-$currentArchitechture"
-            if [ !-z "$_aditionalArtifactInfo_" ]; then
+            if [ ! -z "$_aditionalArtifactInfo_" ]; then
                 artifactName="$artifactName-$_aditionalArtifactInfo_"
             fi
 
