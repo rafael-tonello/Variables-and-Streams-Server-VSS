@@ -431,10 +431,11 @@
             cd $app_state_tmpFolder
             local currentArchitechture=$(uname -m)
             app.info "Creating and uploading artifacts ..."
-            local artifactName="$settings_projectName-$branch-$currentArchitechture"
+            local artifactName="$settings_projectName-$branch"
             if [ ! -z "$_aditionalArtifactInfo_" ]; then
                 artifactName="$artifactName-$_aditionalArtifactInfo_"
             fi
+            artifactName="$artifactName-$currentArchitechture"
 
             local outputFile="$artifactName.tar.gz"
             app.coutLogInfo "copying build folder to $artifactName"
