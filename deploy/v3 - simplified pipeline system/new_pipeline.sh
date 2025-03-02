@@ -77,12 +77,12 @@
     #this function is called when a error message needs to be sent to the user
     custom.sendUserNotification.error(){
         #echo -e "$1" > /dev/stderr
-        /home/orangepi/scripts/sendToTelegram.sh "<u>$settings_projectName CI/CD:</u> \n🔴 $1" > /dev/null 2>&1
+        /home/orangepi/scripts/sendToTelegram.sh "sendHtml" "<u>$settings_projectName CI/CD:</u> \n🔴 $1" > /dev/null 2>&1
     }
 
     custom.sendUserNotification.warning(){
         #echo -e "$1" > /dev/stderr
-        /home/orangepi/scripts/sendToTelegram.sh "<u>$settings_projectName CI/CD:</u> \n🔶 $1" > /dev/null 2>&1
+        /home/orangepi/scripts/sendToTelegram.sh "sendHtml" "<u>$settings_projectName CI/CD:</u> \n🔶 $1" > /dev/null 2>&1
     }
 
     #this function is called when a file needs to be sent to the user
