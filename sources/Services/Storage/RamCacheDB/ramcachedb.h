@@ -6,7 +6,10 @@
 #include <DynamicVar.h>
 #include <set>
 #include <StorageInterface.h>
-
+#include <thread>
+#include <dependencyInjectionManager.h>
+#include <Confs.h>
+#include <logger.h>
 
 using namespace std;
 
@@ -14,8 +17,20 @@ class RamCacheDB: public StorageInterface{
 private:
     map<string, DynamicVar> db;
 public:
-    RamCacheDB();
+    RamCacheDB(DependencyInjectionManager* dim);
     ~RamCacheDB();
+    Confs *confs;
+    NLogger *log;
+
+    int dumpIntervalMs = 60*1000;
+
+    void dump();
+    void load();
+
+    bool continueRunning = true;
+    thread *dumpThread = nullptr;
+
+    string dataDir="";
 
 public: 
     /* StorageInterface interface */

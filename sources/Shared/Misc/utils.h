@@ -83,8 +83,13 @@ using namespace std;
         static string strToUpper(std::string source);
         static string strToLower(std::string source);
         static string getOnly(string source, string validChars);
-        static string ssystem (string, bool removeTheLastLF = true);
-        static future<string> asystem(string, bool removeTheLastLF = true);
+
+        struct SSystemReturn{
+            string output;
+            int exitCode;
+        };
+        static SSystemReturn ssystem (string, bool removeTheLastLF = true);
+        static future<SSystemReturn> asystem(string, bool removeTheLastLF = true);
         static future<string> httpGet(string url, map<string, string> headers = {});
         static future<string> httpPost(string url, string body, string contentType = "application/json", map<string, string> headers = {});
         static void process_mem_usage(double& vm_usage, double& resident_set);
