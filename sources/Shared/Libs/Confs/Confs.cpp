@@ -107,7 +107,7 @@ DynamicVar Confs::getA(string alias, DynamicVar defaultValue)
         }
     }
 
-    return defaultValue;
+    return applyPlaceHolders(defaultValue);
 }
 
 void Confs::listenA(string alias, function<void(DynamicVar)> f, bool callFImedially, DynamicVar defaultValueForImediateFCall)
