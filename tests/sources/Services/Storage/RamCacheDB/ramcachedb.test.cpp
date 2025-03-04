@@ -59,7 +59,7 @@ void RamCacheDBTest::run(string context)
         return true;
     });
 
-    this->test("Should dump and load values between instances", [&](){
+    this->testV("Should dump and load values between instances", [&](){
         RamCacheDB *db = new RamCacheDB(&dim);
         db->set("test2", "test2value");
         delete db;
