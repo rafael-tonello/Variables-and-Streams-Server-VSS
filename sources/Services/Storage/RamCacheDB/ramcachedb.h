@@ -13,6 +13,8 @@
 
 using namespace std;
 
+#define DUMP_FILE_NAME "RamCacheDb.dump.txt"
+
 class RamCacheDB: public StorageInterface{
 private:
     map<string, DynamicVar> db;
@@ -31,6 +33,7 @@ public:
     thread *dumpThread = nullptr;
 
     string dataDir="";
+    bool pendingChanges=false;
 
 public: 
     /* StorageInterface interface */
@@ -43,6 +46,9 @@ public:
     void deleteValue(string name, bool deleteChildsInACascade = false) override;
     void forEachChilds(string parentName, function<void(string, DynamicVar)> f) override;
     future<void> forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel) override;
+
+public:
+    string getDumpFilePath();
 };
 
 #endif
