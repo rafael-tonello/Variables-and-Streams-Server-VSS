@@ -199,7 +199,7 @@ future<string> Utils::httpGet(string url, map<string, string> headers)
     return std::async(std::launch::async, [](string cmd2){
         auto ret = ssystem(cmd2);
         if (ret.output.find("curl") == string::npos)
-            return ret.output;
+            return ret;
         else
             throw std::runtime_error("Curl error: "+ret.output);
 
@@ -220,11 +220,11 @@ future<string> Utils::httpPost(string url, string body, string contentType, map<
     cmd += "-d '"+body+"'";
 
     return std::async(std::launch::async, [](string cmd2){
-        auto ret = ssystem(cmd2);
-        if (ret.output.find("curl") == string::npos)
-            return ret.output;
+        string ret = ssystem(cmd2);
+        if (ret.find("curl") == string::npos)
+            return ret;
         else
-            throw std::runtime_error("Curl error: "+ret.output);
+            throw std::runtime_error("Curl error: "+ret);
 
     }, cmd);
 
