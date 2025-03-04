@@ -66,31 +66,44 @@ private:
     private:
         Confs* ctrl;
         string name;
+        
+        ConfAliaser &add(string tname, vector<string> possibleNames){
+            ctrl->aliases[name].optionalNamesInEachProviders[tname] = possibleNames;
+    
+            ctrl->informPotentialVariables(tname, possibleNames);
+    
+            return *this;            
+        }
     public:
+    
+        //!!use the createAlias method of Confs class to create an instance of this class!!
         ConfAliaser(Confs *ctrl, string aliasName):ctrl(ctrl), name(aliasName){
             if (!ctrl->aliases.count(aliasName))
                 ctrl->aliases[aliasName] = ConfAliasInfo();
         }
 
-        ConfAliaser &add(string tname, vector<string> possibleNames){
-            ctrl->aliases[name].optionalNamesInEachProviders[tname] = possibleNames;
-
-            ctrl->informPotentialVariables(tname, possibleNames);
-
-            return *this;            
-        }
-
+        /// @brief same of forProvider<T>. specifies how this configuration is called in a particular provider (Add a name for this configuration in a specific provider()
+        /// @tparam T type of the provider
+        /// @param possibleNames possible names of this configuration in the specified provider (T)
+        /// @return return a reference to this object
         template<class T>
         ConfAliaser &add(vector<string> possibleNames){
             auto tname = typeid(T).name();
             return this->add(tname, possibleNames);
         }
 
+        /// @brief same of add<T>. specifies how this configuration is called in a particular provider (Add a name for this configuration in a specific provider()
+        /// @tparam T type of the provider
+        /// @param possibleNames possible names of this configuration in the specified provider (T)
+        /// @return return a reference to this object
         template<class T>
         ConfAliaser &forProvider(vector<string> possibleNames){
             return this->add<T>(possibleNames);
         }
 
+        /// @brief Specifies how this configuration is called in any provider (for each provider, calls de 'add/forProvider' function)
+        /// @param possibleNames possible names of this configuration in the providers
+        /// @return 
         ConfAliaser &addForAnyProvider(vector<string> possibleNames)
         {
             for (auto &c: ctrl->providers)
@@ -102,6 +115,7 @@ private:
             return *this;
         }
 
+        // Sets the default value of this configuration. When the configuration is requestes but not found in any provider, this values will be returned
         ConfAliaser &setDefaultValue(DynamicVar defaultValue){
             ctrl->aliases[name].defaultValue = defaultValue;
             return *this;
@@ -120,6 +134,10 @@ private:
 
 public:
 
+    //Creates a Conf instance with no providers. You must add providers to make a useful configuration system. 
+    //If you do not add any provider, the configurations will be just a runtime, in memory and volatile configuration system.
+    //you can use Confs without providers for testing purposes, but it is not useful for production.
+    //use the addProvider method or other constructor to specify providers.
     Confs(){};
     Confs(vector<IConfProvider*> initialProviders);
     ~Confs();

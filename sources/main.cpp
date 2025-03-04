@@ -238,5 +238,9 @@ Confs* initConfigurations(int argc, char **argv)
         conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5032);
 
 
+    //RamCacheDB
+        //time interval to dump the database to disk (for Storage Driver RamCacheDB)
+        conf->createAlias("RamCacheDbDumpIntervalMs").addForAnyProvider({"RamCacheDbDumpIntervalMs", "--RamCacheDbDumpIntervalMs", "VSS_RAMCACHEDB_DUMP_INTERVAL_MS"}).setDefaultValue(60*1000);
+
     return conf;
 }

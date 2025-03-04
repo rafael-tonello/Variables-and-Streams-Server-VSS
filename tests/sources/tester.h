@@ -11,14 +11,13 @@
 #include <fstream>
 #include <mutex>
 #include <future>
-
-#define __TESTING__ //--> was defined in the makefile
+#include <DynamicVar.h>
 
 using namespace std;
 struct TestResult{
     bool result;
-    string expected;
-    string returned;
+    DynamicVar expected;
+    DynamicVar returned;
 };
 
 struct ObserverAndFilter{
@@ -26,9 +25,23 @@ struct ObserverAndFilter{
     function<void(string, string, void*)> observer;
 };
 
+//inherits std::exception
+class TestAssertException: public exception{
+    string message;
+public:
+    TestAssertException(string message): message(message){}
+    const char* what() const throw(){
+        return message.c_str();
+    }
+};
+
 class Tester{
 private:
     string testMsgPrefix = "";
+    static bool checkHelp(vector<Tester*> testers, vector<string> args, string whatProjectAreBeingTested);
+public: /* interface to be implemented by child classes */
+    virtual vector<string> getContexts() = 0;
+    virtual void run(string context) = 0;
 public: //static
     //messagebus system (for more complex responses and behavior analysis)
     static mutex msgBusObserversLocker;
@@ -58,8 +71,6 @@ public:
     void setTag(string tag, string value);
     string getTag(string tag, string defValue = "");
 
-    virtual vector<string> getContexts() = 0;
-    virtual void run(string context) = 0;
 
     void errorMessage(string message);
 
@@ -77,6 +88,91 @@ public:
 
     void test(string desc, function<bool()> func, string passMessage = "", string failMessage = "");
 
+
+
+    #ifdef __DYNAMIC_VAR_H_
+        //B comes from 'B'oolean
+        //return false if the assert can't be done
+        static bool assertEqualsB(DynamicVar expected, DynamicVar returned);
+        //return false if the assert can't be done
+        static bool assertDifferentB(DynamicVar expected, DynamicVar returned);
+        //return false if the assert can't be done
+        static bool assertContainsB(DynamicVar on, DynamicVar findId);
+        //return false if the assert can't be done
+        static bool assertNotContainsB(DynamicVar on, DynamicVar findId);
+        //return false if the assert can't be done
+        static bool assertGreaterThanB(DynamicVar _it, DynamicVar thanIt);
+        //return false if the assert can't be done
+        static bool assertGreaterThanOrEqualsB(DynamicVar _it, DynamicVar thanIt);
+        //return false if the assert can't be done
+        static bool assertLessThanB(DynamicVar _it, DynamicVar thanIt);
+        //return false if the assert can't be done
+        static bool assertLessThanOrEqualsB(DynamicVar _it, DynamicVar thanIt);
+        //return false if the assert can't be done
+        static bool assertThatB(bool expression);
+        //return false if the assert can't be done
+        static bool assertThatB(function<bool()> expression);
+        //return false if the assert can't be done
+        static bool assertTrueB(bool expression);
+        //return false if the assert can't be done
+        static bool assertFalseB(bool expression, string message);
+
+        //TR comes from 'T'est'R'esult
+        //returns a TestResult object.
+        static TestResult assertEqualsTR(DynamicVar expected, DynamicVar returned);
+        //returns a TestResult object.
+        static TestResult assertDifferentTR(DynamicVar expected, DynamicVar returned);
+        //returns a TestResult object.
+        static TestResult assertContainsTR(DynamicVar on, DynamicVar findId);
+        //returns a TestResult object.
+        static TestResult assertNotContainsTR(DynamicVar on, DynamicVar findId);
+        //returns a TestResult object.
+        static TestResult assertGreaterThanTR(DynamicVar _it, DynamicVar thanIt);
+        //returns a TestResult object.
+        static TestResult assertGreaterThanOrEqualsTR(DynamicVar _it, DynamicVar thanIt);
+        //returns a TestResult object.
+        static TestResult assertLessThanTR(DynamicVar _it, DynamicVar thanIt);
+        //returns a TestResult object.
+        static TestResult assertLessThanOrEqualsTR(DynamicVar _it, DynamicVar thanIt);
+        //returns a TestResult object.
+        static TestResult assertThatTR(bool expression, string expected, string returned);
+        //returns a TestResult object.
+        static TestResult assertThatTR(function<bool()> expression, string expected, string returned);
+        //returns a TestResult object.
+        static TestResult assertTrueTR(bool expression);
+        //returns a TestResult object.
+        static TestResult assertFalseTR(bool expression, string message);
+
+        
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertEquals(DynamicVar expected, DynamicVar returned, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertDifferent(DynamicVar expected, DynamicVar returned, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertContains(DynamicVar on, DynamicVar findId, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertNotContains(DynamicVar on, DynamicVar findId, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertGreaterThan(DynamicVar _it, DynamicVar thanIt, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertGreaterThanOrEquals(DynamicVar _it, DynamicVar thanIt, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertLessThan(DynamicVar _it, DynamicVar thanIt, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertLessThanOrEquals(DynamicVar _it, DynamicVar thanIt, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertThat(bool expression, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertThat(function<bool()> expression, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertTrue(bool expression, string additionalInfo = "");
+        //raise an exception if assert can't be done. 'additionalInfo' will be added to the exception message
+        static void assertFalse(bool expression, string message, string additionalInfo = "");
+
+
+    #endif
+
+
     
 
     template <class T>
@@ -92,7 +188,9 @@ public:
         string failMessage = ""
     );
 
-    static int runTests(vector<Tester*> testers, int argc = 0, char* argv[] = NULL);
+    static int runTests(vector<Tester*> testers, int argc = 0, char* argv[] = NULL, string whatProjectAreBeingTested = "another program");
+
+    
 
 
 

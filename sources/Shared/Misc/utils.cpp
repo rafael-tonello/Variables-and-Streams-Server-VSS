@@ -152,7 +152,7 @@ string Utils::getOnly(string source, string validChars)
     return ret;
 }
 
-string Utils::ssystem (string command, bool removeTheLastLF) {
+Utils::SSystemReturn Utils::ssystem (string command, bool removeTheLastLF) {
 
     const int bufferSize = 128;
     char buffer[bufferSize];
@@ -162,7 +162,7 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
     FILE* pipe = popen((command + " 2>&1").c_str(), "r");
     if (pipe == nullptr) {
         std::cerr << "Erro ao executar o comando." << std::endl;
-        return output;
+        return {"", -1};
     }
 
     // Ler a saída do subprocesso (stdout e stderr)
@@ -171,17 +171,17 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
     }
 
     // Fechar o subprocesso
-    pclose(pipe);
+    int retStatus = pclose(pipe);
 
     // Remover a quebra de linha final, se necessário
     if (removeTheLastLF && !output.empty() && output.back() == '\n') {
         output.pop_back();
     }
 
-    return output;
+    return {output, retStatus};
 }
 
-future<string> Utils::asystem(string command, bool removeTheLastLF)
+future<Utils::SSystemReturn> Utils::asystem(string command, bool removeTheLastLF)
 {
     return std::async(std::launch::async, [&](string c, bool rtllf){
         return ssystem(c, rtllf);
@@ -197,11 +197,11 @@ future<string> Utils::httpGet(string url, map<string, string> headers)
         cmd += "-H '"+c.first+": "+c.second+"' ";
     
     return std::async(std::launch::async, [](string cmd2){
-        string ret = ssystem(cmd2);
-        if (ret.find("curl") == string::npos)
-            return ret;
+        auto ret = ssystem(cmd2);
+        if (ret.output.find("curl") == string::npos)
+            return ret.output;
         else
-            throw std::runtime_error("Curl error: "+ret);
+            throw std::runtime_error("Curl error: "+ret.output);
 
     }, cmd);
 
@@ -220,11 +220,11 @@ future<string> Utils::httpPost(string url, string body, string contentType, map<
     cmd += "-d '"+body+"'";
 
     return std::async(std::launch::async, [](string cmd2){
-        string ret = ssystem(cmd2);
-        if (ret.find("curl") == string::npos)
-            return ret;
+        auto ret = ssystem(cmd2);
+        if (ret.output.find("curl") == string::npos)
+            return ret.output;
         else
-            throw std::runtime_error("Curl error: "+ret);
+            throw std::runtime_error("Curl error: "+ret.output);
 
     }, cmd);
 
