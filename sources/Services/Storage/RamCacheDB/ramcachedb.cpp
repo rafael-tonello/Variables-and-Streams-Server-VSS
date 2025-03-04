@@ -44,6 +44,7 @@ RamCacheDB::~RamCacheDB()
 void RamCacheDB::set(string name, DynamicVar v)
 {
     this->db[name] = v;
+    pendingChanges = true;
 }
 
 DynamicVar RamCacheDB::get(string name, DynamicVar defaultValue)
@@ -99,6 +100,8 @@ void RamCacheDB::deleteValue(string name, bool deleteChildsInACascade)
             for (auto &c: childs)
                 db.erase(c);
         }
+
+        pendingChanges = true;
     }
 }
 
@@ -119,6 +122,9 @@ future<void> RamCacheDB::forEachChilds_parallel(string parentName, function<void
 
 void RamCacheDB::dump()
 {
+    if (!pendingChanges)
+        return;
+
     string fileText="";
     for (auto &c: db)
     {
@@ -127,16 +133,16 @@ void RamCacheDB::dump()
 
     //create directory
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
-    
-    ofstream file(dataDir + "/RamCacheDB.txt");
-    file << fileText;
-    file.close();
+
+    Utils::writeTextFileContent(dataDir + "/"+ DUMP_FILE_NAME, fileText);
 }
+
+string getDumpFileName();
 
 
 void RamCacheDB::load()
 {
-    string fileText = Utils::readTextFileContent(dataDir + "/RamCacheDB.txt");
+    string fileText = Utils::readTextFileContent(getDumpFilePath());
     auto lines = Utils::splitString(fileText, "\n");
     for (auto &c: lines)
     {
@@ -144,4 +150,9 @@ void RamCacheDB::load()
         if (parts.size() == 2)
             db[parts[0]] = parts[1];
     }
+}
+
+string RamCacheDB::getDumpFilePath()
+{
+    return dataDir + "/"+ DUMP_FILE_NAME;
 }
