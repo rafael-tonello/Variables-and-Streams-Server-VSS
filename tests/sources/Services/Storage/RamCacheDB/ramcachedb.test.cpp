@@ -39,18 +39,16 @@ void RamCacheDBTest::run(string context)
     dim.get<Confs>()->createAlias("RamCacheDbDumpIntervalMs").setDefaultValue("100");
 
 
-    this->test("Should return default value if conf not exists", [&](){
+    this->testV("Should return default value if conf not exists", [&](){
         RamCacheDB *db = new RamCacheDB(&dim);
 
         auto retValue=db->get("test", "not found").getString();
         assertEquals("not found", retValue);
 
         delete db;
-
-        return true;
     });
 
-    this->test("Should return correct value", [&](){
+    this->testV("Should return correct value", [&](){
         RamCacheDB *db = new RamCacheDB(&dim);
         db->set("test", "test");
 
@@ -71,7 +69,25 @@ void RamCacheDBTest::run(string context)
         delete db;
 
         assertEquals("test2value", retValue);
+    });
 
-        return true; 
+    this->testV("Should return imediate childs (not child of childs)", [&](){
+        RamCacheDB *db = new RamCacheDB(&dim);
+        db->set("parent.child1", "--");
+        db->set("parent.child2", "--");
+        db->set("parent.child3", "--");
+        db->set("parent.child4", "--");
+        db->set("parent.child5", "--");
+        db->set("parent.child1.child1_1", "--");
+        db->set("parent.child1.child1_2", "--");
+        db->set("parent.child1.child1_3", "--");
+        db->set("parent.child1.child1_4", "--");
+        db->set("parent.child1.child1_5", "--");
+
+        auto childs = db->getChilds("parent");
+        assertEquals(5, childs.size());
+
+        for (auto &c: childs)
+            assertNotContains(c, ".", "Childs should not have dots");
     });
 }

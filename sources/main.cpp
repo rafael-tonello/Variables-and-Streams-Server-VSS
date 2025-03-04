@@ -49,7 +49,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.5.0+Haumea";
+string INFO_VERSION = "1.5.01+Haumea";
 
 #define KIB *1024
 #define MIB *1024*1024
