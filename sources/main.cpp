@@ -14,7 +14,6 @@
 #include <Confs.h>
 #include <StorageInterface.h>
 #include <Storage/VarSystemLib/VarSystemLibStorage.h>
-#include <Storage/InMemoryDB/inmemorydb.h>
 #include <VarSystem/FVSysLink.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
@@ -50,7 +49,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.4.0+Haumea";
+string INFO_VERSION = "1.5.0+Haumea";
 
 #define KIB *1024
 #define MIB *1024*1024
