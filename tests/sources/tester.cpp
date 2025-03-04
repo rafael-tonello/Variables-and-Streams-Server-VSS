@@ -30,8 +30,6 @@ void Tester::enableStdout()
     std::cerr.clear();
 }
 
-
-
 void Tester::setTestsMessagesPrefix(string prefix){this->testMsgPrefix = prefix;};
 
 void Tester::test(string desc, function<bool()> func, string passMessage, string failMessage){
@@ -110,6 +108,21 @@ void Tester::test(
 
     test(desc, [&](){
         return compareFunc(r, expected);
+    }, passMessage, failMessage);
+}
+
+
+//func trow an exception if the test fails. 'V' was added to the 'test' because c++ compilers make confustion with func<void()> and func<bool()>.
+void Tester::testV(
+    string desc, 
+    function<void()> func,
+    string passMessage,
+    string failMessage
+)
+{
+    this->test(desc, [&](){
+        func();
+        return true;
     }, passMessage, failMessage);
 }
 

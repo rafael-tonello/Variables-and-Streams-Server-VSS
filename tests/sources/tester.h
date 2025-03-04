@@ -86,9 +86,48 @@ public:
 
     void setTestsMessagesPrefix(string prefix);
 
+    /// @brief Runs a test. func return true if the test passes. False or exception otherwise
+    /// @param desc The description of the test
+    /// @param func A function that returns true if the test passes. False or exception otherwise
+    /// @param passMessage An optional message describing sucess cases
+    /// @param failMessage An optional message describing failure cases
     void test(string desc, function<bool()> func, string passMessage = "", string failMessage = "");
 
+    /// @brief Runs a test. func trow an exception if the test fails
+    /// @param desc 
+    /// @param func A function that trow an exception if the test fails
+    /// @param passMessage An optional message describing sucess cases
+    /// @param failMessage An optional message describing failure cases
+    void testV(string desc, function<void()> func, string passMessage = "", string failMessage = "");
 
+    /// @brief
+    /// @tparam T 
+    /// @param desc The description of the test
+    /// @param func A function that returns a value to be compared with 'expected' argument.
+    /// @param expected The value to be compared with the value returned by 'func' argument.
+    /// @param func A comparaction function. Default is a function that compares two values using the '==' operator.
+    /// @param passMessage An optional message describing sucess cases
+    /// @param failMessage An optional message describing failure cases
+    template <class T>
+    void test(
+        string desc, 
+        function<T()> func, 
+        T expected, 
+        function<bool(T, T)> compareFunc = [](T c1, T c2)
+        { 
+            return c1 == c2;
+        },  
+        string passMessage = "", 
+        string failMessage = ""
+    );
+
+    /// @brief Execute a test. Func should return a TestResult object (you can raise exceptions too).
+    /// @param desc The description of the test
+    /// @param func A function that returns true if the test passes. False or exception otherwise.
+    void test(
+        string desc, 
+        function<TestResult()> func
+    );
 
     #ifdef __DYNAMIC_VAR_H_
         //B comes from 'B'oolean
@@ -175,19 +214,14 @@ public:
 
     
 
-    template <class T>
-    void test(
-        string desc, 
-        function<T()> func, 
-        T expected, 
-        function<bool(T, T)> compareFunc = [](T c1, T c2)
-        { 
-            return c1 == c2;
-        },  
-        string passMessage = "", 
-        string failMessage = ""
-    );
-
+    /// @brief Execute a list of tests. a Tester is a object that implements the Tester 
+    ///        class interface. Testers should call 'test' method to run tests 
+    ///        (tipically when 'run' method is called)
+    /// @param testers A list of testers to be executed
+    /// @param argc Argument count received from command line
+    /// @param argv Argument values received from command line
+    /// @param whatProjectAreBeingTested 
+    /// @return The number of failures (calls to 'test' method that returns false or raises exceptions)
     static int runTests(vector<Tester*> testers, int argc = 0, char* argv[] = NULL, string whatProjectAreBeingTested = "another program");
 
     
@@ -211,10 +245,7 @@ public:
         );
     }*/
 
-    void test(
-        string desc, 
-        function<TestResult()> func
-    );
+    
 
 
 };
