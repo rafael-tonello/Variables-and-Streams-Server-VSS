@@ -43,7 +43,9 @@ RamCacheDB::~RamCacheDB()
 
 void RamCacheDB::set(string name, DynamicVar v)
 {
+    dblocker.lock();
     this->db[name] = v;
+    dblocker.unlock();
     pendingChanges = true;
 }
 
@@ -61,6 +63,8 @@ vector<string> RamCacheDB::getChilds(string parentName)
     std::set<string> foundOnes;
     if (parentName.size() > 0 && parentName[parentName.size()-1] != '.')
         parentName = parentName + '.';
+    
+    dblocker.lock();
     for (auto &c: db)
     {
         auto key = c.first;
@@ -77,6 +81,7 @@ vector<string> RamCacheDB::getChilds(string parentName)
                 foundOnes.insert(key);
         }
     }
+    dblocker.unlock();
 
     for (auto &c: foundOnes)
         ret.push_back(c);
@@ -93,12 +98,16 @@ void RamCacheDB::deleteValue(string name, bool deleteChildsInACascade)
 {
     if (db.count(name))
     {
+        dblocker.lock();
         db.erase(name);
+        dblocker.unlock();
         if (deleteChildsInACascade)
         {
             auto childs = getChilds(name);
+            dblocker.lock();
             for (auto &c: childs)
                 db.erase(c);
+            dblocker.unlock();
         }
 
         pendingChanges = true;
@@ -126,10 +135,10 @@ void RamCacheDB::dump()
         return;
 
     string fileText="";
+    dblocker.lock();
     for (auto &c: db)
-    {
         fileText += c.first + "=" + c.second.getString() + "\n";
-    }
+    dblocker.unlock();
 
     //create directory
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
@@ -144,12 +153,14 @@ void RamCacheDB::load()
 {
     string fileText = Utils::readTextFileContent(getDumpFilePath());
     auto lines = Utils::splitString(fileText, "\n");
+    dblocker.lock();
     for (auto &c: lines)
     {
         auto parts = Utils::splitString(c, "=");
         if (parts.size() == 2)
             db[parts[0]] = parts[1];
     }
+    dblocker.unlock();
 }
 
 string RamCacheDB::getDumpFilePath()

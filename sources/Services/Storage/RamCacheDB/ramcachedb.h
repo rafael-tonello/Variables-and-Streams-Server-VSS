@@ -10,6 +10,7 @@
 #include <dependencyInjectionManager.h>
 #include <Confs.h>
 #include <logger.h>
+#include <mutex>
 
 using namespace std;
 
@@ -34,6 +35,8 @@ public:
 
     string dataDir="";
     bool pendingChanges=false;
+
+    mutex dblocker;
 
 public: 
     /* StorageInterface interface */
