@@ -62,6 +62,13 @@ vector<tuple<string, string>> Shared::SimpleConfFileProvider::readAllConfigurati
     for(string line; getline(fileStream, line); )
     {
         line = ltrim(line);
+        //remove \r and \n from line (if exists)
+        if (line.size() > 0 && line[line.size()-1] == '\n')
+            line = line.substr(0, line.size()-1);
+            
+        if (line.size() > 0 && line[line.size()-1] == '\r')
+            line = line.substr(0, line.size()-1);
+
         if (line != "" && line[0] != '#' && line[0] != '/' && line[0] != ';')
         {
             //try detect the separator from current line
