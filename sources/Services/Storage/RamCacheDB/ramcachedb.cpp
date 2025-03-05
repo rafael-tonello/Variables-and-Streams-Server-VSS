@@ -134,6 +134,9 @@ void RamCacheDB::dump()
     if (!pendingChanges)
         return;
 
+    pendingChanges = false;
+    
+    this->log->info("Dumping database to disk");
     string fileText="";
     dblocker.lock();
     for (auto &c: db)
@@ -144,6 +147,7 @@ void RamCacheDB::dump()
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
 
     Utils::writeTextFileContent(dataDir + "/"+ DUMP_FILE_NAME, fileText);
+    this->log->info("Dumping database to disk finished");
 }
 
 string getDumpFileName();
@@ -151,6 +155,7 @@ string getDumpFileName();
 
 void RamCacheDB::load()
 {
+    this->log->info("Loading database from disk");
     string fileText = Utils::readTextFileContent(getDumpFilePath());
     auto lines = Utils::splitString(fileText, "\n");
     dblocker.lock();
@@ -161,6 +166,7 @@ void RamCacheDB::load()
             db[parts[0]] = parts[1];
     }
     dblocker.unlock();
+    this->log->info("Loading database from disk finished");
 }
 
 string RamCacheDB::getDumpFilePath()

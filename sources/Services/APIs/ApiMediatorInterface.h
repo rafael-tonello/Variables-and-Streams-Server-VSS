@@ -6,7 +6,7 @@
 #include <future>
 #include <DynamicVar.h>
 #include "ApiInterface.h"
-#include <errors.h>
+#include <Shared/errors.h>
 #include <tuple>
 #include <limits.h>
 

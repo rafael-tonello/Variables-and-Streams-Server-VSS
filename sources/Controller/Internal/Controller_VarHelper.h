@@ -8,7 +8,7 @@
 #include <utils.h>
 #include <logger.h>
 #include <functional>
-#include <errors.h>
+#include <Shared/errors.h>
 #include <limits.h>
 #ifdef __TESTING__
     #include <tester.h>

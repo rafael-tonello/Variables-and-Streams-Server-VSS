@@ -17,7 +17,7 @@
 #include <logger.h>
 #include "Internal/Controller_ClientHelper.h"
 #include "Internal/Controller_VarHelper.h"
-#include <errors.h>
+#include <Shared/errors.h>
 #include <limits.h>
 
 #ifdef __TESTING__

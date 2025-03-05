@@ -1,5 +1,5 @@
-#ifndef __ERRORS__H__ 
-#define __ERRORS__H__ 
+#ifndef __VSS_ERRORS__H__ 
+#define __VSS_ERRORS__H__ 
 
 #include <string>
 #include <utils.h>
