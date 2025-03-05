@@ -49,7 +49,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
-string INFO_VERSION = "1.5.01+Haumea";
+string INFO_VERSION = "1.6.0+Haumea";
 
 #define KIB *1024
 #define MIB *1024*1024
@@ -77,9 +77,8 @@ int main(int argc, char** argv){
     
     dim.addSingleton<MessageBus<JsonMaker::JSON>>(new MessageBus<JsonMaker::JSON>(dim.get<ThreadPool>(), [](JsonMaker::JSON &item){return item.getChildsNames("").size() == 0;}));
 
-    dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
-    //dim.addSingleton<StorageInterface>(new InMemoryDB(&dim));
-    //dim.addSingleton<StorageInterface>(new PrefixTreeStorage(&dim));
+    //dim.addSingleton<StorageInterface>(new VarSystemLibStorage(&dim));
+    dim.addSingleton<StorageInterface>(new RamCacheDB(&dim));
     
     /*two pointers to controller (to allow systems to find it by all it types):
      the controller can be find by use of get<TheController> and get<ApiMediatorInterface>*/
