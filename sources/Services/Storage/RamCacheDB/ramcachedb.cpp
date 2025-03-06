@@ -41,92 +41,142 @@ RamCacheDB::~RamCacheDB()
     dump();
 }
 
+RamCacheDBItem* RamCacheDB::_scrollTree(string name, RamCacheDBItem &curr, bool readOnly)
+{
+    auto currName = name;
+    string remainingName = "";
+    if (name.find('.') != string::npos)
+    {
+        currName = name.substr(0, name.find('.'));
+        remainingName = name.substr(name.find('.')+1);
+    }
+
+    if (curr.childs.count(currName) == 0)
+    {
+        if (readOnly)
+            return nullptr;
+
+        curr.childs[currName] = RamCacheDBItem();
+    }
+
+    if (remainingName == "")
+    {
+        return &curr.childs[currName];
+    }
+
+    return _scrollTree(remainingName, curr.childs[currName], readOnly);
+    
+}
+
 void RamCacheDB::set(string name, DynamicVar v)
 {
     dblocker.lock();
-    this->db[name] = v;
+    auto item = _scrollTree(name, root, false);
+    if (item != nullptr)
+    {
+        item->value = v;
+        pendingChanges = true;
+    }
+    else
+    {
+        dblocker.unlock();
+        throw runtime_error("Error trying to set value on RamCacheDB, item not found: " + name);
+    }
+
     dblocker.unlock();
-    pendingChanges = true;
 }
+
+
 
 DynamicVar RamCacheDB::get(string name, DynamicVar defaultValue)
 {
-    if (db.count(name))
-        return db[name];
-    return defaultValue;
+    auto ret = defaultValue;
+    dblocker.lock();
+    auto item = _scrollTree(name, root, true);
+    if (item != nullptr)
+        ret = item->value;
+        
+    dblocker.unlock();
+    return ret;
 }
 
-//return only imediate childs, do not return subschilds (childs of childs). Return only imediate key name (the full key name should be returned)
+
+//return only imediate childs, do not return subschilds (childs of childs). Return only imediate key name (the full key name should not be returned)
 vector<string> RamCacheDB::getChilds(string parentName)
 {
     vector<string> ret;
-    std::set<string> foundOnes;
-    if (parentName.size() > 0 && parentName[parentName.size()-1] != '.')
-        parentName = parentName + '.';
     
     dblocker.lock();
-    for (auto &c: db)
+    auto item = _scrollTree(parentName, root, true);
+    if (item != nullptr)
     {
-        auto key = c.first;
-        if (key.size() > parentName.size() && key.find(parentName) == 0)
-        {
-            key=key.substr(parentName.size());
-
-            auto pos = key.find('.');
-            if (pos != string::npos)
-                key = key.substr(0, pos);
-                
-            //key = parentName + key;
-            if (foundOnes.count(key) == 0)
-                foundOnes.insert(key);
-        }
+        for (auto &c: item->childs)
+            ret.push_back(c.first);
     }
     dblocker.unlock();
-
-    for (auto &c: foundOnes)
-        ret.push_back(c);
 
     return ret;
 }
 
 bool RamCacheDB::hasValue(string name)
 {
-    return db.count(name) > 0;
+    dblocker.lock();
+    auto item = _scrollTree(name, root, true);
+    dblocker.unlock();
+    return item != nullptr;
 }
 
 void RamCacheDB::deleteValue(string name, bool deleteChildsInACascade)
 {
-    if (db.count(name))
+    dblocker.lock();
+    auto item = _scrollTree(name, root, false);
+    if (item != nullptr)
     {
-        dblocker.lock();
-        db.erase(name);
-        dblocker.unlock();
-        if (deleteChildsInACascade)
-        {
-            auto childs = getChilds(name);
-            dblocker.lock();
-            for (auto &c: childs)
-                db.erase(c);
-            dblocker.unlock();
-        }
+        item->value = DynamicVar();
 
+        if (deleteChildsInACascade)
+            item->childs.clear();
         pendingChanges = true;
     }
+    dblocker.unlock();
 }
 
 void RamCacheDB::forEachChilds(string parentName, function<void(string, DynamicVar)> f)
 {
-    auto childs = getChilds(parentName);
-    for (auto &c: childs)
-        f(c, db[c]);
+    dblocker.lock();
+    auto item = _scrollTree(parentName, root, true);
+    if (item != nullptr)
+    {
+        for (auto &c: item->childs)
+            f(parentName + "." + c.first, c.second.value);
+    }
+    dblocker.unlock();
 
 }
 
 future<void> RamCacheDB::forEachChilds_parallel(string parentName, function<void(string, DynamicVar)> f, ThreadPool *taskerForParallel)
 {
-    auto childs = getChilds(parentName);
-    for (auto &c: childs)
-        taskerForParallel->enqueue([=](){ f(c, db[c]); });
+    dblocker.lock();
+    auto item = _scrollTree(parentName, root, true);
+    if (item != nullptr)
+    {
+        for (auto &c: item->childs)
+            taskerForParallel->enqueue([=](){f(parentName + "." + c.first, c.second.value); });
+    }
+    dblocker.unlock();
+}
+
+string RamCacheDB::dumpToString(RamCacheDBItem &current)
+{
+    string ret = "";
+    for (auto &c: current.childs)
+    {
+        if (c.second.value.getString() !=  "")
+            ret += c.first + "=" + c.second.value.getString() + "\n";
+
+        ret += dumpToString(c.second);
+    }
+    return ret;
 }
 
 void RamCacheDB::dump()
@@ -135,14 +185,14 @@ void RamCacheDB::dump()
         return;
 
     pendingChanges = false;
+
+
     
     this->log->info("Dumping database to disk");
-    string fileText="";
     dblocker.lock();
-    for (auto &c: db)
-        fileText += c.first + "=" + c.second.getString() + "\n";
+    string fileText=dumpToString(root);
     dblocker.unlock();
-
+    
     //create directory
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
 
@@ -163,7 +213,16 @@ void RamCacheDB::load()
     {
         auto parts = Utils::splitString(c, "=");
         if (parts.size() == 2)
-            db[parts[0]] = parts[1];
+        {
+            auto item = _scrollTree(parts[0], root, false);
+            if (item != nullptr)
+                item->value = parts[1];
+            else
+            {
+                dblocker.unlock();
+                throw runtime_error("RamCacheDB Error trying to loading a value from the disk, item not found: " + parts[0]);
+            }
+        }
     }
     dblocker.unlock();
     this->log->info("Loading database from disk finished");

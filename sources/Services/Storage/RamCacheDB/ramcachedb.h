@@ -16,9 +16,18 @@ using namespace std;
 
 #define DUMP_FILE_NAME "RamCacheDb.dump.txt"
 
+
+
+class RamCacheDBItem {
+public:
+    DynamicVar value;
+    map<string, RamCacheDBItem> childs;
+};
+
 class RamCacheDB: public StorageInterface{
 private:
-    map<string, DynamicVar> db;
+    RamCacheDBItem root;
+
 public:
     RamCacheDB(DependencyInjectionManager* dim);
     ~RamCacheDB();
@@ -27,6 +36,7 @@ public:
 
     int dumpIntervalMs = 60*1000;
 
+    string dumpToString(RamCacheDBItem &current);
     void dump();
     void load();
 
@@ -38,12 +48,14 @@ public:
 
     mutex dblocker;
 
+    RamCacheDBItem* _scrollTree(string name, RamCacheDBItem &curr, bool readOnly);
+
 public: 
     /* StorageInterface interface */
     void set(string name, DynamicVar v) override;
     DynamicVar get(string name, DynamicVar defaultValue) override;
 
-    //return only imediate childs, do not return subschilds (childs of childs). Return only imediate key name (the full key name should be returned)
+    //return only imediate childs, do not return subschilds (childs of childs). Return only imediate key name (the full key name should not be returned)
     vector<string> getChilds(string parentName) override;
     bool hasValue(string name) override;
     void deleteValue(string name, bool deleteChildsInACascade = false) override;
