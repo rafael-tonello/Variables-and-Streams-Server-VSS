@@ -90,4 +90,58 @@ void RamCacheDBTest::run(string context)
         for (auto &c: childs)
             assertNotContains(c, ".", "Childs should not have dots");
     });
+
+    this->testV("Should delete items and childs", [&](){
+        RamCacheDB *db = new RamCacheDB(&dim);
+        db->set("parent.child1", "--");
+        db->set("parent.child2", "--");
+        db->set("parent.child3", "--");
+        db->set("parent.child4", "--");
+        db->set("parent.child5", "--");
+        db->set("parent.child1.child1_1", "--");
+        db->set("parent.child1.child1_2", "--");
+        db->set("parent.child1.child1_3", "--");
+        db->set("parent.child1.child1_4", "--");
+        db->set("parent.child1.child1_5", "--");
+
+        db->deleteValue("parent.child1", true);
+
+        auto childs = db->getChilds("parent");
+        assertEquals(4, childs.size());
+
+        for (auto &c: childs)
+            assertNotContains(c, ".", "Childs should not have dots");
+
+        return true;
+    });
+
+    this->testV("Should not delete childs if cascade is false", [&](){
+        RamCacheDB *db = new RamCacheDB(&dim);
+        db->set("parent.child1", "--");
+        db->set("parent.child2", "--");
+        db->set("parent.child3", "--");
+        db->set("parent.child4", "--");
+        db->set("parent.child5", "--");
+        db->set("parent.child1.child1_1", "--");
+        db->set("parent.child1.child1_2", "--");
+        db->set("parent.child1.child1_3", "--");
+        db->set("parent.child1.child1_4", "--");
+        db->set("parent.child1.child1_5", "--");
+
+        db->deleteValue("parent.child1", false);
+
+        auto childs = db->getChilds("parent");
+        assertEquals(5, childs.size());
+
+        for (auto &c: childs)
+            assertNotContains(c, ".", "Childs should not have dots");
+
+        childs = db->getChilds("parent.child1");
+        assertEquals(5, childs.size());
+
+        for (auto &c: childs)
+            assertNotContains(c, ".", "Childs should not have dots");
+
+        return true;
+    });
 }
