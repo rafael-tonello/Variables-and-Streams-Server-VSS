@@ -227,10 +227,13 @@ Confs* initConfigurations(int argc, char **argv)
         conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
 
         //HTTPS port
-        conf->createAlias("httpApiHttpsPort").addForAnyProvider({"httpsApiPort", "--httpsApiPort", "VSS_HTTPS_API_PORT"}).setDefaultValue(5025);
+        conf->createAlias("httpApiHttpsPort").addForAnyProvider({"httpApiHttpsPort", "--httpApiHttpsPort", "VSS_HTTP_API_HTTPS_PORT"}).setDefaultValue(5025);
         //HTTPs certificate and key files
         conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssCert.pem");
         conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
+
+
+        conf->createAlias("httpApiReturnFullPaths").addForAnyProvider({"httpApiReturnFullPaths", "--httpApiReturnFullPaths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
 
     //VSTP API
         conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5032);

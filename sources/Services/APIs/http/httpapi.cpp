@@ -9,6 +9,10 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
     this->conf = dim->get<Confs>();
 
+    this->conf->listenA("httpApiReturnFullPaths", [&](DynamicVar value){
+        this->returnFullPaths = value.getBool();
+    });
+
     initHttpServer();
     initHttpsServer();
     startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
@@ -104,7 +108,22 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
         auto exporter = detectExporter(in);
         
         for (auto &currVar: result.result)
-            exporter->add(std::get<0>(currVar), std::get<1>(currVar));
+        {
+            auto key = std::get<0>(currVar);
+            auto value = std::get<1>(currVar);
+
+            if (!returnFullPaths){
+                auto equalPart = getEqualPart(key, varName);
+                if (equalPart != "")
+                    key = key.substr(equalPart.size());
+
+                if (key.find(".") == 0)
+                    key = key.substr(1);
+            }
+
+
+            exporter->add(key, value);
+        }
         
 
         out->contentType = exporter->getMimeType();
@@ -120,6 +139,19 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
         out->httpMessage = "Bad request";
         out->setContentString(result.status);
     }
+}
+
+string API::HTTP::HttpAPI::getEqualPart(string p1, string p2)
+{
+    string ret = "";
+    int i = 0;
+    while (i < p1.size() && i < p2.size() && p1[i] == p2[i])
+    {
+        ret += p1[i];
+        i++;
+    }
+    
+    return ret;
 }
 
 void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)

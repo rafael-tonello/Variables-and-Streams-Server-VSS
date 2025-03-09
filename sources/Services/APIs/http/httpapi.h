@@ -22,6 +22,7 @@ namespace API::HTTP{
         string apiId = "HTTPAPI";
         int httpPort; // = 5023;
         int httpsPort; // = 5023;
+        bool returnFullPaths = false;
         void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
         ApiMediatorInterface* ctrl;
         vector<KWShared::KWTinyWebServer *> servers;
@@ -45,6 +46,8 @@ namespace API::HTTP{
         void initHttpServer();
         void initHttpsServer();
         void initServer(int port, bool https, string httpsKey, string httpsPubCert);
+
+        static string getEqualPart(string p1, string p2);
 
     public: 
         HttpAPI(int httpPort, int httpsPort, DependencyInjectionManager *dim); 

@@ -5,7 +5,13 @@ string API::HTTP::JsonExporter::toString()
 {
     JSON result;
     for (auto &c: vars)
-        result.set(c.first  + "._value", c.second.getString());
+    {
+        string append="._value";
+        if (c.first == "")
+            append = "_value";
+            
+        result.set(c.first  + append, c.second.getString());
+    }
 
     return result.ToJson();
 }
