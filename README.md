@@ -334,3 +334,6 @@ Command line call:
         --httpApiKeyFile: File with the key to use in the https server. Default is %APP_DIR%/ssl/cert/vssKey.pem.
 
     Important information about the default values: Default values will only be used if the value is not provided in the configuration file, environment variables, or command line arguments. Default values are the latest resource to be used. This helper text session is only about the command line arguments. The other configuration will be explained bellow.
+
+
+# Task lists
