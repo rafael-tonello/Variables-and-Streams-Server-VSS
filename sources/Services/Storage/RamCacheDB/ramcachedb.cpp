@@ -57,6 +57,10 @@ RamCacheDBItem* RamCacheDB::_scrollTree(string name, RamCacheDBItem &curr, bool 
             return nullptr;
 
         curr.childs[currName] = RamCacheDBItem();
+        curr.childs[currName].imediateName = currName;
+        curr.childs[currName].fullName = curr.fullName == "" ? currName : curr.fullName + "." + currName;
+        curr.childs[currName].parent = &curr;
+
     }
 
     if (remainingName == "")
@@ -136,6 +140,10 @@ void RamCacheDB::deleteValue(string name, bool deleteChildsInACascade)
 
         if (deleteChildsInACascade)
             item->childs.clear();
+
+        if (item->childs.size() == 0){
+            item->parent->childs.erase(item->imediateName);
+        }
         pendingChanges = true;
     }
     dblocker.unlock();
@@ -166,15 +174,17 @@ future<void> RamCacheDB::forEachChilds_parallel(string parentName, function<void
     dblocker.unlock();
 }
 
-string RamCacheDB::dumpToString(RamCacheDBItem &current)
+string RamCacheDB::dumpToString(RamCacheDBItem &current, string currentParentName)
 {
     string ret = "";
+    if (currentParentName != "")
+        currentParentName = currentParentName + ".";
     for (auto &c: current.childs)
     {
         if (c.second.value.getString() !=  "")
-            ret += c.first + "=" + c.second.value.getString() + "\n";
+            ret += currentParentName + c.first + "=" + c.second.value.getString() + "\n";
 
-        ret += dumpToString(c.second);
+        ret += dumpToString(c.second, currentParentName +  c.first);
     }
     return ret;
 }

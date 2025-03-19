@@ -20,6 +20,9 @@ using namespace std;
 
 class RamCacheDBItem {
 public:
+    string imediateName;
+    string fullName;
+    RamCacheDBItem *parent;
     DynamicVar value;
     map<string, RamCacheDBItem> childs;
 };
@@ -36,7 +39,7 @@ public:
 
     int dumpIntervalMs = 60*1000;
 
-    string dumpToString(RamCacheDBItem &current);
+    string dumpToString(RamCacheDBItem &current, string currentParentName = "");
     void dump();
     void load();
 
