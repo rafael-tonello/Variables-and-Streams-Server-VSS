@@ -42,7 +42,7 @@
 
   Integrated installation means the vss will work with files inside system folders (/etc, /var, ...).
 
-  Vss uses its configuration file to detect if it is running in a "portable mode" or in "integrated mode". If yout delete the file confs.conf, the VSS will understant that it should work in integrated mode.
+  Vss uses its configuration file to detect if it is running in a "portable mode" or in "integrated mode". If yout delete the file confs.conf, the VSS will understand that it should work in integrated mode.
 
   ## Portable mode
   in portable mode, the vss will use these files and folders:
@@ -56,7 +56,7 @@
 
     /etc/vss/confs.conf         -> configuration folder
     /var/log/vss.log            -> log file
-    [VSS_BIN_FOLDER]/data       -> data used and stored by THE vss
+    /var/vss/data       -> data used and stored by THE vss
 
   when running VSS in integrated mode, note the following:
 
@@ -103,6 +103,8 @@
   curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
   #result: n0.tests.testvariable=the value of the variable
   ```
+
+
 
 # Task lists
 ## Main task List

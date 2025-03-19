@@ -250,18 +250,20 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
         //store a clientSocket id in a variable
-        get_var_fut = this->ctrl->getVar(varName, DynamicVar(string("")));
-        get_var_values = get_var_fut.get().result;
-        
+        Utils::named_lock("VSTP::processCommand::GET_VAR::"+clientSocket.tags["id"], [&](){
+            get_var_fut = this->ctrl->getVar(varName, DynamicVar(string("")));
+            get_var_values = get_var_fut.get().result;
+            
 
-        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-        for (auto &c : get_var_values)
-        {
-            //strin as buffer. I know, this is is not a good praticy.. May be i change this sometime
-            string bufferStr = std::get<0>(c) + "="+(std::get<1>(c)).getString();
-            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_VAR_RESPONSE , bufferStr);
-        }
-        this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
+            for (auto &c : get_var_values)
+            {
+                //strin as buffer. I know, this is is not a good praticy.. May be i change this sometime
+                string bufferStr = std::get<0>(c) + "="+(std::get<1>(c)).getString();
+                this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_VAR_RESPONSE , bufferStr);
+            }
+            this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
+        });
     }
     else if (command == VSTP_ACTIONS::LOCK_VAR)
     {

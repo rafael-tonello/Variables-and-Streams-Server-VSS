@@ -22,8 +22,7 @@
  * 
  * 
  *  Example of context and usage:
- *      Lets supose your system needs a port for a socket conneciton. Ans also lets supose this port can be configured in a configuration file, in a 
- *      environmnet variable and even can be informed in the command line of you program. 
+ *      Lets supose your system needs a port for a socket conneciton. Ans also lets supose this port can be configured in a configuration file, in a environmnet variable and even can be informed in the command line of you program. 
  * 
  *      For this scenario, a possible use of Confs system can be:
  * 
@@ -41,6 +40,9 @@
  *      //or confs.createAlias("port").addForAnyProvider({"--port", "-p", "MYAPP_PORT", "port"});
  * 
  *      int port = confs.getA(port, 0).getInt();
+ * 
+ *  The Conf system will look for configurations in the order that the providers were added. The first provider that has the configuration will be used to return the value.
+ * 
  */
 
 

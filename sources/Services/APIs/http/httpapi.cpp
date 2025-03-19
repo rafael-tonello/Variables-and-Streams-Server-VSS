@@ -112,6 +112,9 @@ void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
             auto key = std::get<0>(currVar);
             auto value = std::get<1>(currVar);
 
+            if (value.getString() == "")
+                continue;
+            
             if (!returnFullPaths){
                 auto equalPart = getEqualPart(key, varName);
                 if (equalPart != "")

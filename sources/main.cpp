@@ -209,6 +209,7 @@ Confs* initConfigurations(int argc, char **argv)
         .add("%PROJECT_DIR%", getApplicationDirectory())
         .add("%APP_DIR%", getApplicationDirectory())
         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ? getApplicationDirectory() : "")
+        .add("%SUGGESTED_DATA_DIRECTORY%", isRunningInPortableMode() ? getApplicationDirectory() + "/data" : "/var/vss/data")
     ;
 
     //max log file size (logger library will compress the file if it is bigger than this value)
@@ -218,11 +219,11 @@ Confs* initConfigurations(int argc, char **argv)
     conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
 
     //where database files should be stored
-    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/database");
+    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/database");
 
     //HTTP API
         //directory to store http data (temp files, cookies, ...)
-        conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%APP_DIR%/data/http_data");
+        conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/http_data");
         //HTTP port (note that it different from the HTTPS port)
         conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
 
@@ -236,7 +237,7 @@ Confs* initConfigurations(int argc, char **argv)
         conf->createAlias("httpApiReturnFullPaths").addForAnyProvider({"httpApiReturnFullPaths", "--httpApiReturnFullPaths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
 
     //VSTP API
-        conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5032);
+        conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--vstpApiPort", "VSS_VSTP_API_PORT"}).setDefaultValue(5032);
 
 
     //RamCacheDB
