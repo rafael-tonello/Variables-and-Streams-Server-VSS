@@ -163,6 +163,8 @@ public:
     void listenA(string alias, function<void(DynamicVar)> f, bool callFImedially = true, DynamicVar defaultValueForImediateFCall = "");
     string applyPlaceHolders(string source);
 
+    vector<tuple<string, DynamicVar>> getAllConfigurationsA();
+
 };
 
 #endif

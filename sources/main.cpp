@@ -91,18 +91,27 @@ int main(int argc, char** argv){
     auto logger = dim.get<ILogger>();
 
     /* #region Initial information messages */
-        logger->info("", 
-            string("The VSS has been started\n") +
-            string("+-- Version: "+ INFO_VERSION + "\n")+
-            string("+-- Portable mode: ")+ string(isRunningInPortableMode() ? "Yes":"No")+ "\n" + 
-            string("|   +-- conf file: "+findConfigurationFile()+"\n")+
-            string("|   +-- log file: "+determinteLogFile()+"\n")+
-            string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
-            string("+-- Services\n")+
-            string("    +-- VSTP port: "+dim.get<VSTP>()->getListeningInfo() + "\n") + 
-            string("    +-- HTTP port: "+dim.get<HTTP::HttpAPI>()->getListeningInfo() + "\n") + 
-            string("    +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPortInfo() + "\n")
-        );
+    string initialInfo = string("The VSS has been started\n") +
+        string("+-- Version: "+ INFO_VERSION + "\n")+
+        string("+-- Portable mode: ")+ string(isRunningInPortableMode() ? "Yes":"No")+ "\n" + 
+        string("|   +-- conf file: "+findConfigurationFile()+"\n")+
+        string("|   +-- log file: "+determinteLogFile()+"\n")+
+        string("|   +-- database folder: "+dim.get<VarSystemLibStorage>("StorageInterface")->getDatabseFolder() + "\n")+
+        string("+-- Services\n")+
+        string("|   +-- VSTP port: "+dim.get<VSTP>()->getListeningInfo() + "\n") + 
+        string("|   +-- HTTP port: "+dim.get<HTTP::HttpAPI>()->getListeningInfo() + "\n") + 
+        string("|   +-- Server discovery port: "+dim.get<ServerDiscovery>()->getRunningPortInfo() + "\n") +
+        string("+-- All configurations\n")
+    ;
+
+    for (auto &c: dim.get<Confs>()->getAllConfigurationsA())
+    {
+        auto key = std::get<0>(c);
+        auto value = std::get<1>(c).getString();
+        initialInfo += "    +-- " + key + ": " + value + "\n";
+    }
+
+    logger->info("", initialInfo);
     /* #endregion */
 
     //prevent program close (equivalent to while (true))

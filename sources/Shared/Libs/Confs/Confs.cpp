@@ -138,3 +138,14 @@ void Confs::informPotentialVariables(string providerTName, vector<string>possibl
         }
     }
 }
+
+vector<tuple<string, DynamicVar>> Confs::getAllConfigurationsA()
+{
+    vector<tuple<string, DynamicVar>> ret;
+    for (auto &alias: aliases)
+    {
+        ret.push_back({alias.first, getA(alias.first)});
+    }
+
+    return ret;
+}
