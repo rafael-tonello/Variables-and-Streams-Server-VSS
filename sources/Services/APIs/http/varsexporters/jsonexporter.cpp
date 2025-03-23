@@ -10,7 +10,7 @@ string API::HTTP::JsonExporter::toString()
         if (c.first == "")
             append = "_value";
             
-        result.set(c.first  + append, c.second.getString());
+        result.set(c.first  + append, escape(c.second.getString()));
     }
 
     return result.ToJson();

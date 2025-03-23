@@ -19,6 +19,7 @@ namespace API::HTTP {
 
         static string sGetMimeType();
         static bool checkMimeType(string mimeType);
+
     }; 
 }
  
