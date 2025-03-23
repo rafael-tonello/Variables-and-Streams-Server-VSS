@@ -49,6 +49,7 @@ void handleSignals();
 Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
+//ATTENTION: to change version, use apply_version_number.sh script in the project root folder (read the comments at the beginning of the script before use it)
 string INFO_VERSION = "v1.9.1+Haumea";
 
 #define KIB *1024
