@@ -219,13 +219,28 @@ string API::HTTP::HttpAPI::getVarName(string resource)
 
 string API::HTTP::HttpAPI::getVarName(HttpData* in)
 {
-    return getVarName(in->resource);
+    auto resource = in->resource;
+    if (resource.find("?") != string::npos)
+        resource = resource.substr(0, resource.find("?"));
+
+    return getVarName(resource);
 }
 
 API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(HttpData *request)
 {
+    //format via query is mandatory
+    if (request->resource.find('?') != string::npos)
+    {
+        auto query = request->resource.substr(request->resource.find('?')+1);
+        if ((query.find("export=json") != string::npos) || (query.find("format=json") != string::npos))
+            return new JsonExporter();
+        else if ((query.find("export=plain") != string::npos) || (query.find("format=plain") != string::npos))
+            return new PlainTextExporter();
+    }
+
     if (PlainTextExporter::checkMimeType(request->accept))
         return new PlainTextExporter();
+
 
     return new JsonExporter();
 }
