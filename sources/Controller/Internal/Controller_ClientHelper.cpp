@@ -23,7 +23,7 @@ void Controller_ClientHelper::initialize()
         db->set("internal.clients.byId."+clientId+".apiId", api->getApiId());    
         //update client keepAlive and apiId
         this->updateLiveTime();
-    });
+    }, 2000);
 }
 
 
@@ -109,7 +109,7 @@ void Controller_ClientHelper::registerNewObservation(string varName)
         auto currentCount = db->get("internal.clients.byId."+clientId+".observing.count", 0).getInt();
         db->set("internal.clients.byId."+clientId+".observing.count", currentCount+1);
         db->set("internal.clients.byId."+clientId+".observing."+to_string(currentCount), varName);
-    });
+    }, 2000);
 }
 
 
@@ -146,7 +146,7 @@ void Controller_ClientHelper::removeClientFromObservationSystem()
         }
         db->deleteValue("internal.clients.byId."+clientId, true);
 
-    });
+    }, 5000);
 
 }
 
@@ -171,7 +171,7 @@ void Controller_ClientHelper::unregisterObservation(string varName)
             db->set("internal.clients.byId."+clientId+".observing.count", currentCount-1);
         }
         
-    });
+    }, 5000);
 }
 
 int Controller_ClientHelper::findVarIndexOnObservingVars(string varName)

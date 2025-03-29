@@ -263,7 +263,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
                 this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::GET_VAR_RESPONSE , bufferStr);
             }
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
-        });
+        }, 2000);
     }
     else if (command == VSTP_ACTIONS::LOCK_VAR)
     {
