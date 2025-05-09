@@ -1,4 +1,41 @@
-# About VSS
+# Get Started with a simple FAQ
+## What is VSS?
+
+VSS is an acronym to Var Stream Server. It is a server of variables, a central place where system can store, get and share states. It allow you to set and get variables using simple requests (that can be done via HTTP or a custom protocol, named 'VSTP').
+Furthermore, VSS allow you to 'Listen' to variables changes, avoiding the need to pull the server to get updates. It allow variables to work like streams of data (given the name of the server: VSS).
+
+VSS also can be used as a simple key-value storage. VSS store data in an nested way, like a giant JSON structure. You can even get all data structure of an app in a single request.
+
+## May I have some example?
+Of course. Lets see how to do some things with VSS (using its HTTP API).
+
+Run the VSS:
+```bash
+cd /path/to/vss
+./vss &
+```
+
+Set data
+```bash
+curl -X POST -d "my value" http://localhost:5024/path/to/my/variable
+```
+
+Get the data
+```bash
+curl http://localhost:5024/path/to/my/variable
+#output: {"_value":"my value"}
+```
+Note: In JSON results, all values will came in properties named '_value' because variables can hold its own value and children variables at same time.
+
+## How to listen/subscribe a variable?
+You can subscribe a variable via websocket
+```bash
+wscat -c ws://192.168.100.2:5024/path/to/my/variable
+```
+
+
+# Adittional information
+## About VSS
   Vss is a variable server, a state share system. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
   
   Vss is a server that provides some APIs to manage variables from multiple clients. All variables are shared between these clients, that means you can write a variable in any client and read it in any client.
@@ -9,7 +46,7 @@
 
   The variables are write with object notation. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
 
-# Compiling and running
+## Compiling and running
   First of wall, clone the project:
 
   ```bash
@@ -37,12 +74,8 @@
 
   
 # Portable and integrated Modes
-  
-  A portable installation means vss have all it needs to work inside a unique folder. You can move this folder and rename it however you want and vss will be able to resume its work when started.
-
-  Integrated installation means the vss will work with files inside system folders (/etc, /var, ...).
-
-  Vss uses its configuration file to detect if it is running in a "portable mode" or in "integrated mode". If yout delete the file confs.conf, the VSS will understand that it should work in integrated mode.
+  When VSS start run, it will try to detect where are the folders and files that it needs to use. Vss will run in two modes: Portable mode and Integrated mode. Portable mode means vss will run, use and create all its files inside a folder from where it was executed. Integrated mode means vss will run integrated with you Unix system, read configurations from /etc and using /var to store its run data and logs.
+  Vss uses the existence of its configurations file to detect if it is running in a "portable mode" or in "integrated mode". If the file confs.conf are present in the same folder of its binary, it will assume the 'portable mode'. Otherwise, it will assume 'integrated mode'.
 
   ## Portable mode
   in portable mode, the vss will use these files and folders:
@@ -150,10 +183,7 @@
     [ ] SoEnvirionmentConfProvider
 ## Bugs
     [ ] GetVar (vstp) is not returning error to client
-
-## Project Progress (30/35)
-    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░ ~85%
-
+    [ ] Websocket connections are not updating clients about var changes
 ## sugests and things to analyze    
     - Restfull and WebSocket API
     - Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
@@ -167,7 +197,9 @@
 
 # Further information
 
-An overview on how VSS work with data when a 'var set' in requested
+An overview on how VSS work with data when a 'var set' in requested 
+> [!WARNING]
+> Vss working flow changed a little over the time and needs to be updated.
 ```
 +---------+           +------------ server -----------+
 | client  |           |  +-----+            +------+  |
@@ -195,7 +227,7 @@ An overview on how VSS work with data when a 'var set' in requested
 ```
 
 # things to study and other information
-When i wrote this app, I reused ancient codes, that was not very well structured. So some things should be refactored.
+When i wrote this app, I reused 'ancient' codes, that was not very well structured. So some things should be refactored.
 
 -> Dismember VSTP service/module in the following structure (just a suggestion):
     serviceController - Orchestrate the workflow
