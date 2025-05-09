@@ -152,8 +152,7 @@ wscat -c ws://192.168.100.2:5024/path/to/my/variable
     
     [✔] Create a logger library
     [✔] Create the configuration system (observable \ configuratiosystem)
-    [✔] Create the Controller_VarHelper to isolate v \ars logic forController
-  
+    [✔] Create the Controller_VarHelper to isolate v \ars logic forController  
     
     [✔] Convert TCP server to a repository
   
@@ -165,6 +164,15 @@ wscat -c ws://192.168.100.2:5024/path/to/my/variable
     [✔] Add HTTP Api
     [✔] Configuration provider for Enviroment variables 
     [✔] Configuration provider for Command line arguments
+
+    [ ] Create CHANGELOG.md
+    
+    [ ] create a GA to test and build VSS
+      [ ] Arm64 and x86_64 architectures
+      [ ] Run tests on commits
+      [ ] Create releases on Tags
+      [ ] Use CHANGELOG.md as release text
+
 ## Tests
     [✔] Controller
     [✔] ControllerClientHelper
@@ -185,12 +193,9 @@ wscat -c ws://192.168.100.2:5024/path/to/my/variable
     [ ] GetVar (vstp) is not returning error to client
     [ ] Websocket connections are not updating clients about var changes
 ## sugests and things to analyze    
-    - Restfull and WebSocket API
     - Rename Controller to Business, Logic, core or core service (to analyze. It prevent confusing with MVC system)
-    - Paralel project (app server)
     - Move all code of main.cpp to a class
-    - Convert configs to a repository
-    - Tests for Services->Storage->VarSystemLib
+    - Convert configs system to a repository
 
 
 
