@@ -60,14 +60,14 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
 
     if (startResult.startedPorts.size() > 0)
     {
-        this->server->addConEventListener([&](ClientInfo *client, CONN_EVENT event){
+        this->server->addConEventListener([&](shared_ptr<ClientInfo> client, CONN_EVENT event){
             if (event == CONN_EVENT::CONNECTED)
                 this->onClientConnected(client);
             else
                 this->onClientDisconnected(client);
         });
 
-        this->server->addReceiveListener([&](ClientInfo *client, char* data,  size_t size){
+        this->server->addReceiveListener([&](shared_ptr<ClientInfo> client, char* data,  size_t size){
             this->onDataReceived(client, data, size);
         });
 
@@ -90,7 +90,7 @@ void API::VSTP::VSTP::initServer(int port, ThreadPool *tasker)
     }
 }
 
-void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
+void API::VSTP::VSTP::onClientConnected(shared_ptr<ClientInfo>  cli)
 {
     //create an unique id and sent id to updateClientAboutObservatingVarsthe client
     cli->tags["id"] = Utils::createUniqueId();
@@ -101,7 +101,7 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
 
     sendInfoAndConfToClient(cli);
     updateClientsByIdList(cli, cli->tags["id"]);
-    incomingDataBuffers[cli] = "";
+    incomingDataBuffers[cli.get()] = "";
     
     sendIdToClient(cli, cli->tags["id"]);
     //sentTotalVarsAlreadyBeingObserved(cli, 0);
@@ -123,13 +123,13 @@ void API::VSTP::VSTP::onClientConnected(ClientInfo* cli)
 
 }
 
-void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
+void API::VSTP::VSTP::onClientDisconnected(shared_ptr<ClientInfo>  cli)
 {
     log->info((DVV){"Client", getCliFriendlyName(cli, true), "disconnected"});
-    if (incomingDataBuffers.count(cli))
+    if (incomingDataBuffers.count(cli.get()))
     {
-        incomingDataBuffers[cli] = "";
-        incomingDataBuffers.erase(cli);
+        incomingDataBuffers[cli.get()] = "";
+        incomingDataBuffers.erase(cli.get());
     }
 
     if (clientsById.count(cli->tags["id"]))
@@ -139,20 +139,20 @@ void API::VSTP::VSTP::onClientDisconnected(ClientInfo* cli)
     }
 }
 
-void API::VSTP::VSTP::sendBeginHeaderToClient(ClientInfo* cli)
+void API::VSTP::VSTP::sendBeginHeaderToClient(shared_ptr<ClientInfo>  cli)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SERVER_BEGIN_HEADERS, "");
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::SERVER_BEGIN_HEADERS, "");
 }
 
-void API::VSTP::VSTP::sendEndHeaderToClient(ClientInfo* cli)
+void API::VSTP::VSTP::sendEndHeaderToClient(shared_ptr<ClientInfo>  cli)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SERVER_END_HEADERS, "");
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::SERVER_END_HEADERS, "");
 }
 
-void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
+void API::VSTP::VSTP::sendInfoAndConfToClient(shared_ptr<ClientInfo>  cli)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS, string("PROTOCOL VERSION=")+string(VSTP_PROTOCOL_VERSION));
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS, string("VSS VERSION=")+ctrl->getSystemVersion());
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS, string("PROTOCOL VERSION=")+string(VSTP_PROTOCOL_VERSION));
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::SEND_SERVER_INFO_AND_CONFS, string("VSS VERSION=")+ctrl->getSystemVersion());
 
 
     //scapeChar must be sent without __PROTOCOL_VSTP_WRITE
@@ -160,30 +160,30 @@ void API::VSTP::VSTP::sendInfoAndConfToClient(ClientInfo* cli)
     cli->sendString(buffer);
 }
 
-void API::VSTP::VSTP::sendIdToClient(ClientInfo* cli, string id)
+void API::VSTP::VSTP::sendIdToClient(shared_ptr<ClientInfo>  cli, string id)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::SUGGEST_NEW_CLI_ID, id);
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::SUGGEST_NEW_CLI_ID, id);
 }
 
-void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varsCount)
+void API::VSTP::VSTP::sentTotalVarsAlreadyBeingObserved(shared_ptr<ClientInfo> cli, int varsCount)
 {
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED, to_string(varsCount));
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::TOTAL_VARIABLES_ALREADY_BEING_OBSERVED, to_string(varsCount));
 }
 
-void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, Errors::Error error)
+void API::VSTP::VSTP::sendErrorToClient(shared_ptr<ClientInfo> cli, Errors::Error error)
 {
     log->warning("Sending error to client '"+getCliFriendlyName(cli)+"': "+error);
     //log->info2("Sending error to client '"+getCliFriendlyName(cli)+"': "+error.message);
-    __PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::ERROR, error);
+    __PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::ERROR, error);
 }
 
-void API::VSTP::VSTP::sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError)
+void API::VSTP::VSTP::sendErrorToClient(shared_ptr<ClientInfo> cli, string commandWithError, Errors::Error AdditionalError)
 {
     string errorMessage = commandWithError+"; Error processing command '" + commandWithError + "': "+ AdditionalError;
     this->sendErrorToClient(cli, Errors::Error(errorMessage));
 }
 
-void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
+void API::VSTP::VSTP::updateClientsByIdList(shared_ptr<ClientInfo>  cli, string newId)
 {
     if (newId == "")
         newId = cli->tags["id"];
@@ -197,13 +197,13 @@ void API::VSTP::VSTP::updateClientsByIdList(ClientInfo* cli, string newId)
     }
     
     cli->tags["id"] = newId;
-    clientsById[newId]  = cli;
+    clientsById[newId] = cli;
 }
 
-void API::VSTP::processCommand(string command, string payload, ClientInfo &clientSocket)
+void API::VSTP::processCommand(string command, string payload, shared_ptr<ClientInfo> clientSocket)
 {
     //if (command != VSTP_ACTIONS::PING)
-    //    this->log->debug((DVV){"received command from client "+clientSocket.tags["id"] + " ("+clientSocket.address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
+    //    this->log->debug((DVV){"received command from client "+clientSocket->tags["id"] + " ("+clientSocket->address+"): ", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
         
     string strData;
     string key;
@@ -217,12 +217,12 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
 
     separateKeyAndValue(payload, varName, value, "=;: ");
     if (command != "" && string(VSTP_ACTIONS::HELP + "\r").find(command) == 0)
-        displayHelpMenu(&clientSocket);
+        displayHelpMenu(clientSocket);
     else if (command != "" && string(VSTP_ACTIONS::SET_TELNET_SESSION + "\r").find(command) == 0)
     {
-        log->info("Session of client '"+getCliFriendlyName(&clientSocket, true)+"' setted as a telnet session.");
-        clientSocket.tags["isATelnetSession"] = "true";
-        clientSocket.sendString("Session configured as a Telenet session.\n");
+        log->info("Session of client '"+getCliFriendlyName(clientSocket, true)+"' setted as a telnet session.");
+        clientSocket->tags["isATelnetSession"] = "true";
+        clientSocket->sendString("Session configured as a Telenet session.\n");
     }
     else if (command ==VSTP_ACTIONS::SET_VAR)
     {
@@ -230,7 +230,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
 
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         if (sv_ctrl_result != Errors::NoError)
-            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::SET_VAR, sv_ctrl_result);
+            this->sendErrorToClient(clientSocket, VSTP_ACTIONS::SET_VAR, sv_ctrl_result);
         
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
     }
@@ -240,7 +240,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
 
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         if (dv_ctrl_result != Errors::NoError)
-            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::DELETE_VAR, dv_ctrl_result);
+            this->sendErrorToClient(clientSocket, VSTP_ACTIONS::DELETE_VAR, dv_ctrl_result);
 
         string resultMsg = dv_ctrl_result == Errors::NoError ? "sucess": "failure:"+dv_ctrl_result;
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::DELETE_VAR_RESULT, varName + "=" + resultMsg);
@@ -250,7 +250,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     else if (command == VSTP_ACTIONS::GET_VAR)
     {
         //store a clientSocket id in a variable
-        Utils::named_lock("VSTP::processCommand::GET_VAR::"+clientSocket.tags["id"], [&](){
+        Utils::named_lock("VSTP::processCommand::GET_VAR::"+clientSocket->tags["id"], [&](){
             get_var_fut = this->ctrl->getVar(varName, DynamicVar(string("")));
             get_var_values = get_var_fut.get().result;
             
@@ -275,7 +275,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         }
         catch (...)
         {
-            log->error((DVV){"Error parsing timeout, to LOCKVAR action, received from client", getCliFriendlyName(&clientSocket, true) + ".", "Received value was:", payload});
+            log->error((DVV){"Error parsing timeout, to LOCKVAR action, received from client", getCliFriendlyName(clientSocket, true) + ".", "Received value was:", payload});
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::LOCK_VAR_RESULT, varName + "=Error parsing timeout");
 
             return;
@@ -315,11 +315,11 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         auto [ vName, customIdsAndMetainfo] = separateNameAndMetadata(varName);
         varName = vName;
 
-        ctrl->observeVar(varName, clientSocket.tags["id"], customIdsAndMetainfo, this);
+        ctrl->observeVar(varName, clientSocket->tags["id"], customIdsAndMetainfo, this);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
 
-        log->info({"Client", clientSocket.tags["id"], "is now observing the variable", varName});
+        log->info({"Client", clientSocket->tags["id"], "is now observing the variable", varName});
     }
     else if (command == VSTP_ACTIONS::UNSUBSCRIBE_VAR)
     {
@@ -328,8 +328,8 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
 
         //todo: if no metadata is specified, delete all client observations
 
-        ctrl->stopObservingVar(varName, clientSocket.tags["id"], customIdsAndMetainfo, this);
-        log->info({"Client", clientSocket.tags["id"], "stop watching the variable", varName});
+        ctrl->stopObservingVar(varName, clientSocket->tags["id"], customIdsAndMetainfo, this);
+        log->info({"Client", clientSocket->tags["id"], "stop watching the variable", varName});
 
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
@@ -366,7 +366,7 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
         {
             log->error("Error returned from controller when running GET_CHILDS action: "+resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-            this->sendErrorToClient(&clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.status);
+            this->sendErrorToClient(clientSocket, VSTP_ACTIONS::GET_CHILDS, resultFromController.status);
             this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
         }
     }
@@ -378,33 +378,33 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     }
     else if (command == VSTP_ACTIONS::CHANGE_OR_CONFIRM_CLI_ID)
     {
-        string oldId = clientSocket.tags["id"];
+        string oldId = clientSocket->tags["id"];
         if (oldId != payload)
         {
-            this->updateClientsByIdList(&clientSocket, payload);
-            log->info((DVV){"Client", clientSocket.address, "(address",clientSocket.address,") changed its id from", oldId, "to", payload});
+            this->updateClientsByIdList(clientSocket, payload);
+            log->info((DVV){"Client", clientSocket->address, "(address",clientSocket->address,") changed its id from", oldId, "to", payload});
         }
         else
         {
-            log->info((DVV){"The client", clientSocket.address, "(address",clientSocket.address,") requested an id change with its actual id (", oldId,")"});
+            log->info((DVV){"The client", clientSocket->address, "(address",clientSocket->address,") requested an id change with its actual id (", oldId,")"});
         }
 
         //even if client do not change its id, notify the controller so it can update the client about its observing vars.
         int varsAlreadyBeingObserved = 0;
         this->ctrl->clientConnected(payload, this, varsAlreadyBeingObserved);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-        sentTotalVarsAlreadyBeingObserved(&clientSocket, varsAlreadyBeingObserved);
+        sentTotalVarsAlreadyBeingObserved(clientSocket, varsAlreadyBeingObserved);
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
     }
     else 
     {
         log->info("Received an unknown command: '"+command+"'. Payload: '"+payload+"'");
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_BEGIN, command + CMDPAYLOADSEPARATOR + payload);
-        sendErrorToClient(&clientSocket, command, Errors::Error("Unknown command"));
+        sendErrorToClient(clientSocket, command, Errors::Error("Unknown command"));
         this->__PROTOCOL_VSTP_WRITE(clientSocket, VSTP_ACTIONS::RESPONSE_END, command + CMDPAYLOADSEPARATOR + payload);
-        if (clientSocket.tags["isATelnetSession"] == "true")
+        if (clientSocket->tags["isATelnetSession"] == "true")
         {
-            clientSocket.sendString("Unknown command '"+command+". Use 'help' command to get more information about commands.'\n");
+            clientSocket->sendString("Unknown command '"+command+". Use 'help' command to get more information about commands.'\n");
         }
     }
 
@@ -412,18 +412,18 @@ void API::VSTP::processCommand(string command, string payload, ClientInfo &clien
     //    this->log->debug((DVV){"processCommand is exiting. Command:", command,  "payload.size():", (int)payload.size(), "payload:", Utils::StringToHex(payload)});
 }
 
-void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data)
+void API::VSTP::__PROTOCOL_VSTP_WRITE(shared_ptr<ClientInfo> clientSocket, string command, string data)
 {
     //if (data.size() > 0)
     //    data = byteEscape(data);
 
     string buffer = command + CMDPAYLOADSEPARATOR + data + "\n";
 
-    this->log->debug("sending '"+buffer+"' to client "+clientSocket.tags["id"] + " ("+clientSocket.address+")");
-    clientSocket.sendString(buffer);
+    this->log->debug("sending '"+buffer+"' to client "+clientSocket->tags["id"] + " ("+clientSocket->address+")");
+    clientSocket->sendString(buffer);
 }
 
-void API::VSTP::__PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, char* data, unsigned int size)
+void API::VSTP::__PROTOCOL_VSTP_WRITE(shared_ptr<ClientInfo> clientSocket, string command, char* data, unsigned int size)
 {
     __PROTOCOL_VSTP_WRITE(clientSocket, command, string(data, size));
 }
@@ -445,12 +445,12 @@ string API::VSTP::byteUnescape(string text)
     });
 }
 
-void API::VSTP::onDataReceived(ClientInfo* cli, char* data, size_t size)
+void API::VSTP::onDataReceived(shared_ptr<ClientInfo>  cli, char* data, size_t size)
 {
-    incomingDataBuffers[cli] += string(data, size);
+    incomingDataBuffers[cli.get()] += string(data, size);
     string package;
 
-    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli], package, cli->tags["isATelnetSession"] == "true"))
+    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli.get()], package, cli->tags["isATelnetSession"] == "true"))
         processReceivedMessage(cli, package);
 }
 
@@ -469,7 +469,7 @@ bool API::VSTP::detectAndTakeACompleteMessage(string &text, string &output, bool
     return false;
 }
 
-void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
+void API::VSTP::processReceivedMessage(shared_ptr<ClientInfo>  cli, string message)
 {
     //log->info2("::processReceivedMessage("+to_string((uint64_t)cli)+", \""+message+"\")");
     string command = "";
@@ -483,7 +483,7 @@ void API::VSTP::processReceivedMessage(ClientInfo* cli, string message)
     //use the secondary scheduler because this tasks needs to wait for futures that depends on primary scheduler and, as primary scheduler,
     //has a limited number of threads, it can run out in a deadlock;
     SecondaryScheduler->enqueue([&, command, payload, cli](){
-        this->processCommand(command, payload, *cli);
+        this->processCommand(command, payload, cli);
     });
 }
 
@@ -542,7 +542,7 @@ API::ClientSendResult API::VSTP::notifyClient(string clientId, vector<tuple<stri
         {
             string metadataStr = std::get<1>(c) != "" ? "("+std::get<1>(c)+")": "";
             string bufferStr = std::get<0>(c) + metadataStr+ "="+(std::get<2>(c)).getString();
-            this->__PROTOCOL_VSTP_WRITE(*cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
+            this->__PROTOCOL_VSTP_WRITE(cli, VSTP_ACTIONS::VAR_CHANGED, bufferStr);
         }
     
 
@@ -582,7 +582,7 @@ void API::VSTP::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)
     });
 }
 
-string API::VSTP::getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditionalInfomation)
+string API::VSTP::getCliFriendlyName(shared_ptr<ClientInfo>  cli, bool includeClieIdAndAditionalInfomation)
 {
     if (!cli->tags.count("friendlyName"))
         cli->tags["friendlyName"] = Utils::getAName(rand()) + " " + Utils::getAName(rand());
@@ -595,7 +595,7 @@ string API::VSTP::getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditi
     return ret;
 }
 
-void API::VSTP::displayHelpMenu(ClientInfo* cli)
+void API::VSTP::displayHelpMenu(shared_ptr<ClientInfo>  cli)
 {
     cli->sendString(string("VSTP rotocol version ") + string(VSTP_PROTOCOL_VERSION) + string("\n"));
     cli->sendString(string("\n"));

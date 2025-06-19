@@ -84,7 +84,7 @@ namespace API {
             int port;
 
             //TODO: use mutex to prevent conflict with clientsById
-            map<string, ClientInfo*> clientsById;
+            map<string, shared_ptr<ClientInfo>> clientsById;
             //TODO: use mutex to prevent conflict with incomingDataBuffers
             map<ClientInfo*, string> incomingDataBuffers;
 
@@ -93,25 +93,25 @@ namespace API {
             
             void initServer(int port, ThreadPool *tasker);
 
-            void onClientConnected(ClientInfo *cli);
-            void onClientDisconnected(ClientInfo *cli);
+            void onClientConnected(shared_ptr<ClientInfo> cli);
+            void onClientDisconnected(shared_ptr<ClientInfo> cli);
 
-            void updateClientsByIdList(ClientInfo* cli, string newId = "");
-            void sendBeginHeaderToClient(ClientInfo* cli);
-            void sendEndHeaderToClient(ClientInfo* cli);
-            void sendInfoAndConfToClient(ClientInfo* cli);
-            void sendIdToClient(ClientInfo* cli, string id);
-            void sentTotalVarsAlreadyBeingObserved(ClientInfo *cli, int varCount);
-            void sendErrorToClient(ClientInfo *cli, Errors::Error error);
-            void sendErrorToClient(ClientInfo *cli, string commandWithError, Errors::Error AdditionalError);
+            void updateClientsByIdList(shared_ptr<ClientInfo>  cli, string newId = "");
+            void sendBeginHeaderToClient(shared_ptr<ClientInfo>  cli);
+            void sendEndHeaderToClient(shared_ptr<ClientInfo>  cli);
+            void sendInfoAndConfToClient(shared_ptr<ClientInfo>  cli);
+            void sendIdToClient(shared_ptr<ClientInfo>  cli, string id);
+            void sentTotalVarsAlreadyBeingObserved(shared_ptr<ClientInfo> cli, int varCount);
+            void sendErrorToClient(shared_ptr<ClientInfo> cli, Errors::Error error);
+            void sendErrorToClient(shared_ptr<ClientInfo> cli, string commandWithError, Errors::Error AdditionalError);
 
-            void onDataReceived(ClientInfo* cli, char* data, size_t size);
+            void onDataReceived(shared_ptr<ClientInfo>  cli, char* data, size_t size);
             bool detectAndTakeACompleteMessage(string &text, string &output, bool isATelnetSession = false);
-            void processReceivedMessage(ClientInfo* cli, string message);
+            void processReceivedMessage(shared_ptr<ClientInfo>  cli, string message);
 
-            void displayHelpMenu(ClientInfo* cli);
+            void displayHelpMenu(shared_ptr<ClientInfo>  cli);
 
-            string getCliFriendlyName(ClientInfo* cli, bool includeClieIdAndAditionalInfomation = false);
+            string getCliFriendlyName(shared_ptr<ClientInfo>  cli, bool includeClieIdAndAditionalInfomation = false);
 
             /**
              * @brief Separate key and value from a keyValuePair. The funciton will find the first ocurrency of any character in 'possibleCharSeps' arguments
@@ -138,9 +138,9 @@ namespace API {
              * @param the amount of data (number of bytes) received
              * @param clientSocket a SocketInfo object eith information about the socket client
              */
-            void processCommand(string command, string payload, ClientInfo &clientSocket);
+            void processCommand(string command, string payload, shared_ptr<ClientInfo> clientSocket);
             //a helper function to __protocol_VSTP_write
-            void __PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, string data);
+            void __PROTOCOL_VSTP_WRITE(shared_ptr<ClientInfo> clientSocket, string command, string data);
 
             /** 
              * @brief Mounts a VSTP protocol pack and send it to a client socket
@@ -150,7 +150,7 @@ namespace API {
              * @param size The size of 'data'
              * 
             */
-            void __PROTOCOL_VSTP_WRITE(ClientInfo& clientSocket, string command, char* data, unsigned int size);
+            void __PROTOCOL_VSTP_WRITE(shared_ptr<ClientInfo> clientSocket, string command, char* data, unsigned int size);
             void ThreadAwaitClientsFunction();
             void ThreadTalkWithClientFunction(int socketClient);
 

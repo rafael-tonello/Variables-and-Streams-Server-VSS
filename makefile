@@ -36,6 +36,7 @@ OBJ=$(subst .cpp,.o,$(subst ./sources,./build/objects,$(C_SOURCE)))
 CC=clang++
 
 #		-pedantic
+# -fsanitize=address -g -O0 \ valgrind cant be used with this line
 CC_FLAGS=-c			\
 		-pthread   \
 		-std=c++20 \
@@ -44,6 +45,7 @@ CC_FLAGS=-c			\
 		$(CUSTOM_INCLUDE_PATH)
 
 #		-pedantic 
+# -fsanitize=address -g -O0 \ valgrind cant be used with this line
 LK_FLAGS= -pthread   \
 		-std=c++20 \
 		-lssl      \

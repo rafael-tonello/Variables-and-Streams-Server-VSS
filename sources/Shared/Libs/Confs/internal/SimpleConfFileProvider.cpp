@@ -5,11 +5,11 @@ Shared::SimpleConfFileProvider::SimpleConfFileProvider(string filename)
     this->filename = filename;
     this->runing = true;
     //std::async(std::launch::async, [&](){ this->fileCheckPoll(); } );
-    thread th([&](){
+    this->fileCheckThread = shared_ptr<thread>(new thread([&](){
         this->fileCheckPoll();
-    });
+    }));
 
-    th.detach();
+    this->fileCheckThread->detach();
 
 }
 

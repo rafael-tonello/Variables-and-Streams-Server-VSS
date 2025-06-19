@@ -34,6 +34,7 @@ namespace Shared{
         map<string, DynamicVar> currValues;
 
         function<void(string, DynamicVar)> _onData;
+        shared_ptr<thread> fileCheckThread;
 
 
 

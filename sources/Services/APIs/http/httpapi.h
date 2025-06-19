@@ -25,23 +25,23 @@ namespace API::HTTP{
         bool returnFullPaths = false;
         void startListenMessageBus(MessageBus<JsonMaker::JSON> *bus);
         ApiMediatorInterface* ctrl;
-        vector<KWShared::KWTinyWebServer *> servers;
+        vector<KWShared::KWTinyWebServer*> servers;
         NLogger log;
         DependencyInjectionManager* dim;
         Confs *conf;
 
-        void onServerRequest(HttpData* in, HttpData* out);
-        IVarsExporter *detectExporter(HttpData *request);
+        void onServerRequest(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
+        IVarsExporter *detectExporter(shared_ptr<HttpData>request);
 
-        map<string, HttpData*> wsConnections;
+        map<string, shared_ptr<HttpData>> wsConnections;
 
-        string getVarName(HttpData* in);
+        string getVarName(shared_ptr<HttpData> in);
         string getVarName(string resource);
-        void getVars(HttpData* in, HttpData* out);
-        void postVar(HttpData* in, HttpData* out);
-        void deleteVar(HttpData* in, HttpData* out);
+        void getVars(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
+        void postVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
+        void deleteVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
 
-        void onServerWebSocketConnected(HttpData *originalRequest, string resource);
+        void onServerWebSocketConnected(shared_ptr<HttpData>originalRequest, string resource);
 
         void initHttpServer();
         void initHttpsServer();

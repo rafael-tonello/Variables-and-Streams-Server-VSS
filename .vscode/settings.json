@@ -72,6 +72,8 @@
         "stack": "cpp",
         "cinttypes": "cpp",
         "iomanip": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "format": "cpp",
+        "unordered_set": "cpp"
     }
 }

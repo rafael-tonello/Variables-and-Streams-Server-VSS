@@ -14,7 +14,7 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     });
 
     initHttpServer();
-    initHttpsServer();
+    //initHttpsServer();
     startListenMessageBus(dim->get<MessageBus<JsonMaker::JSON>>());
 
     this->ctrl->apiStarted(this);
@@ -55,13 +55,13 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
 {
     auto server = new KWTinyWebServer(port, 
         new WebServerObserverHelper(
-            [&](HttpData* in, HttpData* out){
+            [&](shared_ptr<HttpData> in, shared_ptr<HttpData> out){
                 this->onServerRequest(in, out);
             },
-            [&](HttpData *originalRequest, string resource){
+            [&](shared_ptr<HttpData>originalRequest, string resource){
                 this->onServerWebSocketConnected(originalRequest, resource);
             },
-            [](HttpData *originalRequest, string resource, char* data, unsigned long long dataSize){}
+            [](shared_ptr<HttpData>originalRequest, string resource, char* data, unsigned long long dataSize){}
         ),
         {},
         { dim->get<Confs>()->getA("httpDataDir").getString() },
@@ -85,7 +85,7 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
     this->servers.push_back(server);
 }
 
-void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
+void API::HTTP::HttpAPI::onServerRequest(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
 {
     log.debug("request received: "+in->resource);
     
@@ -97,7 +97,7 @@ void API::HTTP::HttpAPI::onServerRequest(HttpData* in, HttpData* out)
         deleteVar(in, out);
 }
 
-void API::HTTP::HttpAPI::getVars(HttpData* in, HttpData* out)
+void API::HTTP::HttpAPI::getVars(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
 {
     string varName = getVarName(in);
     
@@ -158,7 +158,7 @@ string API::HTTP::HttpAPI::getEqualPart(string p1, string p2)
     return ret;
 }
 
-void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
+void API::HTTP::HttpAPI::postVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
 {
     string varName = getVarName(in);
 
@@ -183,7 +183,7 @@ void API::HTTP::HttpAPI::postVar(HttpData* in, HttpData* out)
     }
 }
 
-void API::HTTP::HttpAPI::deleteVar(HttpData* in, HttpData* out)
+void API::HTTP::HttpAPI::deleteVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
 {
     string varName = getVarName(in);
 
@@ -217,7 +217,7 @@ string API::HTTP::HttpAPI::getVarName(string resource)
     return resource;
 }
 
-string API::HTTP::HttpAPI::getVarName(HttpData* in)
+string API::HTTP::HttpAPI::getVarName(shared_ptr<HttpData> in)
 {
     auto resource = in->resource;
     if (resource.find("?") != string::npos)
@@ -226,7 +226,7 @@ string API::HTTP::HttpAPI::getVarName(HttpData* in)
     return getVarName(resource);
 }
 
-API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(HttpData *request)
+API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(shared_ptr<HttpData>request)
 {
     //format via query is mandatory
     if (request->resource.find('?') != string::npos)
@@ -250,9 +250,9 @@ string API::HTTP::HttpAPI::getApiId()
     return this->apiId;
 }
 
-void API::HTTP::HttpAPI::onServerWebSocketConnected(HttpData *originalRequest, string resource)
+void API::HTTP::HttpAPI::onServerWebSocketConnected(shared_ptr<HttpData>originalRequest, string resource)
 {
-    string addressAsString = to_string((uint64_t)((void*)originalRequest));
+    string addressAsString = to_string((uint64_t)((void*)originalRequest.get()));
     wsConnections[addressAsString] = originalRequest;
 
     auto varName = getVarName(resource);
