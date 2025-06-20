@@ -17,7 +17,7 @@ void Controller_VarHelper::setFlag(string flagName, DynamicVar value)
     
     if (flagName != "")
     {
-        if (flagName[0] != '_');
+        if (flagName[0] != '_')
             flagName = "_"+flagName;
         
         this->db->set(this->name + "." + flagName, value);
@@ -28,7 +28,7 @@ DynamicVar Controller_VarHelper::getFlag(string flagName, DynamicVar defaultValu
 {
     if (flagName != "")
     {
-        if (flagName[0] != '_');
+        if (flagName[0] != '_')
             flagName = "_"+flagName;
         
         auto flagValue = this->db->get(this->name + "." + flagName, defaultValue);
