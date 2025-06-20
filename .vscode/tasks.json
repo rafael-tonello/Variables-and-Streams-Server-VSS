@@ -50,6 +50,11 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "cpBinary_for_remote_launch",
+            "type": "shell",
+            "command": "scp orangepi@192.168.100.2:/home/orangepi/vssdebug/build/vss /tmp",
         }
     ]
 }

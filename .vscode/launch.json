@@ -49,15 +49,35 @@
         {
             "type": "gdb",
             "request": "attach",
-            "name": "Orangepi debug",
+            "name": "Orangepi debug - attach",
             "gdbpath": "/usr/bin/gdb-multiarch",
-            "executable": "./VarServer",
+            "executable": "./vss",
             "target": "192.168.100.2:5099",
             "remote": true,
             "printCalls": true,
             "cwd": "${workspaceFolder}",
             "valuesFormatting": "parseText",
             "autorun": []
+        },
+        {
+            "name": "Orangep debu - launch",
+            "preLaunchTask": "cpBinary_for_remote_launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/tmp/vss", 
+            "miDebuggerServerAddress": "192.168.100.2:5544",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch", 
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb"
         },
         {
             "name": "Build prod",
