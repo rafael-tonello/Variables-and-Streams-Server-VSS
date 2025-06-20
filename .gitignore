@@ -36,3 +36,5 @@ objects/
 
 tests/build/
 tests/objects/
+
+devtools/mem_log.dat
