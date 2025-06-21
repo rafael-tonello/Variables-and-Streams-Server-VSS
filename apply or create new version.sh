@@ -99,7 +99,7 @@ tryCreateVersion(){
     done
     echo "Do you want to use this version? (y/n)"
 
-    read -n 1 -r answer1
+    read -r answer1
     if [[ "$answer1" =~ ^[Yy]$ ]]; then
         _error=""
         _r="$newVersion"
@@ -131,7 +131,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 #ask for confirmation
-read -p "Are you sure you want to apply version $version? (y/n) " -n 1 -r answer
+read -p "Are you sure you want to apply version $version? (y/n) " -r answer
 if [[ ! "$answer" =~ ^[Yy]$ ]]; then
     echo -e "\nOperation cancelled."
     exit 0
