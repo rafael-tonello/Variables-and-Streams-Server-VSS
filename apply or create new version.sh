@@ -147,7 +147,7 @@ sed -i "s/string INFO_VERSION = \".*\"/string INFO_VERSION = \"$version\"/g" ./s
 git add ./sources/main.cpp
 
 #commit changes
-git commit -m "Changes version number to $version"
+git commit -m "chore: changes version number to $version"
 
 #push changes
 git push origin develop
