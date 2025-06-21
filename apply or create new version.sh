@@ -82,7 +82,7 @@ tryCreateVersion(){
     #create new version string
     local newVersion="$major.$minor.$patch"
     if [ -n "$addInfo" ]; then
-        newVersion="$newVersion+$addInfo"
+        newVersion="v$newVersion+$addInfo"
     fi
 
     echo "You didn't specify a version number, so a new one was created based on the last tag:"
