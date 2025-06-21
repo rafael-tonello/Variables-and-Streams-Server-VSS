@@ -35,6 +35,34 @@
 
   The VSS will startup and show some util information:
 
+# information for developers
+## setup_dev.sh
+This script prepares the development environment for VSS and should be runned after cloning the repository. It does the following:
+1) install git hooks
+
+## apply or create new version.sh
+should be runned in the 'develop' branch. 
+It does:
+1) If no version is specified, it will analyze the commits since the last tag and suggest a new version based on semantic commits.
+2) the version is applied to the cpp files where it is needed
+3) checkout the 'main' branch
+4) merges the 'develop' branch into the 'main' branch
+5) creates a new tag with the version specified or suggested
+6) pushes the 'main' branch to the remote repository
+7) pushes the new tag to the remote repository
+8) checks out the 'develop' branch again
+9) merges the 'main' branch into the 'develop' branch
+10) pushes the 'develop' branch to the remote repository
+
+
+creates a new tag with a new version of the VSS
+
+## devtools folder
+Devtools folder contains some tools to help you in the development of VSS. It contains:
+* memorymonitor.sh - a script that uses gnu-plot to plot the memory usage of the VSS process. 
+* requester.sh - a script that keeps sending requests to the VSS HTTP API.
+* hooks folders - contains git hooks that should be installed by running the setup_dev.sh script.
+
   
 # Portable and integrated Modes
   
