@@ -1,0 +1,121 @@
+#Project name. We use it sometimes
+name: VarStreamServer
+#main scripts of the project. When you call 'shu run' without arguments, all of these scripts are
+#executed. Also, when you run 'shu build', all these scripts will be runned with you call the built
+#script
+main:
+  - VarServerSHU.sh
+#project packages. This list is used to restore .shu/packages folder when you call 'shu restore'
+packages:
+  - https://github.com/rafael-tonello/DynamicVar.git
+  - https://github.com/rafael-tonello/libs.json_maker.git
+  - https://github.com/rafael-tonello/DependencyInjection.git
+  - https://github.com/rafael-tonello/Logger.git
+  - https://github.com/rafael-tonello/TCPServer.git
+  - https://github.com/rafael-tonello/ThreadPool.git
+  - https://github.com/rafael-tonello/KwWebServer
+  - /tmp/aa
+#project commands. You can call commands by using shu <command> [args]. You also can override SHU 
+# default  #commands ('build', 'run', ...). When writing a command, do not forget to treat help 
+#requests (-h, --help and help).
+#Also, you command can receive, as a first argument, the string 'bashCompletion', That is SHI 
+#trying get bash completions from your command. To generate bash completion, your script should
+#print the completions to stdout (use spaces to separate the completions). Second argument is
+#the string 'typed' by the user before pressing tab.
+project-commands:
+  touch:
+    bash-action: source ./shu/pcommands/touch.sh
+    description: Creates a new cpp class files. Using touch MyClass, the files myclas.cpp and myclass.h will be created with a empty class template
+  build:
+    bash-action: source ./shu/build/build.sh
+    description: build [--debug]. Build the project. If --debug options is passed, the build symbols will be added to the project. Otherwise, a 'production' binary will be build
+  build-tests:
+    bash-action: source ./shu/build/buildTestsProject.sh
+    description: Build the tests project (project inside folder 'tests'). The binary ./tests/build/tests will be generated (with debug symbols)
+  scancppfiles:
+    bash-action: source ./shu/pcommands/scancppfiles.sh
+    description: scancppfiles <directory>. Scan .cpp, .cxx, .h and .hpp files in the <directory> and registers it in the shu.yaml files. Also registers these files directories as aditional include dirs to be used by cpp compiler
+  rescancppfiles:
+    bash-action: echo 'removing old entries of cpp files'; shu pprops remove 'build.additional-files-and-dirs.cpp'; shu scancppfiles "./.shu/"; echo "reescan done"
+    description: Rescan all cpp files and include folders from .shu/packages
+#Commands needed to run the project. When you call 'shu psysdeps check', all this commands will be
+#checked
+sysdepss:
+  - cmd: curl
+    info: needing curl for some http operations
+    check-command: command -v curl
+hooks:
+  - when: after
+    shu-command: pdeps get
+    cmd: source ./shu/hooks/shu/after-dep-get-scan-cpp-files.sh
+  - when: after
+    shu-command: pdeps restore
+    cmd: source ./shu/hooks/shu/after-dep-restore-register-git-hooks.sh
+properties:
+  binary-name: vss
+  build:
+    additional-files-and-dirs:
+      cpp:
+        cpp-files:
+          - ./.shu/packages/TCPServer/sources/TCPServer.cpp
+          - ./.shu/packages/ThreadPool/ThreadPool.cpp
+          - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.cpp
+          - ./.shu/packages/aa/t2.cpp
+          - ./.shu/packages/aa/t1.cpp
+          - ./.shu/packages/KwWebServer/sources/KWTinyWebServer.cpp
+          - ./.shu/packages/KwWebServer/sources/HttpData.cpp
+          - ./.shu/packages/KwWebServer/sources/helpers/httpCodes.cpp
+          - ./.shu/packages/KwWebServer/sources/helpers/KWWebServerRouter.cpp
+          - ./.shu/packages/KwWebServer/sources/Workers/CookieParser.cpp
+          - ./.shu/packages/KwWebServer/sources/Workers/HttpSession.cpp
+          - ./.shu/packages/KwWebServer/sources/StringUtilFuncs.cpp
+          - ./.shu/packages/KwWebServer/sources/SysLink.cpp
+          - ./.shu/packages/libs.json_maker/sources/JSON.cpp
+          - ./.shu/packages/Logger/sources/writers/LoggerFileWriter.cpp
+          - ./.shu/packages/Logger/sources/writers/loggercommandcallwriter.cpp
+          - ./.shu/packages/Logger/sources/writers/LoggerConsoleWriter.cpp
+          - ./.shu/packages/Logger/sources/writers/LoggerLambdaWriter.cpp
+          - ./.shu/packages/Logger/sources/logger.cpp
+          - ./.shu/packages/Logger/sources/common/loggerutils.cpp
+          - ./.shu/packages/DynamicVar/sources/DynamicVar.cpp
+        h-files:
+          - ./.shu/packages/TCPServer/sources/TCPServer.h
+          - ./.shu/packages/ThreadPool/ThreadPool.h
+          - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.h
+          - ./.shu/packages/aa/t1.h
+          - ./.shu/packages/aa/t2.h
+          - ./.shu/packages/KwWebServer/sources/HttpData.h
+          - ./.shu/packages/KwWebServer/sources/helpers/KWWebServerRouter.h
+          - ./.shu/packages/KwWebServer/sources/helpers/httpCodes.h
+          - ./.shu/packages/KwWebServer/sources/helpers/WebServerObserverHelper.h
+          - ./.shu/packages/KwWebServer/sources/SysLink.h
+          - ./.shu/packages/KwWebServer/sources/Workers/HttpSession.h
+          - ./.shu/packages/KwWebServer/sources/Workers/CookieParser.h
+          - ./.shu/packages/KwWebServer/sources/httpRamCache.h
+          - ./.shu/packages/KwWebServer/sources/IWorker.h
+          - ./.shu/packages/KwWebServer/sources/KWTinyWebServer.h
+          - ./.shu/packages/KwWebServer/sources/StringUtilFuncs.h
+          - ./.shu/packages/libs.json_maker/sources/JSON.h
+          - ./.shu/packages/Logger/sources/writers/LoggerLambdaWriter.h
+          - ./.shu/packages/Logger/sources/writers/LoggerFileWriter.h
+          - ./.shu/packages/Logger/sources/writers/loggercommandcallwriter.h
+          - ./.shu/packages/Logger/sources/writers/LoggerConsoleWriter.h
+          - ./.shu/packages/Logger/sources/logger.h
+          - ./.shu/packages/Logger/sources/ilogger.h
+          - ./.shu/packages/Logger/sources/common/loggerutils.h
+          - ./.shu/packages/DynamicVar/sources/DynamicVar.h
+        include-dirs:
+          - ./.shu/packages/TCPServer/sources
+          - ./.shu/packages/ThreadPool
+          - ./.shu/packages/DependencyInjection/sources
+          - ./.shu/packages/aa
+          - ./.shu/packages/KwWebServer/sources
+          - ./.shu/packages/KwWebServer/sources/helpers
+          - ./.shu/packages/KwWebServer/sources/Workers
+          - ./.shu/packages/libs.json_maker/sources
+          - ./.shu/packages/Logger/sources/writers
+          - ./.shu/packages/Logger/sources
+          - ./.shu/packages/Logger/sources/common
+          - ./.shu/packages/DynamicVar/sources
+    cc-flags: -c -pthread -std=c++20 -lssl -lcrypto
+    lk-flags: -pthread -std=c++20 -lssl -lcrypto

@@ -13,16 +13,15 @@
 #include <dependencyInjectionManager.h>
 #include <Confs.h>
 #include <StorageInterface.h>
-#include <Storage/VarSystemLib/VarSystemLibStorage.h>
-#include <VarSystem/FVSysLink.h>
+#include <Services/Storage/VarSystemLib/VarSystemLibStorage.h>
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
 #include <ServerDiscovery.h>
-#include <Confs/internal/SimpleConfFileProvider.h>
-#include <Confs/internal/soenvironmentconfprovider.h>
-#include <Confs/internal/commandlineargumentsconfsprovider.h>
-#include <Storage/RamCacheDB/ramcachedb.h>
+#include <Shared/Libs/Confs/internal/SimpleConfFileProvider.h>
+#include <Shared/Libs/Confs/internal/soenvironmentconfprovider.h>
+#include <Shared/Libs/Confs/internal/commandlineargumentsconfsprovider.h>
+#include <Services/Storage/RamCacheDB/ramcachedb.h>
 
 #include <messagebus.h>
 

@@ -6,7 +6,7 @@
 #include <JSON.h>
 #include <ApiMediatorInterface.h>
 #include <KWTinyWebServer.h>
-#include <KwWebServer/sources/helpers/WebServerObserverHelper.h>
+#include <WebServerObserverHelper.h>
 #include <utils.h>
 #include <ivarsexporter.h>
 #include <jsonexporter.h>
