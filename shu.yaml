@@ -7,6 +7,7 @@ main:
   - VarServerSHU.sh
 #project packages. This list is used to restore .shu/packages folder when you call 'shu restore'
 packages:
+  - https://github.com/rafael-tonello/SHU.git#src/shellscript-fw/common as common --not-recursive
   - https://github.com/rafael-tonello/DynamicVar.git
   - https://github.com/rafael-tonello/libs.json_maker.git
   - https://github.com/rafael-tonello/DependencyInjection.git
@@ -14,7 +15,6 @@ packages:
   - https://github.com/rafael-tonello/TCPServer.git
   - https://github.com/rafael-tonello/ThreadPool.git
   - https://github.com/rafael-tonello/KwWebServer
-  - /tmp/aa
 #project commands. You can call commands by using shu <command> [args]. You also can override SHU 
 # default  #commands ('build', 'run', ...). When writing a command, do not forget to treat help 
 #requests (-h, --help and help).
@@ -42,8 +42,17 @@ project-commands:
 #checked
 sysdepss:
   - cmd: curl
-    info: needing curl for some http operations
+    info: Curl is needed for some http operations (apt install curl)
     check-command: command -v curl
+  - cmd: clang++
+    info: clang++ is used to compile the project in release mode. Project can work well only with g++ (apt install clang)
+    check-command: command -v clang++
+  - cmd: g++
+    info: g++ is used to compile the project in debug mode. Project can work well only with clang++ (apt install g++)
+    check-command: command -v g++
+  - cmd: openssl-dev
+    info: Openssl is used by KwHttpserver to start a Https server (apt install libssl-dev)
+    check-command: _f(){ if [ -f /usr/include/openssl/ssl.h ]; then return 0; else return 1; fi; }; _f
 hooks:
   - when: after
     shu-command: pdeps get
@@ -51,7 +60,10 @@ hooks:
   - when: after
     shu-command: pdeps restore
     cmd: source ./shu/hooks/shu/after-dep-restore-register-git-hooks.sh
-properties:
+  - when: after
+    shu-command: pdeps restore
+    cmd: source ./shu/hooks/shu/after-dep-restore-open-readme-md.sh
+project-data:
   binary-name: vss
   build:
     additional-files-and-dirs:
@@ -60,8 +72,6 @@ properties:
           - ./.shu/packages/TCPServer/sources/TCPServer.cpp
           - ./.shu/packages/ThreadPool/ThreadPool.cpp
           - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.cpp
-          - ./.shu/packages/aa/t2.cpp
-          - ./.shu/packages/aa/t1.cpp
           - ./.shu/packages/KwWebServer/sources/KWTinyWebServer.cpp
           - ./.shu/packages/KwWebServer/sources/HttpData.cpp
           - ./.shu/packages/KwWebServer/sources/helpers/httpCodes.cpp
@@ -82,8 +92,6 @@ properties:
           - ./.shu/packages/TCPServer/sources/TCPServer.h
           - ./.shu/packages/ThreadPool/ThreadPool.h
           - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.h
-          - ./.shu/packages/aa/t1.h
-          - ./.shu/packages/aa/t2.h
           - ./.shu/packages/KwWebServer/sources/HttpData.h
           - ./.shu/packages/KwWebServer/sources/helpers/KWWebServerRouter.h
           - ./.shu/packages/KwWebServer/sources/helpers/httpCodes.h
@@ -108,7 +116,6 @@ properties:
           - ./.shu/packages/TCPServer/sources
           - ./.shu/packages/ThreadPool
           - ./.shu/packages/DependencyInjection/sources
-          - ./.shu/packages/aa
           - ./.shu/packages/KwWebServer/sources
           - ./.shu/packages/KwWebServer/sources/helpers
           - ./.shu/packages/KwWebServer/sources/Workers

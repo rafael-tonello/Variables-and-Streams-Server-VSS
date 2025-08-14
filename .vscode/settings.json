@@ -75,5 +75,6 @@
         "valarray": "cpp",
         "format": "cpp",
         "unordered_set": "cpp"
-    }
+    },
+    "github.copilot.nextEditSuggestions.enabled": true
 }

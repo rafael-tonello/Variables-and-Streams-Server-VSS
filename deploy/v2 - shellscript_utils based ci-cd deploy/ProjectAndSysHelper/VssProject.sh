@@ -375,20 +375,15 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
         echo 1
         echo "checking state: "
         if [ -z "$state" ]; then
-            echo 2
             this->deployToProduction "$tag" "$onDone" "stopVssGuard"
         elif [ "$state" == "stopVssGuard" ]; then
-            echo 3
             this->stopVssGuard "this->deployToProduction "$tag" "$onDone" "replaceFiles""
         elif [ "$state" == "replaceFiles" ]; then
-            echo 4
             this->replaceVssBinaries "this->deployToProduction "$tag" "$onDone" "runVssGuard""
         elif [ "$state" == "runVssGuard" ]; then
-            echo 5
             echo "running this->runVssGuard function"
             this->runVssGuard "this->deployToProduction "$tag" "$onDone" "done""
         elif [ "$state" == "done" ]; then
-            echo 6
             this->log->info "Vss replaced"
             this->telegram->sendInfoMessage "Vss replaced in production"
             eval "$onDone 0"
@@ -397,9 +392,7 @@ this->checkout(){ this->__branch_or_tag="$1"; this->__chkout_onDone="$2"
             if [ "$state" == "runVssGuard" ]; then
                 echo "agora detectou"
             fi
-            echo 7
         fi
-        echo 8
     }
 
     this->stopVssGuard(){ this->tmpOnDone="$1";

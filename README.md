@@ -10,6 +10,20 @@
   The variables are write with object notation. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
 
 # Compiling and running
+
+# Shu managed project
+This project is manager by a commandline tool called Shu. Shu is a dependency manager and project automation tool that allow you to manager you project throught commands. Algo, shu can reacts to events in your project when commands are executed.
+
+Here is a quick guide to install shu (when trying to install shu, it will ever inform what is mission in your system, but this is a shortcut to install it):
+  * Install curl
+  * Install unzip
+  * Install yq (wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq)
+  * Install Shu (curl -sSL https://raw.githubusercontent.com/rafael-tonello/SHU/main/src/tools/shu-install.sh | bash)
+
+after installing Shu, clone the VSS project and run the  command 'shu init' in the project folder. 
+Read the Shu output (mainly the red and yellow messages and mainly in the first time out shun 'shu init').
+
+
   First of wall, clone the project:
 
   ```bash

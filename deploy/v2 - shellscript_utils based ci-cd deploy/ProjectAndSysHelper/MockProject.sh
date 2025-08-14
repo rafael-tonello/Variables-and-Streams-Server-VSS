@@ -70,7 +70,6 @@ this->uploadArtifacts(){ local customArtifactInfo=$1; this->__uplArt_onDone="$2"
     echo 1
     echo " the delay to be used is $this->uploadArtifacts_delay"
     scheduler->runDelayed _(){
-        echo 2
         _r="$this->uploadArtifacts_r"
         _error="$this->uploadArtifacts_error"
         echo 3
