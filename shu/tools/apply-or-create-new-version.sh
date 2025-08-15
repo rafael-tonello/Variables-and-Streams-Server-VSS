@@ -14,6 +14,9 @@
 #12. execute git push origin <version>
 version="$1"
 
+# Força o uso do terminal físico do usuário
+exec < /dev/tty
+
 tryCreateVersion(){
     local lastTag=""
     local lastVersion=""
@@ -127,23 +130,29 @@ fi
 #check if there are pending changes
 if [ -n "$(git status --porcelain)" ]; then
     echo "There are pending changes, please commit or stash them before running this script"
+    git status
+
     exit 1
 fi
 
 #ask for confirmation
-read -p "Are you sure you want to apply version $version? (y/n) " -r answer
+echo -n "Are you sure you want to apply version $version? (y/n) " > /dev/tty
+read -r answer < /dev/tty
 if [[ ! "$answer" =~ ^[Yy]$ ]]; then
     echo -e "\nOperation cancelled."
     exit 0
 fi
 
 #checkout develop
+echo "Checking out develop branch..."
 git checkout develop
 
 #change version number
+echo "Changing version number to $version in ./sources/main.cpp..."
 sed -i "s/string INFO_VERSION = \".*\"/string INFO_VERSION = \"$version\"/g" ./sources/main.cpp
 
 #add changes
+echo "Adding changes to git..."
 git add ./sources/main.cpp
 
 #commit changes
@@ -153,18 +162,23 @@ git commit -m "chore: changes version number to $version"
 git push origin develop
 
 #checkout main
+echo "Checking out main branch..."
 git checkout main
 
 #merge develop
+echo "Merging develop branch into main..."
 git merge develop
 
 #push changes
+echo "Pushing changes to origin main..."
 git push origin main
 
 #create tag
+echo "Creating tag $version..."
 git tag $version
 
 #push tag
+echo "Pushing tag $version to origin..."
 git push origin $version
 
 #checkout develop
