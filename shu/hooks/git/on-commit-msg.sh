@@ -3,7 +3,16 @@
 COMMIT_MSG_FILE="$1"
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
+checkMain(){
+    #if commit to main, runs ./shu/tools/apply-or-create-new-version.sh
+    if [ "$(git rev-parse --abbrev-ref HEAD)" = "main" ]; then
+        #source ./shu/tools/apply-or-create-new-version.sh
+        shu new-version
+    fi
+}
+
 if grep -qE '^Merge ' "$COMMIT_MSG_FILE"; then
+    checkMain
     return 0
 fi
 
@@ -24,4 +33,5 @@ if ! echo "$COMMIT_MSG" | grep -qE '^(feat|fix|chore|docs|refactor|test|perf|BRE
     return 1
 fi
 
+checkMain
 return 0

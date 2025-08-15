@@ -11,6 +11,7 @@ fi
 
 echo "  installing commit-msg hook"
 cp ./shu/hooks/git/to-be-installed/commit-msg .git/hooks/commit-msg 2> /tmp/shu-git-hooks-error.log
+chmod +x .git/hooks/commit-msg
 if [ $? -ne 0 ]; then
     echo "Error installing commit-msg hook: $(cat /tmp/shu-git-hooks-error.log)" >&2
     return 1

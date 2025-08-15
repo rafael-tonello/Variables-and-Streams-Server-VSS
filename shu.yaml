@@ -38,6 +38,9 @@ project-commands:
   rescancppfiles:
     bash-action: echo 'removing old entries of cpp files'; shu pprops remove 'build.additional-files-and-dirs.cpp'; shu scancppfiles "./.shu/"; echo "reescan done"
     description: Rescan all cpp files and include folders from .shu/packages
+  new-version:
+    bash-action: source ./shu/tools/apply-or-create-new-version.sh
+    description: Creates a new version of the project. If the project is already in a version, it will apply the new version to the project
 #Commands needed to run the project. When you call 'shu psysdeps check', all this commands will be
 #checked
 sysdepss:
