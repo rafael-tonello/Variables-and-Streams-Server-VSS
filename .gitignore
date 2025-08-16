@@ -31,7 +31,8 @@
 *.out
 *.app
 
-build/
+/build/
+/tests/build
 objects/
 
 tests/build/
