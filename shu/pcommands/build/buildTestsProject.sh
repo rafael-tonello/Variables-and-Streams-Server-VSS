@@ -102,7 +102,7 @@ done < <(find "./sources" -type f \( -name "*.hpp" -o -name "*.h" \))
 echo "Preparing makefile for tests..."
 #copy makefile.template to ./makefile
 rm -f ./makefile
-cp -f ../shu/pcommands/build/makefile.template ./makefile
+cp -f ../shu/pcommands/build/tests.makefile.template ./makefile
 
 #replace placeholders in the makefile:
 #   <binname> by the binary name

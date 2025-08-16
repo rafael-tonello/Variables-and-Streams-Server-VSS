@@ -5,21 +5,18 @@
 # Name of the project
 PROJ_NAME=tests
 
-CUSTOM_INCLUDE_PATH_TMP1 := <mainIncludePaths>
-
-CUSTOM_INCLUDE_PATH_TMP2 := <testsIncludePaths>
+CUSTOM_INCLUDE_PATH_TMP := ./sources <includePaths>
 # Add a prefix to INC_DIRS. So moduleA would become -ImoduleA. GCC understands this -I flag
-CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP2))
+CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
+
+$(warning $(CUSTOM_INCLUDE_PATH))
 
 
 # .cpp files
-C_SOURCE_TMP := <mainCppFiles>
-C_SOURCE := <testsCppFiles> $(C_SOURCE_TMP)
+C_SOURCE := <cppFiles>
 
 # .h files
-H_SOURCE_TMP := <mainHFiles>
-H_SOURCE := <testsHFiles> $(H_SOURCE_TMP)
-$(warning $(H_SOURCE))
+H_SOURCE := <hFiles>
 
 prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
@@ -28,30 +25,19 @@ prebuild:
 	@ cp -r ./sources/assets/* ./build >/dev/null 2>&1 | true
  
 # Object files
-temp:=$(subst ../sources,./build/objects/main,$(C_SOURCE))
+temp:=$(subst .././.shu,./build/objects/shu,$(C_SOURCE))
+temp:=$(subst ../sources,./build/objects/main,$(temp))
 temp:=$(subst ./sources,./build/objects/tests,$(temp))
 
 OBJ=$(subst .cpp,.o,$(temp))
  
 # Compiler and linker
-#CC=g++
-CC=clang++
+CC=<releaseCompiler>
 
+CC_FLAGS=$(CUSTOM_INCLUDE_PATH) <ccFlags>
+		
 
-#		-pedantic
-CC_FLAGS=-D__TESTING__\
-        <ccFlags> \
-		$(CUSTOM_INCLUDE_PATH)
-
-
-
-#		-pedantic
-LK_FLAGS=-D__TESTING__\
-        <lkFlags>   \
-		$(CUSTOM_INCLUDE_PATH)
-#
-# Compilation and linking
-#
+LK_FLAGS=$(CUSTOM_INCLUDE_PATH) <lkFlags>
  
 
  
@@ -80,6 +66,12 @@ $(PROJ_NAME): $(OBJ)
 	mkdir -p $(dir $@)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
+
+./build/objects/shu/%.o: .././.shu/%.cpp .././.shu/%.h
+	echo 'Building target using GCC compiler: $<'
+	mkdir -p $(dir $@)
+	$(CC) $(CC_FLAGS) -c $< -o $@
+	@echo ' '
 
 ./build/objects/tests/%.o: ./sources/%.cpp ./sources/%.h
 	@ echo 'Building target using GCC compiler: $<'

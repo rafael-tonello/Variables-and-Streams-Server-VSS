@@ -14,9 +14,7 @@ CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
 
 #get files using dectect_include_files.sh to prevent multiple definion errors with submodules
 
-# .c files
-
-
+# .cpp files
 C_SOURCE := <cppFiles>
 
 # .h files
