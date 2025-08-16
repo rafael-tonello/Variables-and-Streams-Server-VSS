@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 #include "../../../../../sources/Services/APIs/VSTP/VSTP.h"
 #include "../../../../../sources/Services/APIs/ApiMediatorInterface.h"
-#include "../../../../../sources/Shared/Libs/ThreadPool/ThreadPool.h"
 #include <logger.h>
 #include <LoggerConsoleWriter.h>
 
