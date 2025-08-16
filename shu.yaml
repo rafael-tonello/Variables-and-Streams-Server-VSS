@@ -27,10 +27,10 @@ project-commands:
     bash-action: source ./shu/pcommands/touch.sh
     description: Creates a new cpp class files. Using touch MyClass, the files myclas.cpp and myclass.h will be created with a empty class template
   build:
-    bash-action: source ./shu/build/build.sh
+    bash-action: source ./shu/pcommands/build/build.sh
     description: build [--debug]. Build the project. If --debug options is passed, the build symbols will be added to the project. Otherwise, a 'production' binary will be build
   build-tests:
-    bash-action: source ./shu/build/buildTestsProject.sh
+    bash-action: source ./shu/pcommands/build/buildTestsProject.sh
     description: Build the tests project (project inside folder 'tests'). The binary ./tests/build/tests will be generated (with debug symbols)
   scancppfiles:
     bash-action: source ./shu/pcommands/scancppfiles.sh
@@ -66,7 +66,7 @@ hooks:
   - when: after
     shu-command: pdeps restore
     cmd: source ./shu/hooks/shu/after-dep-restore-open-readme-md.sh
-project-data:
+project-properties:
   binary-name: vss
   build:
     additional-files-and-dirs:

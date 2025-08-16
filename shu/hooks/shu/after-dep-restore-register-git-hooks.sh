@@ -25,6 +25,14 @@ if [ $? -ne 0 ]; then
     return 1
 fi
 
+echo "  installing post-merge hook"
+cp ./shu/hooks/git/to-be-installed/post-merge .git/hooks/post-merge 2> /tmp/shu-git-hooks-error.log
+chmod +x .git/hooks/post-merge
+if [ $? -ne 0 ]; then
+    echo "Error installing post-merge hook: $(cat /tmp/shu-git-hooks-error.log)" >&2
+    return 1
+fi
+
 echo "  Git hooks installed with success."
 
 return 0
