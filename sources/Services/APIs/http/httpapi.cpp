@@ -9,7 +9,7 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
     this->conf = dim->get<Confs>();
 
-    this->conf->listenA("httpApiReturnFullPaths", [&](DynamicVar value){
+    this->conf->listenA("httpApiReturnsFullPaths", [&](DynamicVar value){
         this->returnFullPaths = value.getBool();
     });
 

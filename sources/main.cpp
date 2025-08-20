@@ -243,7 +243,7 @@ Confs* initConfigurations(int argc, char **argv)
         conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
 
 
-        conf->createAlias("httpApiReturnFullPaths").addForAnyProvider({"httpApiReturnFullPaths", "--httpApiReturnFullPaths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
+        conf->createAlias("httpApiReturnsFullPaths").addForAnyProvider({"httpApiReturnsFullPaths", "--httpApiReturnsFullPaths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
 
     //VSTP API
         conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--vstpApiPort", "VSS_VSTP_API_PORT"}).setDefaultValue(5032);
