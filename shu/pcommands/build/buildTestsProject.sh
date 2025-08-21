@@ -46,11 +46,10 @@ while read item; do
     hfiles+="../$item "; 
 done < <(shu pprops listarrayitems build.additional-files-and-dirs.cpp.h-files)
 
-includeDirs="../sources "
+includeDirs="../sources ../.shu/packages/ "
 while read item; do
     includeDirs+="../$item "; 
 done < <(shu pprops listarrayitems build.additional-files-and-dirs.cpp.include-dirs)
-
 
 #get cppfiles from 'source' folder
 echo "Found project cpp files in ./sources folder..."
