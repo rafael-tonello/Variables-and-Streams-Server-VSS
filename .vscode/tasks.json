@@ -6,7 +6,7 @@
         {
             "label": "buildDebug",
             "type": "shell",
-            "command": "make debug",
+            "command": "shu build --debug",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -22,7 +22,7 @@
         {
             "label": "buildProd",
             "type": "shell",
-            "command": "make all",
+            "command": "shu build",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -38,7 +38,7 @@
         {
             "label": "buildTests",
             "type": "shell",
-            "command": "make debug -j 4 -l 4",
+            "command": "shu build --tests",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/tests"
