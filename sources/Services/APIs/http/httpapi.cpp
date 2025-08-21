@@ -213,6 +213,10 @@ string API::HTTP::HttpAPI::getVarName(string resource)
     if (resource.size() > 0 && resource[0] == '/')
         resource = resource.substr(1);
     resource = Utils::sr(resource, "/", ".");
+
+    //if resource ends with /* replace it with only *
+    if (resource.size() > 2 && resource.substr(resource.size()-2) == "/*")
+        resource = resource.substr(0, resource.size()-2) + "*";
     
     return resource;
 }
