@@ -46,6 +46,8 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 {
     return tasker->enqueue([this](string namep, DynamicVar valuep)
     {
+        namep = Utils::getOnly(namep, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-");
+        
         log->debug("Entered in setVar task");
         //check if name isn't a internal flag var
 
