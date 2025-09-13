@@ -143,7 +143,7 @@ void ControllerTester::test_function_setVar()
 
     
 
-    this->test("setVar should return error when try to set '*'", [&](){
+    this->test("setVar should return error when try to set '*' in the middle of the var name", [&](){
         auto result = this->ctrl->setVar("sampleVar/var*name", "the var value").get();
 
         return TestResult{
