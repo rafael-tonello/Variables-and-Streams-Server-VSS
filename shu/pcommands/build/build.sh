@@ -2,7 +2,7 @@
 
 source ./.shu/packages/common/misc.sh
 
-if [ "$1" == "--tests" ]; then
+if [ "$1" == "--tests" ] ||  [ "$1" == "tests" ]; then
     source ./shu/pcommands/build/buildTestsProject.sh
     return $?
 elif [[ "$1" == "--clean" && -f makefile ]]; then
