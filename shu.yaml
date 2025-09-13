@@ -88,6 +88,7 @@ project-properties:
           - ./.shu/packages/Logger/sources/writers/loggercommandcallwriter.cpp
           - ./.shu/packages/Logger/sources/writers/LoggerConsoleWriter.cpp
           - ./.shu/packages/Logger/sources/writers/LoggerLambdaWriter.cpp
+          - ./.shu/packages/Logger/sources/ilogger.cpp
           - ./.shu/packages/Logger/sources/logger.cpp
           - ./.shu/packages/Logger/sources/common/loggerutils.cpp
           - ./.shu/packages/DynamicVar/sources/DynamicVar.cpp
@@ -111,8 +112,8 @@ project-properties:
           - ./.shu/packages/Logger/sources/writers/LoggerFileWriter.h
           - ./.shu/packages/Logger/sources/writers/loggercommandcallwriter.h
           - ./.shu/packages/Logger/sources/writers/LoggerConsoleWriter.h
-          - ./.shu/packages/Logger/sources/logger.h
           - ./.shu/packages/Logger/sources/ilogger.h
+          - ./.shu/packages/Logger/sources/logger.h
           - ./.shu/packages/Logger/sources/common/loggerutils.h
           - ./.shu/packages/DynamicVar/sources/DynamicVar.h
         include-dirs:
