@@ -62,25 +62,25 @@ all: LK_FLAGS+=-O3
 all: prebuild $(BIN_NAME)
  
 $(BIN_NAME): $(OBJ)
-	echo 'Building binary using GCC linker: $@'
+	echo 'Building binary ($(BIN_NAME)) using $(CC) linker: $@'
 	$(CC) $^ $(LK_FLAGS) -o build/$@
 	@echo 'Finished building binary: $@'
 	@echo ' '
 
 ./build/objects/main/%.o: ./sources/%.cpp ./sources/%.h
-	echo 'Building target using GCC compiler: $<'
+	echo 'Building target using $(CC) compiler: $<'
 	mkdir -p $(dir $@)
 	$(CC) $(CC_FLAGS) -c $< -o $@
 	@echo ' '
 
 ./build/objects/shu/%.o: ./.shu/%.cpp ./.shu/%.h
-	echo 'Building target using GCC compiler: $<'
+	echo 'Building target using $(CC)  compiler: $<'
 	mkdir -p $(dir $@)
 	$(CC) $(CC_FLAGS) -c $< -o $@
 	@echo ' '
 
 ./build/objects/main/main.o: ./sources/main.cpp $(H_SOURCE)
-	echo 'Building target using GCC compiler: $<'
+	echo 'Building target using $(CC) compiler: $<'
 	mkdir -p $(dir $@)
 	$(CC) $(CC_FLAGS) -c $< -o $@
 	echo ' '
