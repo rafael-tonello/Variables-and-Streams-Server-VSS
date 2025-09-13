@@ -26,6 +26,11 @@ class MessageBus
         ThreadPool *scheduler;
     public:
         MessageBus(ThreadPool *scheduler, function<bool(T &item)> isEmpty): isEmpty(isEmpty), scheduler(scheduler){}
+
+        MessageBus(function<bool(T &item)> isEmpty): isEmpty(isEmpty)
+        {
+            this->scheduler = new ThreadPool();
+        }
         
         vector<T> post(string message, T args)
         {

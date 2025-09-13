@@ -46,7 +46,10 @@ future<Errors::Error> TheController::setVar(string name, DynamicVar value)
 {
     return tasker->enqueue([this](string namep, DynamicVar valuep)
     {
-        namep = Utils::getOnly(namep, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-");
+        //the '*' should be also captured, because if user trying to set a variable with '*', an error (raised by VarHelper.SetValue) should
+        //be returned. If '*' is removed here, the user will be able to set a variable with '*' in the name, but will be able 
+        //to retrieve it (getVar treat '*' as a wildcard)
+        namep = Utils::getOnly(namep, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-*");
         
         log->debug("Entered in setVar task");
         //check if name isn't a internal flag var
