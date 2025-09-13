@@ -6,7 +6,8 @@ API::HTTP::HttpAPI::HttpAPI(int httpPort, int httpsPort, DependencyInjectionMana
     this->httpPort = httpPort;
     this->httpsPort = httpsPort;
     this->ctrl = dim->get<ApiMediatorInterface>();
-    this->log = dim->get<ILogger>()->getNamedLogger("API::HTTP");
+    auto tmpLogManager = dim->get<ILogger>();
+    this->log = tmpLogManager->getNamedLogger("API::HTTP");
     this->conf = dim->get<Confs>();
 
     this->conf->listenA("httpApiReturnsFullPaths", [&](DynamicVar value){
@@ -73,10 +74,18 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
         httpsPubCert
     );
 
-    //server->__serverName = "Var Streams Server, version ""
+    //during tests, systeVersion was not setted, resulting in segmentation fault and the error was a bit hard to be found. 
+    //So this checking was added was a security if systemVersions is not setted 
+    auto systemVersion = dim->get<string>("systemVersion");
+    string sysVersionStr = "Version was not setted";
+    if (systemVersion == nullptr){
+        this->log. warning("Message to developers: systemVersion is not setted. Please set it via DependencyInjectionManager.");
+    } else {
+        sysVersionStr = *systemVersion;
+    }
     server->setServerInfo(
         "Var Stream Server " 
-        + string(dim->get<string>("systemVersion")->c_str()) 
+        + sysVersionStr 
         //+ ", " 
         //+ server->getServerName() 
         //+ " " + server->getServerVersion()

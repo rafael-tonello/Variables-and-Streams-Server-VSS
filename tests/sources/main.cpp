@@ -36,8 +36,8 @@ int main(int argc, char* argv[]){
         testers.push_back(new Controller_VarHelperTester());
         testers.push_back(new ControllerTester());
         testers.push_back(new TaggedObjectTester());
-        testers.push_back(new Http_test());
         testers.push_back(new RamCacheDBTest());
+        testers.push_back(new Http_test());
 
         //[ ]logger
         //[ ]  LoggerFileWriter

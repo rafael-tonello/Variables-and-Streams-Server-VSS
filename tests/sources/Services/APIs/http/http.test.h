@@ -5,6 +5,12 @@
 #include <string>
 #include <TaggedObject.h>
 #include <httpapi.h>
+#include <ApiMediatorInterface.h>
+#include <DependencyInjectionManager.h>
+#include <Utils.h>
+#include <apimediatorinterfacemock.h>
+#include <iloggermock.h>
+#include <InMemoryConfProvider.h>
 
 using namespace std;
 
@@ -81,6 +87,8 @@ public:
 
 class Http_test: public Tester { 
 public: 
+    string version = "instance for tests";
+
     Http_test();
     ~Http_test();
     HttpResponse request(HttpRequest request);
