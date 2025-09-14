@@ -6,7 +6,7 @@
 #include <TaggedObject.h>
 #include <httpapi.h>
 #include <ApiMediatorInterface.h>
-#include <DependencyInjectionManager.h>
+#include <dependencyInjectionManager.h>
 #include <Utils.h>
 #include <apimediatorinterfacemock.h>
 #include <iloggermock.h>
