@@ -44,6 +44,7 @@ std::string determinteLogFile();
 
 bool isRunningInPortableMode();
 void handleSignals();
+bool handleHelpAndCommands(int argc, char** argv);
 
 Confs* initConfigurations(int argc, char** argv);
 
@@ -56,6 +57,10 @@ string INFO_VERSION = "v1.14.4+Haumea";
 
 
 int main(int argc, char** argv){
+
+    if (handleHelpAndCommands(argc, argv))
+        return 0;
+
     handleSignals();
     srand((unsigned)time(0)); 
     
@@ -149,6 +154,61 @@ int main(int argc, char** argv){
 
     exit(0);  
     return 0;
+}
+
+bool handleHelpAndCommands(int argc, char** argv)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        string arg = argv[i];
+        if (arg == "-h" || arg == "--help" || arg == "/?" || arg == "-?" || arg == "help")
+        {
+            cout << "VarServerSHU - The variable server for SHU-based systems\n";
+            cout << "Version: " << INFO_VERSION << "\n\n";
+            cout << "Usage: vss [options]\n\n";
+            cout << "Options:\n";
+            cout << "  -h, --help, /?, -?, help          Show this help message and exit\n";
+            cout << "  --version                         Show version information and exit\n";
+            cout << "  --httpApiPort <port>              Set the HTTP API port (default: 5024 or value in conf file)\n";
+            cout << "  --httpApiHttpsPort <port>         Set the HTTPS API port (default: 5025 or value in conf file)\n";
+            cout << "  --httpDataFolder                  Set the HTTP data directory (default: /var/vss/data/http_data or value in conf file)\n";
+            cout << "  --httpApiCertFile                 Set the HTTPS certificate file (default: ./ssl/cert/vssCert.pem or value in conf file)\n";
+            cout << "  --httpApiKeyFile                  Set the HTTPS key file (default: ./ssl/cert/vssKey.pem or value in conf file)\n";
+            cout << "  --httpApiReturnsFullPaths         If true, HTTP API will return entire variables paths in the JSON results (default: false or value in conf file)\n";
+            cout << "  --RamCacheDbDumpIntervalMs        Set the interval, in milisseconds, to RamCacheDB service check for changes in the memory and dump data to disk (default: 60000 or value in conf file)\n";
+            cout << "  --vstpApiPort <port>              Set the VSTP API port (default: 5032 or value in conf file)\n";
+            cout << "  --dbDirectory <path>              Set the database directory (default: /var/vss/data/database or value in conf file)\n";
+            cout << "  --httpDataDirectory <path>        Set the HTTP data directory (default: /var/vss/data/http_data or value in conf file)\n";
+            cout << "  --maxLogFileSize <size_in_bytes>  Set the maximum log file size in bytes before rotation (default: 52428800 or value in conf file)\n";
+            cout << "  --maxTimeWaitingForClients <seconds> Set the maximum time in seconds to consider a client disconnected (default: 43200 or value in conf file)\n";
+            cout << "\nEnvironment Variables:\n";
+            cout << "  VSS_HTTP_API_PORT                 Same as --httpApiPort\n";
+            cout << "  VSS_HTTP_API_HTTPS_PORT           Same as --httpApiHttpsPort\n";
+            cout << "  VSS_VSTP_API_PORT                 Same as --vstpApiPort\n";
+            cout << "  VSS_HTTP_DATA_FOLDER              Same as --httpDataFolder\n";
+            cout << "  VSS_HTTP_API_CERT_FILE            Same as --httpApiCertFile\n";
+            cout << "  VSS_HTTP_API_KEY_FILE             Same as --httpApiKeyFile\n";
+            cout << "  VSS_HTTP_API_RETURN_FULL_PATHS    Same as --httpApiReturnsFullPaths\n";
+            cout << "  VSS_RAM_CACHE_DB_DUMP_INTERVAL_MS Same as --RamCacheDbDumpIntervalMs\n";
+            cout << "  VSS_VSTP_API_PORT                 Same as --vstpApiPort\n";
+            cout << "  VSS_DB_DIRECTORY                  Same as --dbDirectory\n";
+            cout << "  VSS_HTTP_DATA_DIRECTORY            Same as --httpDataDirectory\n";
+            cout << "  VSS_MAX_LOG_FILE_SIZE            Same as --maxLogFileSize\n";
+            cout << "  VSS_MAX_TIME_WAITING_CLIENTS      Same as --maxTimeWaitingForClients\n";
+            cout << "\nFor more information, visit the documentation.\n";
+            return true;
+        }
+        else if (arg == "--version" || arg == "-v" || arg == "version")
+        {
+            cout << INFO_VERSION << "\n";
+            return true;
+        }
+        else
+            continue;
+    }
+
+    return false;
+
 }
 
 std::string getApplicationDirectory() 
