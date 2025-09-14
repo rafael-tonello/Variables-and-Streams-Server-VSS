@@ -98,7 +98,7 @@ sed -i "s|<lkFlags>|$lkFlags|g" ./makefile
 sed -i "s|<releaseCompiler>|$releaseCompiler|g" ./makefile
 sed -i "s|<debugCompiler>|$debugCompiler|g" ./makefile
 if [ "$1" == "--debug" ]; then
-    make debug -j 4 2>&1
+    make debug -j 4 2>&1 | tee build.log
     retCode=$?
     if [ $retCode -ne 0 ]; then
         echo "Build failed in debug mode." 1>&2
@@ -114,7 +114,7 @@ elif [ "$1" == "--clean" ]; then
     echo "Project cleaned."
     return $?
 else
-    make all -j 4
+    make all -j 4 | tee build.log
     retCode=$?
     if [ $retCode -ne 0 ]; then
         echo "Build failed in release mode." 1>&2

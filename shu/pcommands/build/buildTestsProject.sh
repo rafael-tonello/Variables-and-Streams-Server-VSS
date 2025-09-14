@@ -127,7 +127,7 @@ if [ "$1" == "--clean" ]; then
     cd ..
     return $?
 fi
-make debug -j 4
+make debug -j 4 | tee build.log
 retCode=$?
 if [ $retCode -ne 0 ]; then
     echo "Building tests failed." 1>&2
