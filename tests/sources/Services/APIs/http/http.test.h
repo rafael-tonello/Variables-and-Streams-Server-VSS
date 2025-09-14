@@ -7,7 +7,7 @@
 #include <httpapi.h>
 #include <ApiMediatorInterface.h>
 #include <dependencyInjectionManager.h>
-#include <Utils.h>
+#include <utils.h>
 #include <apimediatorinterfacemock.h>
 #include <iloggermock.h>
 #include <InMemoryConfProvider.h>
