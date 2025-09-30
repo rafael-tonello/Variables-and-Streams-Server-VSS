@@ -1,8 +1,8 @@
 
-if command -v gedit &> /dev/null; then
-    gedit "README.md" &> /dev/null
-elif command -v code &> /dev/null; then
+if command -v code &> /dev/null; then
     code "README.md" &> /dev/null
+elif command -v gedit &> /dev/null; then
+    gedit "README.md" &> /dev/null
 elif command -v xdg-open &> /dev/null; then
     xdg-open "README.md" &> /dev/null
 else

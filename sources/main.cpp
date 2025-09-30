@@ -192,8 +192,8 @@ bool handleHelpAndCommands(int argc, char** argv)
             cout << "  VSS_RAM_CACHE_DB_DUMP_INTERVAL_MS Same as --RamCacheDbDumpIntervalMs\n";
             cout << "  VSS_VSTP_API_PORT                 Same as --vstpApiPort\n";
             cout << "  VSS_DB_DIRECTORY                  Same as --dbDirectory\n";
-            cout << "  VSS_HTTP_DATA_DIRECTORY            Same as --httpDataDirectory\n";
-            cout << "  VSS_MAX_LOG_FILE_SIZE            Same as --maxLogFileSize\n";
+            cout << "  VSS_HTTP_DATA_DIRECTORY           Same as --httpDataDirectory\n";
+            cout << "  VSS_MAX_LOG_FILE_SIZE             Same as --maxLogFileSize\n";
             cout << "  VSS_MAX_TIME_WAITING_CLIENTS      Same as --maxTimeWaitingForClients\n";
             cout << "\nFor more information, visit the documentation.\n";
             return true;
