@@ -242,20 +242,32 @@ string API::HTTP::HttpAPI::getVarName(shared_ptr<HttpData> in)
 API::HTTP::IVarsExporter *API::HTTP::HttpAPI::detectExporter(shared_ptr<HttpData>request)
 {
     //format via query is mandatory
+    auto pretty = false;
+    if (request->resource.find("pretty=true") != string::npos)
+        pretty = true;
+
     if (request->resource.find('?') != string::npos)
     {
         auto query = request->resource.substr(request->resource.find('?')+1);
         if ((query.find("export=json") != string::npos) || (query.find("format=json") != string::npos))
-            return new JsonExporter();
+            return new JsonExporter(pretty);
         else if ((query.find("export=plain") != string::npos) || (query.find("format=plain") != string::npos))
+        {
+            if (pretty)
+                log.warning("The 'pretty' option is not supported for plain text format.");
             return new PlainTextExporter();
+        }
     }
 
     if (PlainTextExporter::checkMimeType(request->accept))
+    {
+        if (pretty)
+            log.warning("The 'pretty' option is not supported for plain text format.");
         return new PlainTextExporter();
+    }
 
 
-    return new JsonExporter();
+    return new JsonExporter(pretty);
 }
  
 string API::HTTP::HttpAPI::getApiId()

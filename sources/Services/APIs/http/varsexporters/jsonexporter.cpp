@@ -1,5 +1,9 @@
 #include  "jsonexporter.h" 
- 
+
+API::HTTP::JsonExporter::JsonExporter(bool pretty)
+{
+    this->pretty = pretty;
+}
 
 string API::HTTP::JsonExporter::toString()
 {
@@ -13,7 +17,7 @@ string API::HTTP::JsonExporter::toString()
         result.set(c.first  + append, escape(c.second.getString()));
     }
 
-    return result.ToJson();
+    return result.ToJson(pretty);
 }
 
 string API::HTTP::JsonExporter::sGetMimeType()
