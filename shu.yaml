@@ -67,6 +67,9 @@ hooks:
   - when: after
     shu-command: pdeps restore
     cmd: source ./shu/hooks/shu/after-dep-restore-open-readme-md.sh
+  - when: after
+    shu-command: clean
+    cmd: source ./shu/hooks/shu/after-clean-clean-cpp-project.sh
 project-properties:
   binary-name: vss
   build:
