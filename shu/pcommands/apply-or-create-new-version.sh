@@ -25,8 +25,14 @@ tryCreateVersion(){
     local major=0
     local minor=0
     local patch=0
-    #get last git tag
-    lastTag=$(git describe --tags --abbrev=0 2>/dev/null)
+    #get last git tag (look for the last tag in the remote repository)
+    lastTag=$(git describe --tags --abbrev=0 origin 2>/dev/null)
+    
+    #if no tag found, may be the connection is down, so try to get the last tag from the local repository
+    if [ -z "$lastTag" ]; then
+        lastTag=$(git describe --tags --abbrev=0 2>/dev/null)
+    fi
+
     lastVersion="$lastTag"
     #check if contains '+', if true, separate version from aditional info
     if [[ "$lastVersion" == *"+"* ]]; then

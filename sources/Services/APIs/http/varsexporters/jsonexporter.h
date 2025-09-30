@@ -13,7 +13,10 @@ using namespace std;
 using namespace JsonMaker;
 namespace API::HTTP {
     class JsonExporter: public IVarsExporter { 
+    private:
+        bool pretty;
     public: 
+        JsonExporter(bool pretty = false);
         string toString();
         string getMimeType();
 

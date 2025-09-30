@@ -1,6 +1,4 @@
 #!/bin/bash
-
-echo "touch called with args: $@"
 cd "$SHU_PROJECT_WORK_DIR"
 
 className=${1^}

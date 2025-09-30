@@ -18,6 +18,10 @@ Errors::Error Errors::createError(string message, Errors::Error nestedError)
     return message + ":\n" + "  >" + Utils::stringReplace(nestedError, "\n", "\n  "); 
 }
 
+Errors::Error Errors::derivateError(string message, Errors::Error existingError){ 
+    return Errors::createError(message, existingError); 
+}
+
 void Errors::forNestedErrors(Error errorWithNestedErrors, function<void(Error err)> f)
 {
     while (true)

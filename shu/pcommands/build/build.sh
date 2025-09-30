@@ -1,18 +1,33 @@
 #!/bin/bash
 
 source ./.shu/packages/common/misc.sh
+if [ -z "$1" ]; then
+    buildType="--release"
+else
+    buildType="$1"
+fi
 
-if [ "$1" == "--tests" ] ||  [ "$1" == "tests" ]; then
+lastBuildType=$(shu pvars get "lastBuildMode")
+
+#checks if the last build type is different from the current build type and 'buildType' is not --tests or --clean
+if [[ "$lastBuildType" != "$buildType" && "$buildType" != "--tests" && "$buildType" != "--clean" ]]; then
+    echo "Last build type '$lastBuildType' is different from current build type '$buildType'. Cleaning previous build..."
+    rm -rf ./build
+    shu pvars set "lastBuildMode" "$buildType"
+fi
+
+
+if [ "$buildType" == "--tests" ] ||  [ "$buildType" == "tests" ]; then
     source ./shu/pcommands/build/buildTestsProject.sh
     return $?
-elif [[ "$1" == "--clean" && -f makefile ]]; then
+elif [[ "$buildType" == "--clean" && -f makefile ]]; then
     #just use a existing make file to clean the project
     make clean
     echo "Project cleaned."
     return $?
 #check if is not "--debug" or "--release"
-elif [[ "$1" != "--debug" && "$1" != "--release" && "$1" != "--clean" && "$1" != "" ]]; then
-    echo "Unknown argument '$1'. Please use '--debug', '--release', '--tests' or '--clean'." 1>&2
+elif [[ "$buildType" != "--debug" && "$buildType" != "--release" && "$buildType" != "--clean" && "$buildType" != "" ]]; then
+    echo "Unknown argument '$buildType'. Please use '--debug', '--release', '--tests' or '--clean'." 1>&2
     return 1
 fi
 
@@ -50,7 +65,7 @@ while read item; do
     hfiles+="$item "; 
 done < <(shu pprops listarrayitems build.additional-files-and-dirs.cpp.h-files)
 
-includeDirs=""
+includeDirs="./.shu/packages/ "
 while read item; do
     includeDirs+="$item "; 
 done < <(shu pprops listarrayitems build.additional-files-and-dirs.cpp.include-dirs)
@@ -108,7 +123,7 @@ if [ "$1" == "--debug" ]; then
 
     echo "Project built in debug mode."
     return $?
-elif [ "$1" == "--clean" ]; then
+elif [ "$buildType" == "--clean" ]; then
     make clean
     rm -f makefile
     echo "Project cleaned."

@@ -17,10 +17,15 @@ namespace Errors{
     extern Error Error_WildcardCanotBeUsesForGetVarChilds;
     extern Error Error_TheVariableNameCannotBeEmpty;
     extern Error Error_TimeoutReached;
+    extern Error TimeoutError;
+    extern Error ConnectionIsNotStablishedError;
 
     Error createError(string message);
     Error createError(string message, Error nestedError);
     void forNestedErrors(Error errorWithNestedErrors, function<void(Error err)> f);
+
+    //helper to createError(message, nestedError)
+    Error derivateError(string message, Error existingError);
 
     template <typename T>
     class ResultWithStatus{

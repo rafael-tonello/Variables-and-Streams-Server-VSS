@@ -1,0 +1,7 @@
+[
+    {
+        "label": "(SHU) Refresh ",
+        "command": "shu refresh",
+        "group": "Workspace"
+    }
+]

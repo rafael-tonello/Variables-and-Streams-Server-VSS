@@ -5,14 +5,16 @@
   
   Vss treats variables as streams, allowing you to watch for changes and be notified when the value of the variables are changed.
   
-  Vss uses a combination of memory cache and disk persistce for data. You can use the VSS as a key-value dataabse.
+  Vss uses a combination of memory cache and disk persistce for data storage. 
+  
+  You can also use the VSS as a key-value dataabse.
 
   The variables are write with object notation. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
 
 # Compiling and running
 
 # Shu managed project
-This project is manager by a commandline tool called Shu. Shu is a dependency manager and project automation tool that allow you to manager you project throught commands. Algo, shu can reacts to events in your project when commands are executed.
+This project is managed by a commandline tool called Shu (https://github.com/rafael-tonello/SHU). Shu is a dependency manager and project automation tool that allow you to manage you project throught commands. Shu can also reacts to events in your project when commands are executed.
 
 Here is a quick guide to install shu (when trying to install shu, it will ever inform what is mission in your system, but this is a shortcut to install it):
   * Install curl
@@ -23,21 +25,32 @@ Here is a quick guide to install shu (when trying to install shu, it will ever i
 after installing Shu, clone the VSS project and run the  command 'shu init' in the project folder. 
 Read the Shu output (mainly the red and yellow messages and mainly in the first time out shun 'shu init').
 
+Runnin 'shu --help -p' will list available commands in the project.
 
-  First of wall, clone the project:
+
+## cloning and initializing the project
+```bash
+git clone  "http://vss_repo_path VSS"
+cd VSS
+shu init #shu restore also works
+shu --help -p
+```
+
+## building the project
+```bash
+shu build
+```
+The command above will build the project, generating the file ./build/vss. You can add the option '--debug' to generate debug symbols (for gdb).
+
+## building tests
 
   ```bash
-  git clone  "http://vss_repo_path VSS"
-  cd VSS
-  git submodule update --init
+  shu build --tests
   ```
+  The command above will generate a binary named 'tests' in the folder ./tests/build. You can run this binary to run the tests. Tests are ever build with debug symbols.
 
-  After getting the sources using the git clone, enter in the  VSS folder and run the 'make all' command:
 
-  ```bash
-  cd VSS
-  make all
-  ```
+
 
   The comands above, if no error occurs, will generate a binary of the vss in the 'build' folder. The build folder will be populated with some aditional files that allow vss to run in a portable installation (more about installations modes will be discussed above).
 
@@ -49,79 +62,7 @@ Read the Shu output (mainly the red and yellow messages and mainly in the first 
 
   The VSS will startup and show some util information:
 
-# information for developers
-## setup_dev.sh
-This script prepares the development environment for VSS and should be runned after cloning the repository. It does the following:
-1) install git hooks
-
-## apply or create new version.sh
-should be runned in the 'develop' branch. 
-It does:
-1) If no version is specified, it will analyze the commits since the last tag and suggest a new version based on semantic commits.
-2) the version is applied to the cpp files where it is needed
-3) checkout the 'main' branch
-4) merges the 'develop' branch into the 'main' branch
-5) creates a new tag with the version specified or suggested
-6) pushes the 'main' branch to the remote repository
-7) pushes the new tag to the remote repository
-8) checks out the 'develop' branch again
-9) merges the 'main' branch into the 'develop' branch
-10) pushes the 'develop' branch to the remote repository
-
-
-creates a new tag with a new version of the VSS
-
-## devtools folder
-Devtools folder contains some tools to help you in the development of VSS. It contains:
-* memorymonitor.sh - a script that uses gnu-plot to plot the memory usage of the VSS process. 
-* requester.sh - a script that keeps sending requests to the VSS HTTP API.
-* hooks folders - contains git hooks that should be installed by running the setup_dev.sh script.
-
-  
-# Portable and integrated Modes
-  
-  A portable installation means vss have all it needs to work inside a unique folder. You can move this folder and rename it however you want and vss will be able to resume its work when started.
-
-  Integrated installation means the vss will work with files inside system folders (/etc, /var, ...).
-
-  Vss uses its configuration file to detect if it is running in a "portable mode" or in "integrated mode". If yout delete the file confs.conf, the VSS will understand that it should work in integrated mode.
-
-  ## Portable mode
-  in portable mode, the vss will use these files and folders:
-
-    [VSS_BIN_FOLDER]/confs.conf -> configuration folder
-    [VSS_BIN_FOLDER]/vss.log    -> log file
-    [VSS_BIN_FOLDER]/data       -> data used and stored by THE vss
-
-  ## Integrated mode
-  in portable mode, the vss will use these files and folders:
-
-    /etc/vss/confs.conf         -> configuration folder
-    /var/log/vss.log            -> log file
-    /var/vss/data       -> data used and stored by THE vss
-
-  when running VSS in integrated mode, note the following:
-
-    * The data folder is the same of the 'portable mode'
-    * You must run VSS as a root (or as a user that have permissions to read from /etc and write to /var/log)
-    
-
-# Compiling and running the tests
-  To run the tests, just enter in the 'test' folder and run the command 'make all':
-
-  ```bash
-  cd VSS/tests
-  make all
-  ```
-
-  after compilation of tests, enter in the build folder (inside tests folder) and run the generated binary:
-
-  ```bash
-  cd build
-  ./tets
-  ```
-
-# Using VSS from terminal
+# Interacting with VSS from terminal
 
   ## setting and getting a variable
   You can set and get variables on terminal by use of curl command. See the examples bellow:
@@ -187,9 +128,9 @@ Devtools folder contains some tools to help you in the development of VSS. It co
     [✔] Services->ServerDiscovery
     [✔] Services->APIs->Http
     [ ] Services->APIs->Http->Web sockets
-    [ ] Configuration System 
-    [ ] CommandLineArgumentsConfsProvider
-    [ ] SoEnvirionmentConfProvider
+    [✔] Configuration System 
+    [✔] CommandLineArgumentsConfsProvider
+    [✔] SoEnvirionmentConfProvider
 ## Bugs
     [ ] GetVar (vstp) is not returning error to client
 

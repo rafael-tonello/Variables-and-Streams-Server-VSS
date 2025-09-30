@@ -3,5 +3,5 @@
 #COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 #exec < /dev/tty
 
-source "./shu/hooks/git/on-postcommit.sh" "$@"
+source "./shu/hooks/git/on-postmerge.sh" "$@"
 exit $?

@@ -15,6 +15,7 @@ packages:
   - https://github.com/rafael-tonello/TCPServer.git
   - https://github.com/rafael-tonello/ThreadPool.git
   - https://github.com/rafael-tonello/KwWebServer
+  - https://github.com/rafael-tonello/PrefixTreeStorage#sources as PrefixTreeStorage
 #project commands. You can call commands by using shu <command> [args]. You also can override SHU 
 # default  #commands ('build', 'run', ...). When writing a command, do not forget to treat help 
 #requests (-h, --help and help).
@@ -31,13 +32,13 @@ project-commands:
     description: build [--debug]. Build the project. If --debug options is passed, the build symbols will be added to the project. Otherwise, a 'production' binary will be build
   build-tests:
     bash-action: source ./shu/pcommands/build/buildTestsProject.sh
-    description: Build the tests project (project inside folder 'tests'). The binary ./tests/build/tests will be generated (with debug symbols)
+    description: Build the tests project (project inside folder 'tests'). The binary ./tests/build/tests will be generated (with debug symbols). If you need to clean the tests build, you can call 'shu build-tests --clean'
   scancppfiles:
     bash-action: source ./shu/pcommands/scancppfiles.sh
     description: scancppfiles <directory>. Scan .cpp, .cxx, .h and .hpp files in the <directory> and registers it in the shu.yaml files. Also registers these files directories as aditional include dirs to be used by cpp compiler
   rescancppfiles:
     bash-action: echo 'removing old entries of cpp files'; shu pprops remove 'build.additional-files-and-dirs.cpp'; shu scancppfiles "./.shu/"; echo "reescan done"
-    description: Rescan all cpp files and include folders from .shu/packages
+    description: "Rescan all cpp files and include folders from .shu/packages. WARNING: this command will entire rewrite the 'build.additional-files-and-dirs.cpp' section in shu.yaml. If you have added or removed entries manually, they will be lost"
   new-version:
     bash-action: source ./shu/pcommands/apply-or-create-new-version.sh
     description: Creates a new version of the project. If the project is already in a version, it will apply the new version to the project
@@ -74,6 +75,8 @@ project-properties:
         cpp-files:
           - ./.shu/packages/TCPServer/sources/TCPServer.cpp
           - ./.shu/packages/ThreadPool/ThreadPool.cpp
+          - ./.shu/packages/PrefixTreeStorage/storages/memorystorage.cpp
+          - ./.shu/packages/PrefixTreeStorage/storages/filestorage.cpp
           - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.cpp
           - ./.shu/packages/KwWebServer/sources/KWTinyWebServer.cpp
           - ./.shu/packages/KwWebServer/sources/HttpData.cpp
@@ -95,6 +98,9 @@ project-properties:
         h-files:
           - ./.shu/packages/TCPServer/sources/TCPServer.h
           - ./.shu/packages/ThreadPool/ThreadPool.h
+          - ./.shu/packages/PrefixTreeStorage/storages/memorystorage.h
+          - ./.shu/packages/PrefixTreeStorage/storages/filestorage.h
+          - ./.shu/packages/PrefixTreeStorage/prefixtree.h
           - ./.shu/packages/DependencyInjection/sources/dependencyInjectionManager.h
           - ./.shu/packages/KwWebServer/sources/HttpData.h
           - ./.shu/packages/KwWebServer/sources/helpers/KWWebServerRouter.h
@@ -119,6 +125,8 @@ project-properties:
         include-dirs:
           - ./.shu/packages/TCPServer/sources
           - ./.shu/packages/ThreadPool
+          - ./.shu/packages/PrefixTreeStorage/storages
+          - ./.shu/packages/PrefixTreeStorage
           - ./.shu/packages/DependencyInjection/sources
           - ./.shu/packages/KwWebServer/sources
           - ./.shu/packages/KwWebServer/sources/helpers
