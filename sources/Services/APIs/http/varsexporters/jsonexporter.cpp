@@ -11,7 +11,9 @@ string API::HTTP::JsonExporter::toString()
     for (auto &c: vars)
     {
         string append = "";
-        if (hasChildren(c.first)){
+        if (c.first == "")
+            append = "_value";
+        else if (hasChildren(c.first)){
             append="._value";
             if (c.first == "")
                 append = "_value";
