@@ -14,6 +14,16 @@
 #12. execute git push origin <version>
 version="$1"
 
+dryrun=false
+#check if argument --dry-run, --dryrun or -d was passed (in any position)
+for arg in "$@"; do
+    if [[ "$arg" == "--dry-run" || "$arg" == "--dryrun" || "$arg" == "-d" ]]; then
+        dryrun=true
+        break
+    fi
+done
+
+
 # Força o uso do terminal físico do usuário
 exec < /dev/tty
 
@@ -155,17 +165,61 @@ git checkout develop
 
 #change version number
 echo "Changing version number to $version in ./sources/main.cpp..."
-sed -i "s/string INFO_VERSION = \".*\"/string INFO_VERSION = \"$version\"/g" ./sources/main.cpp
+
+if [ $dryrun == false ]; then
+    sed -i "s/string INFO_VERSION = \".*\"/string INFO_VERSION = \"$version\"/g" ./sources/main.cpp
+fi
+
+#add commits since last tag to the CHANGELOG.md file
+lastTag=$(git describe --tags --abbrev=0 origin 2>/dev/null)
+if [ -z "$lastTag" ]; then
+    lastTag=$(git describe --tags --abbrev=0 2>/dev/null)
+fi
+if [ -z "$lastTag" ]; then
+    lastTag=$(git rev-list --max-parents=0 HEAD)
+fi
+
+if [ $dryrun == false ]; then
+    echo "# Version $version changes" >> CHANGELOG.md
+else
+    echo "dry run: mimicking 'echo \"# Version $version changes\" >> CHANGELOG.md'"
+fi
+
+for commit in $(git log --pretty=format:"%H" "$lastTag"..HEAD); do
+    local message=$(git log -1 --pretty=%B $commit)
+    echo "- $message" >> CHANGELOG.md
+done
+
+if [ $dryrun == false ]; then
+    echo "" >> CHANGELOG.md
+else
+    echo "dry run: mimicking 'add a new line to CHANGELOG.md'"
+fi
 
 #add changes
 echo "Adding changes to git..."
-git add ./sources/main.cpp
+
+if [ $dryrun == false ]; then
+    git add ./sources/main.cpp
+    git add CHANGELOG.md
+else
+    echo "dry run: mimicking 'git add ./sources/main.cpp' and 'git add CHANGELOG.md'"
+fi
 
 #commit changes
-git commit -m "chore: changes version number to $version"
+if [ $dryrun == false ]; then
+    git commit -m "chore: changes version number to $version and updates CHANGELOG.md"
+else
+    echo "dry run: mimicking 'git commit -m \"chore: changes version number to $version and updates CHANGELOG.md\"'"
+fi
 
 #push changes
-git push origin develop
+if [ $dryrun == false ]; then
+    git push origin develop
+else
+    echo "dry run: mimicking 'git push origin develop'"
+fi
+
 
 #checkout main
 echo "Checking out main branch..."
@@ -173,22 +227,47 @@ git checkout main
 
 #merge develop
 echo "Merging develop branch into main..."
-git merge develop
+if [ $dryrun == false ]; then
+    git merge develop
+else
+    echo "dry run: mimicking 'git merge develop'"
+fi
 
 #push changes
 echo "Pushing changes to origin main..."
-git push origin main
+if [ $dryrun == false ]; then
+    git push origin main
+else
+    echo "dry run: mimicking 'git push origin main'"
+fi
 
 #create tag
 echo "Creating tag $version..."
-git tag $version
+if [ $dryrun == false ]; then
+    git tag $version
+else
+    echo "dry run: mimicking 'git tag $version'"
+fi
 
 #push tag
 echo "Pushing tag $version to origin..."
-git push origin $version
+if [ $dryrun == false ]; then
+    git push origin $version
+else
+    echo "dry run: mimicking 'git push origin $version'"
+fi
 
 #checkout develop
 git checkout develop
 
-echo "Version $version applied successfully"
+if [ $dryrun == false ]; then
+    echo "" > CHANGELOG.md
+    git add CHANGELOG.md
+    git commit -m "chore: creates new empty CHANGELOG.md for next version"
+    git push origin develop
+else
+    echo "dry run: mimicking 'create new empty CHANGELOG.md, git add, git commit and git push origin develop'"
+fi
+
+echo "Version $version applied successfully and new CHANGELOG.md created."
 exit 0
