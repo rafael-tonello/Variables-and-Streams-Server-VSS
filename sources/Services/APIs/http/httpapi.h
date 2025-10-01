@@ -40,6 +40,8 @@ namespace API::HTTP{
         void getVars(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
         void postVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
         void deleteVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
+        Errors::Error setJson(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
+        Errors::Error setSingleVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
 
         void onServerWebSocketConnected(shared_ptr<HttpData>originalRequest, string resource);
 
