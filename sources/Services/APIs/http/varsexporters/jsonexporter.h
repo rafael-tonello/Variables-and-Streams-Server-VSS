@@ -15,6 +15,7 @@ namespace API::HTTP {
     class JsonExporter: public IVarsExporter { 
     private:
         bool pretty;
+        bool hasChildren(string varName);
     public: 
         JsonExporter(bool pretty = false);
         string toString();
