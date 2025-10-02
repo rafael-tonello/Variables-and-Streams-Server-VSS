@@ -138,7 +138,6 @@ void API::HTTP::HttpAPI::getVars(shared_ptr<HttpData> in, shared_ptr<HttpData> o
             exporter->add(key, value);
         }
         
-
         out->contentType = exporter->getMimeType();
         out->setContentString(exporter->toString());
         out->httpStatus = 200;
@@ -169,9 +168,26 @@ string API::HTTP::HttpAPI::getEqualPart(string p1, string p2)
 
 void API::HTTP::HttpAPI::postVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
 {
-    string varName = getVarName(in);
+    //check if in->headers contains content-type
+    auto isJson = false;
+    for (auto &c: in->headers)
+    {
+        if (c.size() == 2 && Utils::strToLower(c[0]) == "content-type")
+        {
+            if (Utils::strToLower(c[1]).find("application/json") != string::npos)
+            {
+                isJson = true;
+                break;
+            }
+        }
+    }
 
-    auto result = ctrl->setVar(varName, in->getContentString()).get();
+    Errors::Error result;
+    if (isJson)
+        result = setJson(in, out);
+    else
+        result = setSingleVar(in, out);
+        
 
     if (result == Errors::NoError)
     {
@@ -190,6 +206,51 @@ void API::HTTP::HttpAPI::postVar(shared_ptr<HttpData> in, shared_ptr<HttpData> o
         out->httpMessage = "Internal server error";
         out->setContentString(result);
     }
+}
+
+Errors::Error API::HTTP::HttpAPI::setJson(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
+{
+    auto body = in->getContentString();
+    if (body == "")
+    return Errors::Error("Empty body");
+        
+    
+    JsonMaker::JSON json;
+    json.parseJson(body);
+
+    auto parentName = getVarName(in);
+
+    Errors::Error lastError = Errors::NoError;
+    auto names = json.getObjectsNames("");
+    for (auto &c: names)
+    {
+        //variables with childs (unles if are '_value' property), should not be set
+
+        //check if c ends with _value)
+        if (c.size() > 6 && c.substr(c.size()-6) == "._value")
+            c = c.substr(0, c.size()-7);
+        else if (json.getChildsNames(c).size() > 0)
+            continue; //is not a value
+
+        auto varValue = json.getString(c, "");
+
+        auto result = ctrl->setVar(parentName + "." + c, varValue).get();
+        if (result != Errors::NoError)
+            lastError = result;
+    }
+
+    return lastError;
+}
+
+Errors::Error API::HTTP::HttpAPI::setSingleVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
+{
+    string varName = getVarName(in);
+    auto body = in->getContentString();
+
+    if (body == "")
+        return Errors::Error("Empty body");
+
+    return ctrl->setVar(varName, in->getContentString()).get();
 }
 
 void API::HTTP::HttpAPI::deleteVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out)
