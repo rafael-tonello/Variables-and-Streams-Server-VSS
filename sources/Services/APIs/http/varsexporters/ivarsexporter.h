@@ -34,11 +34,10 @@ namespace API::HTTP{
         /// @return The serialized string
         virtual operator string(){return toString(); }
 
-        /// @brief serialize all added variables to a string, in the format of the exporter
-        virtual operator const char*(){return string().c_str(); }
-
         static bool checkMimeType(string mimeType1, string mimeType2);
     public:
+
+        virtual ~IVarsExporter() {}
 
         /// @brief Serialize all added variables to a string, in the format of the exporter
         /// @return The serialized string

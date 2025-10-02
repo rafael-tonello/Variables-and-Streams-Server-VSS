@@ -18,6 +18,8 @@ public:
     //variable monitoring processes
     virtual void informPotentialUsableVariable(string varName) = 0;
 
+    virtual ~IConfProvider(){}
+
 };
 
 #endif

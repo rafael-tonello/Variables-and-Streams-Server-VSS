@@ -20,6 +20,8 @@ namespace API
         virtual ClientSendResult checkAlive(string clientId) = 0;
         virtual string getListeningInfo() = 0;
 
+        virtual ~ApiInterface() {}
+
         /*
             SOme rules (change to implement via interfaces)
             1) notify controller by use of 'apiStarted' method

@@ -34,12 +34,12 @@ namespace Shared{
         map<string, DynamicVar> currValues;
 
         function<void(string, DynamicVar)> _onData;
-        shared_ptr<thread> fileCheckThread;
+        std::thread fileCheckThread;
 
 
 
         mutex threadExitingMutex;
-        atomic<bool> runing;
+        atomic<bool> running;
         //a long poll file check
         void fileCheckPoll();
 
