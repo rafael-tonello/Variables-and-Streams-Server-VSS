@@ -21,6 +21,8 @@ dryrun=false
 for arg in "$@"; do
     if [[ "$arg" == "--dry-run" || "$arg" == "--dryrun" || "$arg" == "-d" ]]; then
         dryrun=true
+        #remove the argument from the list of arguments
+        set -- "${@/$arg/}"
         break
     fi
 done
