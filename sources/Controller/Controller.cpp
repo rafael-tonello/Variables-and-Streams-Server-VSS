@@ -262,6 +262,10 @@ future<GetVarResult> TheController::getVar(string name, DynamicVar defaultValue)
                     namep = namep.substr(0, namep.size()-2);
                 else
                     namep = namep.substr(0, namep.size()-1);
+
+                //if namep ends with '.', remove it (ex: "a.b.c.*" results in a variable called "a.b.c." - with a ending '.', that is not a valid var name)
+                if (namep.size() > 0 && namep[namep.size()-1] == '.')
+                    namep = namep.substr(0, namep.size()-1);
             }
             else
             {
