@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cd "$SHU_PROJECT_WORK_DIR"
 
 className=${1^}

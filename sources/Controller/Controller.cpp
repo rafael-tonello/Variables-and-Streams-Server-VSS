@@ -288,11 +288,31 @@ future<Errors::Error> TheController::delVar(string varname)
 {
     return tasker->enqueue([&](string varnamep)
     {
-        Controller_VarHelper varHelper(log, db, varnamep);
-        if (varHelper.deleteValueFromDB())
-            return Errors::NoError;
-        else
-            return Errors::Error("Error deleting variable '"+varname+"'. Maybe the variable doesn't exist");
+        auto vars = this->getVar(varnamep, "").get().result;
+        if (vars.size() == 0) {
+            return Errors::Error("Error deleting variable '"+varnamep+"'. Maybe the variable doesn't exist");
+        }
+
+        vector<Errors::Error> errors;
+        for (auto &currVar: vars)
+        {
+            Controller_VarHelper varHelper(log, db, std::get<0>(currVar));
+            if (!varHelper.deleteValueFromDB())
+                errors.push_back(Errors::Error("Error deleting variable '"+std::get<0>(currVar)+"'. Maybe the variable doesn't exist"));
+            else
+                notifyVarModification(std::get<0>(currVar), "");
+        }
+
+        Errors::Error returnErrors = Errors::NoError;
+
+        if (errors.size() > 0)
+        {
+            returnErrors = "";
+            for (auto &currError: errors)
+                returnErrors += (returnErrors == "" ? "" : " + ") + currError;
+        }
+
+        return returnErrors;
     }, varname);
 }
 
