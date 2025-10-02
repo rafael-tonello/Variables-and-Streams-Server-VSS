@@ -201,6 +201,16 @@ main(){
 
     for commit in $(git log --pretty=format:"%H" "$lastTag"..HEAD); do
         local message=$(git log -1 --pretty=%B $commit)
+
+        #ignore merge commits
+        if echo "$message" | grep -q "^Merge "; then
+            continue
+
+        #ignore 'new empty CHANGELOG.md' commits
+        elif echo "$message" | grep -q "creates new empty CHANGELOG.md"; then
+            continue
+        fi
+
         echo "- $message" >> CHANGELOG.md
     done
 
