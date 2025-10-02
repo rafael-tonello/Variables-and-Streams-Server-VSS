@@ -224,9 +224,17 @@ Errors::Error API::HTTP::HttpAPI::setJson(shared_ptr<HttpData> in, shared_ptr<Ht
     auto names = json.getObjectsNames("");
     for (auto &c: names)
     {
+        //variables with childs (unles if are '_value' property), should not be set
+
+        //check if c ends with _value)
+        if (c.size() > 6 && c.substr(c.size()-6) == "._value")
+            c = c.substr(0, c.size()-7);
+        else if (json.getChildsNames(c).size() > 0)
+            continue; //is not a value
+
         auto varValue = json.getString(c, "");
 
-        auto result = ctrl->setVar(c, varValue).get();
+        auto result = ctrl->setVar(parentName + "." + c, varValue).get();
         if (result != Errors::NoError)
             lastError = result;
     }
