@@ -223,7 +223,9 @@ std::string getApplicationDirectory()
     return directory;
 }
 
-
+// This function checks if the application is running in portable mode by looking for a configuration file in the application directory.
+// portable mode means that all data files (configuration, database, logs, ...) are stored in the application directory.
+// If not in portable mode, the application uses standard system directories for configuration and data storage.
 bool isRunningInPortableMode()
 {
     //use the conf file to check if app is runing in a portable mode
@@ -231,6 +233,7 @@ bool isRunningInPortableMode()
     return sl.fileExists(getApplicationDirectory() + "/confs.conf");
 }
 
+// This function determines the configuration file location based on the application's running mode.
 std::string findConfigurationFile()
 {
     //determine the configuration file
@@ -243,6 +246,7 @@ std::string findConfigurationFile()
     return confFile;
 }
 
+// This function determines the log file location based on the application's running mode.
 std::string determinteLogFile()
 {
     string logFile = "/var/log/vss.log";
@@ -263,7 +267,6 @@ void handleSignals()
     signal(SIGTERM, signalHandler);  
     signal(SIGKILL, signalHandler);
 }
-
 
 Confs* initConfigurations(int argc, char **argv)
 {
