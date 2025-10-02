@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ./.shu/packages/common/misc.sh
+
 #this script does the following:
 #1. Check if there are pending git changes, if there are, the scripts will fail
 #3. Execute git checkout develop
@@ -74,6 +76,9 @@ tryCreateVersion(){
 
         if echo "$message" | grep -q "BREAKING CHANGE"; then
             INCREMENT_MAJOR=true
+        #check if thers is a '!' before the ':' in the commit message
+        elif echo "$message" | grep -qE "^[a-zA-Z]+!:"; then
+            INCREMENT_MAJOR=true
         elif echo "$message" | grep -q "^feat"; then
             INCREMENT_MINOR=true
         elif echo "$message" | grep -qE "^(fix|chore|patch)"; then
@@ -96,6 +101,11 @@ tryCreateVersion(){
         razon="Commit(s) starting with 'fix'"
         echo "inc patch"
         patch=$((patch + 1))
+    else
+        _error="No commits found that require a version increment (no commits with 'feat', 'fix' or 'BREAKING CHANGE')"
+        _r=""
+        return 1
+        
     fi
 
     #create new version string
@@ -137,7 +147,7 @@ if [ -z "$version" ]; then
     echo "No version number supplied"
     tryCreateVersion
     if [ -n "$_error" ]; then
-        echo "Error: $_error"
+        misc.PrintError "Error: $_error"
         exit 1
     fi
     version="$_r"
@@ -145,9 +155,8 @@ fi
 
 #check if there are pending changes
 if [ -n "$(git status --porcelain)" ]; then
-    echo "There are pending changes, please commit or stash them before running this script"
+    misc.PrintYellow "There are pending changes, please commit or stash them before running this script"
     git status
-
     exit 1
 fi
 
