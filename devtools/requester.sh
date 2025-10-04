@@ -3,7 +3,8 @@ set -u
 # stress_vss.sh - simple stress/soak tester using curl, concurrency control and timeouts
 
 # Config
-SERVER="http://localhost:5024"
+#SERVER="http://localhost:5024"
+SERVER="http://vss.antares:5024/n0/loadtest"
 CONCURRENCY=20      # quantos requests paralelos por rodada
 ROUNDS=0            # 0 -> loop infinito; >0 -> número de rodadas
 REQUEST_TIMEOUT=5   # timeout do curl (segundos)
