@@ -135,20 +135,23 @@ int main(int argc, char** argv){
         logger->info("", "VSS is exiting. Please wait...");
         //delete controller;
         //delete vstp;
+
         
-        delete dim.get<VSTP>();
+        delete dim.get<TheController>();
 
         delete dim.get<ServerDiscovery>();
 
-        delete dim.get<TheController>();
+        delete dim.get<VSTP>();
 
-        delete dim.get<Confs>();
+        delete dim.get<API::HTTP::HttpAPI>();        
 
         delete dim.get<StorageInterface>();
-
+        
         delete dim.get<ThreadPool>();
-
+        
         delete dim.get<ILogger>();
+
+        delete dim.get<Confs>();
 
     /* #endregion */
 
