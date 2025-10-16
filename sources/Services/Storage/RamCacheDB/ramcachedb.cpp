@@ -172,6 +172,10 @@ future<void> RamCacheDB::forEachChilds_parallel(string parentName, function<void
             taskerForParallel->enqueue([=](){f(parentName + "." + c.first, c.second.value); });
     }
     dblocker.unlock();
+
+    std::promise<void> p;
+    p.set_value();
+    return p.get_future();
 }
 
 string RamCacheDB::dumpToString(RamCacheDBItem &current, string currentParentName)
