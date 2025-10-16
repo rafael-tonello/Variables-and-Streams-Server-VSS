@@ -139,5 +139,5 @@ project-properties:
           - ./.shu/packages/Logger/sources
           - ./.shu/packages/Logger/sources/common
           - ./.shu/packages/DynamicVar/sources
-    cc-flags: -c -pthread -std=c++2a -lssl -lcrypto
+    cc-flags: -c -pthread -std=c++2a -lssl -lcrypto -Wextra -Wuninitialized
     lk-flags: -pthread -std=c++2a -lssl -lcrypto
