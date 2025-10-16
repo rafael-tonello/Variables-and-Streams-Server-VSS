@@ -1,19 +1,33 @@
 # About VSS
-  Vss is a variable server, a state share system. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
+  Vss is a variable server, a state share system and a key-value database. It allow you to write, change and read variables from multiple sources (apps, systems, terminal, ...).
   
-  Vss is a server that provides some APIs to manage variables from multiple clients. All variables are shared between these clients, that means you can write a variable in any client and read it in any client.
+  Vss is a server that provides some APIs to manage nested variables/key-value pairs from multiple clients. All variables are shared between these clients, that means you can write a variable in any client and read it in any client.
   
   Vss treats variables as streams, allowing you to watch for changes and be notified when the value of the variables are changed.
   
   Vss uses a combination of memory cache and disk persistce for data storage. 
-  
-  You can also use the VSS as a key-value dataabse.
 
-  The variables are write with object notation. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
+  The variables are written with object notation, allowing nesting. It allow a better organization of the data and helps VSS to organize variables and notify observer and allow you to multiple variables by use of a wildcard ('*' char).
+
+# Features
+- Key-value database with nested keys (using '.' as separator).
+- Clients can subscribe to variables and be notified when they change.
+- Supports both HTTP and a custom TCP-based protocol (VSTP).
+- Configurable via file, environment variables, and command line arguments.
+
+# What I can do with VSS?
+- Share state between multiple applications and services.
+- Build real-time dashboards and monitoring tools.
+- Integrate with home automation systems.
+- Use as a lightweight database for small to medium-sized applications.
+- Build event-driven applications that react to variable changes.
+- Use in IoT projects to manage device states and configurations.
+- Allow communication between applications (microservices, web apps, etc.).
+
 
 # Compiling and running
 
-# Shu managed project
+## Shu managed project
 This project is managed by a commandline tool called Shu (https://github.com/rafael-tonello/SHU). Shu is a dependency manager and project automation tool that allow you to manage you project throught commands. Shu can also reacts to events in your project when commands are executed.
 
 Here is a quick guide to install shu (when trying to install shu, it will ever inform what is mission in your system, but this is a shortcut to install it):
@@ -28,7 +42,7 @@ Read the Shu output (mainly the red and yellow messages and mainly in the first 
 Runnin 'shu --help -p' will list available commands in the project.
 
 
-## cloning and initializing the project
+### cloning and initializing the project
 ```bash
 git clone  "http://vss_repo_path VSS"
 cd VSS
@@ -36,7 +50,7 @@ shu init #shu restore also works
 shu --help -p
 ```
 
-## building the project
+### building the project
 ```bash
 shu build
 ```
@@ -63,31 +77,38 @@ The command above will build the project, generating the file ./build/vss. You c
   The VSS will startup and show some util information:
 
 # Interacting with VSS from terminal
+    You can interact with VSS using its HTTP API or VSTP protocol.
 
-  ## setting and getting a variable
-  You can set and get variables on terminal by use of curl command. See the examples bellow:
+## setting and getting a variable
+You can set and get variables on terminal by use of curl command. See the examples bellow:
 
-  ```bash
-  #setting a variable
-  curl -X POST -d "the value of the variable" \
-  http://192.168.100.2:5023/n0/tests/testvariable
+```bash
+#setting a variable
+curl -X POST -d "the value of the variable" \
+http://192.168.100.2:5023/n0/tests/testvariable
 
-  #in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
-  ```
+#in this case, the variable 'n0.tests.testvariable' will be set with the value 'the value of the variable'. If the variable not exists, it will be created.
+```
 
-  ```bash
-  #getting a variable value
-  curl http://192.168.100.2:5023/n0/tests/testvariable
-  #result: {"n0":{"tests":{"testvariable":{"_value":"The value of the variable"}}}}
+```bash
+#getting a variable value
+curl http://192.168.100.2:5023/n0/tests/testvariable
+#result: {"n0":{"tests":{"testvariable":{"_value":"The value of the variable"}}}}
 
-  #this command will get the value of 'n0/tests/testvariable' in a json (the default result format of the HTTP API).
+#this command will get the value of 'n0/tests/testvariable' in a json (the default result format of the HTTP API).
 
-  #you can also request the data in the format of a plain text, adding the header 'accept' to the request:
-  curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
-  #result: n0.tests.testvariable=the value of the variable
-  ```
+#you can also request the data in the format of a plain text, adding the header 'accept' to the request:
+curl -H "accept: text/plain" http://192.168.100.2:5023/n0/tests/testvariable
+#result: n0.tests.testvariable=the value of the variable
+```
 
+## Telnet and VSTP
+VSTP is a text and single TCP connection based protocol, and you can use it over telnet. The default port of VSTP is 5032.
+    ```bash
+    telnet localhost 5032
+    ```
 
+    Once inside the telnet session, you can use the command '--help' to see a list of available commands.
 
 # Task lists
 ## Main task List
