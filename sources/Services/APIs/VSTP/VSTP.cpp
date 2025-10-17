@@ -447,6 +447,12 @@ string API::VSTP::byteUnescape(string text)
 
 void API::VSTP::onDataReceived(shared_ptr<ClientInfo>  cli, char* data, size_t size)
 {
+    if (incomingDataBuffers.count(cli.get()) == 0)
+    {
+        log->error("Received data from an unknown client. Ignoring this data.");
+        return;
+    }
+    
     incomingDataBuffers[cli.get()] += string(data, size);
     string package;
 
