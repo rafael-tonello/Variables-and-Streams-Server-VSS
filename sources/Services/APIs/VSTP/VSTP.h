@@ -86,7 +86,7 @@ namespace API {
             //TODO: use mutex to prevent conflict with clientsById
             map<string, shared_ptr<ClientInfo>> clientsById;
             //TODO: use mutex to prevent conflict with incomingDataBuffers
-            map<ClientInfo*, string> incomingDataBuffers;
+            map<shared_ptr<ClientInfo>, string> incomingDataBuffers;
 
             char scape_char = 0x1B;
             string apiId = "VSTPAPI";

@@ -101,7 +101,7 @@ void API::VSTP::VSTP::onClientConnected(shared_ptr<ClientInfo>  cli)
 
     sendInfoAndConfToClient(cli);
     updateClientsByIdList(cli, cli->tags["id"]);
-    incomingDataBuffers[cli.get()] = "";
+    incomingDataBuffers[cli] = "";
     
     sendIdToClient(cli, cli->tags["id"]);
     //sentTotalVarsAlreadyBeingObserved(cli, 0);
@@ -126,10 +126,10 @@ void API::VSTP::VSTP::onClientConnected(shared_ptr<ClientInfo>  cli)
 void API::VSTP::VSTP::onClientDisconnected(shared_ptr<ClientInfo>  cli)
 {
     log->info((DVV){"Client", getCliFriendlyName(cli, true), "disconnected"});
-    if (incomingDataBuffers.count(cli.get()))
+    if (incomingDataBuffers.count(cli))
     {
-        incomingDataBuffers[cli.get()] = "";
-        incomingDataBuffers.erase(cli.get());
+        incomingDataBuffers[cli] = "";
+        incomingDataBuffers.erase(cli);
     }
 
     if (clientsById.count(cli->tags["id"]))
@@ -447,16 +447,16 @@ string API::VSTP::byteUnescape(string text)
 
 void API::VSTP::onDataReceived(shared_ptr<ClientInfo>  cli, char* data, size_t size)
 {
-    if (incomingDataBuffers.count(cli.get()) == 0)
+    if (incomingDataBuffers.count(cli) == 0)
     {
         log->error("Received data from an unknown client. Ignoring this data.");
         return;
     }
     
-    incomingDataBuffers[cli.get()] += string(data, size);
+    incomingDataBuffers[cli] += string(data, size);
     string package;
 
-    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli.get()], package, cli->tags["isATelnetSession"] == "true"))
+    while (detectAndTakeACompleteMessage(incomingDataBuffers[cli], package, cli->tags["isATelnetSession"] == "true"))
         processReceivedMessage(cli, package);
 }
 
