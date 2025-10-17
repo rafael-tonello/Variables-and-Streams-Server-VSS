@@ -3,8 +3,8 @@ set -u
 # stress_vss.sh - simple stress/soak tester using curl, concurrency control and timeouts
 
 # Config
-#SERVER="http://localhost:5024"
-SERVER="http://vss.antares:5024/n0/loadtest"
+SERVER="http://localhost:5024"
+#SERVER="http://vss.antares:5024/n0/loadtest"
 CONCURRENCY=20      # quantos requests paralelos por rodada
 ROUNDS=0            # 0 -> loop infinito; >0 -> número de rodadas
 REQUEST_TIMEOUT=5   # timeout do curl (segundos)
@@ -32,7 +32,8 @@ worker() {
     local rnd=$((RANDOM % 100 + 1))
     if [ "$rnd" -le "$GET_PROB" ]; then
         # GET
-        if curl -sS --max-time "$REQUEST_TIMEOUT" "$SERVER/*" >/dev/null 2>&1; then
+        local rnd2=$((RANDOM % 100 + 1))
+        if curl -sS --max-time "$REQUEST_TIMEOUT" "$SERVER/n0/serverTest/$rnd2" >/dev/null 2>&1; then
             echo "ok" >"$TMPDIR/requester_${id}"
             return 0
         else
@@ -42,7 +43,8 @@ worker() {
     else
         # POST
         local payload="$RANDOM"
-        if curl -sS --max-time "$REQUEST_TIMEOUT" -X POST "$SERVER/n0/serverTest/$RANDOM" -d "$payload" >/dev/null 2>&1; then
+        local rnd2=$((RANDOM % 100 + 1))
+        if curl -sS --max-time "$REQUEST_TIMEOUT" -X POST "$SERVER/n0/serverTest/$rnd2" -d "$payload" >/dev/null 2>&1; then
             echo "ok" >"$TMPDIR/requester_${id}"
             return 0
         else

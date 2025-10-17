@@ -62,7 +62,10 @@ void API::HTTP::HttpAPI::initServer(int port, bool https, string httpsKey, strin
             [&](shared_ptr<HttpData>originalRequest, string resource){
                 this->onServerWebSocketConnected(originalRequest, resource);
             },
-            [](shared_ptr<HttpData>originalRequest, string resource, char* data, unsigned long long dataSize){}
+            [](shared_ptr<HttpData>originalRequest, string resource, char* data, unsigned long long dataSize){},
+            [&](shared_ptr<HttpData>originalRequest, string resource){
+                this->onServerWebSocketDisconnected(originalRequest, resource);
+            }
         ),
         {},
         { dim->get<Confs>()->getA("httpDataDir").getString() },
@@ -346,6 +349,18 @@ void API::HTTP::HttpAPI::onServerWebSocketConnected(shared_ptr<HttpData>original
     this->ctrl->observeVar(varName, addressAsString, "", this);
 }
 
+void API::HTTP::HttpAPI::onServerWebSocketDisconnected(shared_ptr<HttpData>originalRequest, string resource)
+{
+    string addressAsString = to_string((uint64_t)((void*)originalRequest.get()));
+
+    auto varName = getVarName(resource);
+    
+    this->ctrl->stopObservingVar(varName, addressAsString, "", this);
+
+    if (wsConnections.count(addressAsString))
+        wsConnections.erase(addressAsString);
+}
+
 API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<tuple<string, string, DynamicVar>> varsnamesMetadataAndValues)
 {
     if (!wsConnections.count(clientId))
@@ -367,7 +382,7 @@ API::ClientSendResult API::HTTP::HttpAPI::notifyClient(string clientId, vector<t
 
 API::ClientSendResult API::HTTP::HttpAPI::checkAlive(string clientId)
 {
-    return wsConnections.count(clientId) > 0 ? API::ClientSendResult::DISCONNECTED : API::ClientSendResult::LIVE;
+    return wsConnections.count(clientId) > 0 ? API::ClientSendResult::LIVE : API::ClientSendResult::DISCONNECTED;
 }
 
 void API::HTTP::HttpAPI::startListenMessageBus(MessageBus<JsonMaker::JSON> *bus)

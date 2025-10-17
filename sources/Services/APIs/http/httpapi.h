@@ -44,6 +44,7 @@ namespace API::HTTP{
         Errors::Error setSingleVar(shared_ptr<HttpData> in, shared_ptr<HttpData> out);
 
         void onServerWebSocketConnected(shared_ptr<HttpData>originalRequest, string resource);
+        void onServerWebSocketDisconnected(shared_ptr<HttpData>originalRequest, string resource);
 
         void initHttpServer();
         void initHttpsServer();
