@@ -50,7 +50,7 @@ Confs* initConfigurations(int argc, char** argv);
 
 //semantic versioning
 //ATTENTION: to change version, use apply_version_number.sh script in the project root folder (read the comments at the beginning of the script before use it)
-string INFO_VERSION = "v1.18.4+Haumea";
+string INFO_VERSION = "v1.19.0+Haumea";
 
 #define KIB *1024
 #define MIB *1024*1024
