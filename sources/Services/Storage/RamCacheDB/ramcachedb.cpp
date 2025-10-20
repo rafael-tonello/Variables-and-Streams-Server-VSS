@@ -202,7 +202,7 @@ void RamCacheDB::dump()
 
 
     
-    this->log->info("Dumping database to disk");
+    this->log->debug("Dumping database to disk");
     dblocker.lock();
     string fileText=dumpToString(root);
     dblocker.unlock();
@@ -211,7 +211,7 @@ void RamCacheDB::dump()
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
 
     Utils::writeTextFileContent(dataDir + "/"+ DUMP_FILE_NAME, fileText);
-    this->log->info("Dumping database to disk finished");
+    this->log->debug("Dumping database to disk finished");
 }
 
 string getDumpFileName();
