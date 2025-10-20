@@ -95,6 +95,9 @@ DynamicVar Confs::getA(string alias, DynamicVar defaultValue)
                     if (provider->contains(possibleName))
                     {
                         aliasInfo.lastValidValue = provider->get(possibleName);
+                        string mappedValue = aliasInfo.lastValidValue.getString();
+
+
                         return applyPlaceHolders(aliasInfo.lastValidValue);
                     }
                 }
