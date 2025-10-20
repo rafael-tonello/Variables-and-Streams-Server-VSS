@@ -76,6 +76,8 @@ private:
     
             return *this;            
         }
+
+        vector <tuple<DynamicVar, DynamicVar>> maps;
     public:
     
         //!!use the createAlias method of Confs class to create an instance of this class!!
@@ -117,6 +119,31 @@ private:
             return *this;
         }
 
+        //add a value map for input values.
+        //Example: if you addd a mapping from 'INFO' to '2', and you sets a confirgutation with value 'INFO', 
+        //when Confs::getA be called, the application will receive the value '2' instead of 'INFO'.
+        ConfAliaser &addValueMap(vector<tuple<DynamicVar, DynamicVar>> fromToValues)
+        {
+            for (auto &c : fromToValues)
+            {
+                maps.push_back(c);
+            }
+            return *this;
+        }
+
+        DynamicVar mapValue(DynamicVar sourceValue)
+        {
+            for (auto &c : maps)
+            {
+                if (sourceValue.getString() == std::get<0>(c).getString())
+                {
+                    return std::get<1>(c);
+                }
+            }
+
+            return sourceValue;
+        }
+
         // Sets the default value of this configuration. When the configuration is requestes but not found in any provider, this values will be returned
         ConfAliaser &setDefaultValue(DynamicVar defaultValue){
             ctrl->aliases[name].defaultValue = defaultValue;
@@ -133,6 +160,8 @@ private:
         ConfPlaceHolder& add(string replace, string by);
         ConfPlaceHolder& add(vector<tuple<string, string>> replacesAndBys);
     };
+
+    string applyPlaceHolders(string source);
 
 public:
 
@@ -161,7 +190,6 @@ public:
     DynamicVar getA(string alias, DynamicVar defaultValue = "");
 
     void listenA(string alias, function<void(DynamicVar)> f, bool callFImedially = true, DynamicVar defaultValueForImediateFCall = "");
-    string applyPlaceHolders(string source);
 
     vector<tuple<string, DynamicVar>> getAllConfigurationsA();
 
