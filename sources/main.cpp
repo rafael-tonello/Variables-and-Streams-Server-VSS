@@ -288,36 +288,36 @@ Confs* initConfigurations(int argc, char **argv)
     ;
 
     //max log file size (logger library will compress the file if it is bigger than this value)
-    conf->createAlias("maxLogFileSize").addForAnyProvider({"maxLogFileSize", "--maxLogFileSize", "VSS_MAX_LOG_FILE_SIZE"}).setDefaultValue(50 MIB);
-    
+    conf->createAlias("maxLogFileSize").addForAnyProvider({"max-log-file-size", "--max-log-file-size", "VSS_MAX_LOG_FILE_SIZE"}).setDefaultValue(50 MIB);
+
     //max time to consider a client complettly disconnected (not just a network problem)
-    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"maxTimeWaitingClient_seconds", "--maxTimeWaitingForClients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
+    conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"max-time-waiting-client-seconds", "--max-time-waiting-for-clients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
 
     //where database files should be stored
-    conf->createAlias("DbDirectory").addForAnyProvider({"dbDirectory", "--dbDirectory", "VSS_DB_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/database");
+    conf->createAlias("DbDirectory").addForAnyProvider({"db-directory", "--db-directory", "VSS_DB_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/database");
 
     //HTTP API
         //directory to store http data (temp files, cookies, ...)
-        conf->createAlias("httpDataDir").addForAnyProvider({"httpDataDirectory", "--httpDataFolder", "--httpDataDirectory", "--httpDataDir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/http_data");
+        conf->createAlias("httpDataDir").addForAnyProvider({"http-data-directory", "--http-data-directory", "--http-data-dir", "VSS_HTTP_DATA_DIRECTORY"}).setDefaultValue("%SUGGESTED_DATA_DIRECTORY%/http_data");
         //HTTP port (note that it different from the HTTPS port)
-        conf->createAlias("httpApiPort").addForAnyProvider({"httpApiPort", "--httpApiPort", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
+        conf->createAlias("httpApiPort").addForAnyProvider({"http-api-port", "--http-api-port", "VSS_HTTP_API_PORT"}).setDefaultValue(5024);
 
         //HTTPS port
-        conf->createAlias("httpApiHttpsPort").addForAnyProvider({"httpApiHttpsPort", "--httpApiHttpsPort", "VSS_HTTP_API_HTTPS_PORT"}).setDefaultValue(5025);
+        conf->createAlias("httpApiHttpsPort").addForAnyProvider({"http-api-https-port", "--http-api-https-port", "VSS_HTTP_API_HTTPS_PORT"}).setDefaultValue(5025);
         //HTTPs certificate and key files
-        conf->createAlias("httpApiCertFile").addForAnyProvider({"httpApiCertFile", "--httpApiCertFile", "VSS_HTTP_API_CERT_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssCert.pem");
-        conf->createAlias("httpApiKeyFile").addForAnyProvider({"httpApiKeyFile", "--httpApiKeyFile", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
+        conf->createAlias("httpApiCertFile").addForAnyProvider({"http-api-cert-file", "--http-api-cert-file", "VSS_HTTP_API_CERT_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssCert.pem");
+        conf->createAlias("httpApiKeyFile").addForAnyProvider({"http-api-key-file", "--http-api-key-file", "VSS_HTTP_API_KEY_FILE"}).setDefaultValue("%APP_DIR%/ssl/cert/vssKey.pem");
 
 
-        conf->createAlias("httpApiReturnsFullPaths").addForAnyProvider({"httpApiReturnsFullPaths", "--httpApiReturnsFullPaths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
+        conf->createAlias("httpApiReturnsFullPaths").addForAnyProvider({"http-api-returns-full-paths", "--http-api-returns-full-paths", "VSS_HTTP_API_RETURN_FULL_PATHS"}).setDefaultValue(false);
 
     //VSTP API
-        conf->createAlias("vstpApiPort").addForAnyProvider({"vstpApiPort", "--vstpApiPort", "VSS_VSTP_API_PORT"}).setDefaultValue(5032);
+        conf->createAlias("vstpApiPort").addForAnyProvider({"vstp-api-port", "--vstp-api-port", "VSS_VSTP_API_PORT"}).setDefaultValue(5032);
 
 
     //RamCacheDB
         //time interval to dump the database to disk (for Storage Driver RamCacheDB)
-        conf->createAlias("RamCacheDbDumpIntervalMs").addForAnyProvider({"RamCacheDbDumpIntervalMs", "--RamCacheDbDumpIntervalMs", "VSS_RAMCACHEDB_DUMP_INTERVAL_MS"}).setDefaultValue(60*1000);
+        conf->createAlias("RamCacheDbDumpIntervalMs").addForAnyProvider({"ram-cache-db-dump-interval-ms", "--ram-cache-db-dump-interval-ms", "VSS_RAMCACHEDB_DUMP_INTERVAL_MS"}).setDefaultValue(60*1000);
 
     return conf;
 }
