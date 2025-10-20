@@ -71,8 +71,12 @@ int main(int argc, char** argv){
     dim.addSingleton<Confs>(initConfigurations(argc, argv));
     
     dim.addSingleton<ILogger>(new Logger({
-        new LoggerConsoleWriter(LOGGER_LOGLEVEL_INFO2),
-        new LoggerFileWriter(determinteLogFile(), LOGGER_LOGLEVEL_INFO2, true, dim.get<Confs>()->getA("maxLogFileSize", 50 MIB).getInt())
+        new LoggerConsoleWriter(dim.get<Confs>()->getA("consoleLogLevel", LOGGER_LOGLEVEL_INFO).getInt()),
+        new LoggerFileWriter(
+            determinteLogFile(), 
+            dim.get<Confs>()->getA("fileLogLevel", LOGGER_LOGLEVEL_DEBUG).getInt(),
+            true, 
+            dim.get<Confs>()->getA("maxLogFileSize", 50 MIB).getInt())
     }, false));
     
     dim.addSingleton<ThreadPool>(new ThreadPool(20, 0, "VSSTHPOOL_"));
@@ -184,21 +188,26 @@ bool handleHelpAndCommands(int argc, char** argv)
             cout << "  --httpDataDirectory <path>        Set the HTTP data directory (default: /var/vss/data/http_data or value in conf file)\n";
             cout << "  --maxLogFileSize <size_in_bytes>  Set the maximum log file size in bytes before rotation (default: 52428800 or value in conf file)\n";
             cout << "  --maxTimeWaitingForClients <seconds> Set the maximum time in seconds to consider a client disconnected (default: 43200 or value in conf file)\n";
+            cout << "  --stdoutLogLevel <level>          Set the log level for console output (default: info or value in conf file)\n";
+            cout << "  --fileLogLevel <level>            Set the log level for file output (default: info or value in conf file)\n";
             cout << "\nEnvironment Variables:\n";
-            cout << "  VSS_HTTP_API_PORT                 Same as --httpApiPort\n";
-            cout << "  VSS_HTTP_API_HTTPS_PORT           Same as --httpApiHttpsPort\n";
-            cout << "  VSS_VSTP_API_PORT                 Same as --vstpApiPort\n";
-            cout << "  VSS_HTTP_DATA_FOLDER              Same as --httpDataFolder\n";
-            cout << "  VSS_HTTP_API_CERT_FILE            Same as --httpApiCertFile\n";
-            cout << "  VSS_HTTP_API_KEY_FILE             Same as --httpApiKeyFile\n";
-            cout << "  VSS_HTTP_API_RETURN_FULL_PATHS    Same as --httpApiReturnsFullPaths\n";
-            cout << "  VSS_RAM_CACHE_DB_DUMP_INTERVAL_MS Same as --RamCacheDbDumpIntervalMs\n";
-            cout << "  VSS_VSTP_API_PORT                 Same as --vstpApiPort\n";
-            cout << "  VSS_DB_DIRECTORY                  Same as --dbDirectory\n";
-            cout << "  VSS_HTTP_DATA_DIRECTORY           Same as --httpDataDirectory\n";
-            cout << "  VSS_MAX_LOG_FILE_SIZE             Same as --maxLogFileSize\n";
-            cout << "  VSS_MAX_TIME_WAITING_CLIENTS      Same as --maxTimeWaitingForClients\n";
-            cout << "\nFor more information, visit the documentation.\n";
+            cout << "  VSS_HTTP_API_PORT                 Same as --http-api-port\n";
+            cout << "  VSS_HTTP_API_HTTPS_PORT           Same as --http-api-https-port\n";
+            cout << "  VSS_VSTP_API_PORT                 Same as --vstp-api-port\n";
+            cout << "  VSS_HTTP_DATA_FOLDER              Same as --http-data-folder\n";
+            cout << "  VSS_HTTP_API_CERT_FILE            Same as --http-api-cert-file\n";
+            cout << "  VSS_HTTP_API_KEY_FILE             Same as --http-api-key-file\n";
+            cout << "  VSS_HTTP_API_RETURN_FULL_PATHS    Same as --http-api-return-full-paths\n";
+            cout << "  VSS_RAM_CACHE_DB_DUMP_INTERVAL_MS Same as --ram-cache-db-dump-interval-ms\n";
+            cout << "  VSS_VSTP_API_PORT                 Same as --vstp-api-port\n";
+            cout << "  VSS_DB_DIRECTORY                  Same as --db-directory\n";
+            cout << "  VSS_HTTP_DATA_DIRECTORY           Same as --http-data-directory\n";
+            cout << "  VSS_MAX_LOG_FILE_SIZE             Same as --max-log-file-size\n";
+            cout << "  VSS_MAX_TIME_WAITING_CLIENTS      Same as --max-time-waiting-clients\n";
+            cout << "  VSS_STDOUT_LOG_LEVEL              Same as --stdout-log-level\n";
+            cout << "  VSS_FILE_LOG_LEVEL                Same as --file-log-level\n";
+            cout << "\nCommand line arguments are more important than environment variables, which are more important than configuration file values.\n";
+            cout << "For more information, visit the documentation.\n";
             return true;
         }
         else if (arg == "--version" || arg == "-v" || arg == "version")
@@ -289,6 +298,32 @@ Confs* initConfigurations(int argc, char **argv)
 
     //max log file size (logger library will compress the file if it is bigger than this value)
     conf->createAlias("maxLogFileSize").addForAnyProvider({"max-log-file-size", "--max-log-file-size", "VSS_MAX_LOG_FILE_SIZE"}).setDefaultValue(50 MIB);
+
+    conf->createAlias("stdoutLogLevel")
+        .addForAnyProvider({"stdout-log-level", "--stdout-log-level", "VSS_STDOUT_LOG_LEVEL"})
+        .setDefaultValue("info")
+        .addValueMap({
+            {"trace", LOGGER_LOGLEVEL_TRACE},
+            {"debug", LOGGER_LOGLEVEL_DEBUG},
+            {"info", LOGGER_LOGLEVEL_INFO},
+            {"info2", LOGGER_LOGLEVEL_INFO2},
+            {"warning", LOGGER_LOGLEVEL_WARNING},
+            {"error", LOGGER_LOGLEVEL_ERROR},
+            {"critical", LOGGER_LOGLEVEL_CRITICAL}
+        });
+
+    conf->createAlias("fileLogLevel")
+        .addForAnyProvider({"file-log-level", "--file-log-level", "VSS_FILE_LOG_LEVEL"})
+        .setDefaultValue("info2")
+        .addValueMap({
+            {"trace", LOGGER_LOGLEVEL_TRACE},
+            {"debug", LOGGER_LOGLEVEL_DEBUG},
+            {"info", LOGGER_LOGLEVEL_INFO},
+            {"info2", LOGGER_LOGLEVEL_INFO2},
+            {"warning", LOGGER_LOGLEVEL_WARNING},
+            {"error", LOGGER_LOGLEVEL_ERROR},
+            {"critical", LOGGER_LOGLEVEL_CRITICAL}
+        });
 
     //max time to consider a client complettly disconnected (not just a network problem)
     conf->createAlias("maxTimeWaitingClient_seconds").addForAnyProvider({"max-time-waiting-client-seconds", "--max-time-waiting-for-clients", "VSS_MAX_TIME_WAITING_CLIENTS"}).setDefaultValue(12*60*60);
