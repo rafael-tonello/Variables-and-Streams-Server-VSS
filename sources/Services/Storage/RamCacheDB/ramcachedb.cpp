@@ -199,16 +199,14 @@ void RamCacheDB::dump()
         return;
 
     pendingChanges = false;
-
-
     
-    this->log->debug("Dumping database to disk");
+    //this->log->debug("Dumping database to disk");
     dblocker.lock();
     string fileText=dumpToString(root);
     dblocker.unlock();
     
     //create directory
-    Utils::ssystem("mkdir -p \"" + dataDir+"\"");
+    //Utils::ssystem("mkdir -p \"" + dataDir+"\"");
 
     Utils::writeTextFileContent(dataDir + "/"+ DUMP_FILE_NAME, fileText);
     this->log->debug("Dumping database to disk finished");
