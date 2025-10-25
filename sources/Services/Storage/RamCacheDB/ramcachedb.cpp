@@ -91,7 +91,6 @@ void RamCacheDB::set(string name, DynamicVar v)
 }
 
 
-
 DynamicVar RamCacheDB::get(string name, DynamicVar defaultValue)
 {
     auto ret = defaultValue;
@@ -103,7 +102,6 @@ DynamicVar RamCacheDB::get(string name, DynamicVar defaultValue)
     dblocker.unlock();
     return ret;
 }
-
 
 //return only imediate childs, do not return subschilds (childs of childs). Return only imediate key name (the full key name should not be returned)
 vector<string> RamCacheDB::getChilds(string parentName)
@@ -199,10 +197,8 @@ void RamCacheDB::dump()
         return;
 
     pendingChanges = false;
-
-
     
-    this->log->debug("Dumping database to disk");
+    //this->log->debug("Dumping database to disk");
     dblocker.lock();
     string fileText=dumpToString(root);
     dblocker.unlock();
@@ -211,12 +207,12 @@ void RamCacheDB::dump()
     Utils::ssystem("mkdir -p \"" + dataDir+"\"");
 
     Utils::writeTextFileContent(dataDir + "/"+ DUMP_FILE_NAME, fileText);
-    this->log->debug("Dumping database to disk finished");
+    //this->log->debug("Dumping database to disk finished");
 }
 
 string getDumpFileName();
 
-
+ 
 void RamCacheDB::load()
 {
     this->log->info("Loading database from disk");

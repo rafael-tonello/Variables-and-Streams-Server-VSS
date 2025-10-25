@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <random>
 
 #include <timersForDebug.h>
 
@@ -138,9 +139,12 @@ using namespace std;
         static bool isNumber(string source);
 
         static map<void*, string> getANameDB;
+        static std::mutex getANameMutex;
         enum NameType{ALGORITHM_GENERATED, REAL_NAME_COMBINATION};
         static string getAName(int number, NameType typeOfName = ALGORITHM_GENERATED, int AlgoGenMaxSyllables = 3);
         static string getAName(void* p, NameType typeOfName = ALGORITHM_GENERATED, int AlgoGenMaxSyllables = 3);
+        static std::string generateAlgorithmicName(int syllables);
+        static std::string generateHumanLikeName();
 
         static string getNestedExceptionText(exception &e, string prefix ="", int level = 0);
 
