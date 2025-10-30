@@ -181,7 +181,7 @@ main(){
     echo "Changing version number to $version in ./sources/main.cpp..."
 
     if [ $dryrun == false ]; then
-        sed -i "s/string INFO_VERSION = \".*\"/string INFO_VERSION = \"$version\"/g" ./sources/main.cpp
+        sed -i "s/const INFO_VERSION = \".*\"/const INFO_VERSION = \"$version\"/g" ./sources/main.cpp
     fi
 
     #add commits since last tag to the CHANGELOG.md file

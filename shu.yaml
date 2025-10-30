@@ -8,14 +8,6 @@ main:
 #project packages. This list is used to restore .shu/packages folder when you call 'shu restore'
 packages:
   - https://github.com/rafael-tonello/SHU.git#src/shellscript-fw/common as common --not-recursive
-  - https://github.com/rafael-tonello/DynamicVar.git
-  - https://github.com/rafael-tonello/libs.json_maker.git
-  - https://github.com/rafael-tonello/DependencyInjection.git
-  - https://github.com/rafael-tonello/Logger.git
-  - https://github.com/rafael-tonello/TCPServer.git
-  - https://github.com/rafael-tonello/ThreadPool.git
-  - https://github.com/rafael-tonello/KwWebServer
-  - https://github.com/rafael-tonello/PrefixTreeStorage#sources as PrefixTreeStorage
 #project commands. You can call commands by using shu <command> [args]. You also can override SHU 
 # default  #commands ('build', 'run', ...). When writing a command, do not forget to treat help 
 #requests (-h, --help and help).
@@ -24,21 +16,12 @@ packages:
 #print the completions to stdout (use spaces to separate the completions). Second argument is
 #the string 'typed' by the user before pressing tab.
 project-commands:
-  touch:
-    bash-action: source ./shu/pcommands/touch.sh
-    description: Creates a new cpp class files. Using touch MyClass, the files myclas.cpp and myclass.h will be created with a empty class template
   build:
     bash-action: source ./shu/pcommands/build/build.sh
     description: build [--debug]. Build the project. If --debug options is passed, the build symbols will be added to the project. Otherwise, a 'production' binary will be build
   build-tests:
     bash-action: source ./shu/pcommands/build/buildTestsProject.sh
     description: Build the tests project (project inside folder 'tests'). The binary ./tests/build/tests will be generated (with debug symbols). If you need to clean the tests build, you can call 'shu build-tests --clean'
-  scancppfiles:
-    bash-action: source ./shu/pcommands/scancppfiles.sh
-    description: scancppfiles <directory>. Scan .cpp, .cxx, .h and .hpp files in the <directory> and registers it in the shu.yaml files. Also registers these files directories as aditional include dirs to be used by cpp compiler
-  rescancppfiles:
-    bash-action: echo 'removing old entries of cpp files'; shu pprops remove 'build.additional-files-and-dirs.cpp'; shu scancppfiles "./.shu/"; echo "reescan done"
-    description: "Rescan all cpp files and include folders from .shu/packages. WARNING: this command will entire rewrite the 'build.additional-files-and-dirs.cpp' section in shu.yaml. If you have added or removed entries manually, they will be lost"
   new-version:
     bash-action: source ./shu/pcommands/apply-or-create-new-version.sh
     description: Creates a new version of the project. If the project is already in a version, it will apply the new version to the project
@@ -48,19 +31,10 @@ sysdepss:
   - cmd: curl
     info: Curl is needed for some http operations (apt install curl)
     check-command: command -v curl
-  - cmd: clang++
-    info: clang++ is used to compile the project in release mode. Project can work well only with g++ (apt install clang)
-    check-command: command -v clang++
-  - cmd: g++
-    info: g++ is used to compile the project in debug mode. Project can work well only with clang++ (apt install g++)
-    check-command: command -v g++
-  - cmd: openssl-dev
-    info: Openssl is used by KwHttpserver to start a Https server (apt install libssl-dev)
-    check-command: _f(){ if [ -f /usr/include/openssl/ssl.h ]; then return 0; else return 1; fi; }; _f
+  - cmd: go
+    info: Go is needed to build some project dependencies (apt install golang)
+    check-command: command -v go  
 hooks:
-  - when: after
-    shu-command: pdeps get
-    cmd: source ./shu/hooks/shu/after-dep-get-scan-cpp-files.sh
   - when: after
     shu-command: pdeps restore
     cmd: source ./shu/hooks/shu/after-dep-restore-register-git-hooks.sh
@@ -68,8 +42,11 @@ hooks:
     shu-command: pdeps restore
     cmd: source ./shu/hooks/shu/after-dep-restore-open-readme-md.sh
   - when: after
+    shu-command: pdeps restore
+    cmd: if [ $(go get && go mod tidy; echo $?) -eq 0 ]; then misc.PrintGreen "Go dependencies restored successfully\n"; else misc.PrintRed "Error restoring go dependencies\n"; fi
+  - when: after
     shu-command: clean
-    cmd: source ./shu/hooks/shu/after-clean-clean-cpp-project.sh
+    cmd: rm -rf ./build; misc.PrintYellow "Project cleaned. Run 'shu restore' to restore shu packages.\n"
 project-properties:
   binary-name: vss
   build:
