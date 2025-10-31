@@ -16,6 +16,7 @@ import (
 	"syscall"
 
 	"rtonello/vss/sources/misc/logger"
+	logwriters "rtonello/vss/sources/misc/logger/writers"
 
 	"rtonello/vss/sources/misc/confs"
 	"rtonello/vss/sources/misc/confs/sources"
@@ -45,6 +46,7 @@ func main() {
 	//#region remain services {
 	mainLog := logManager.GetNamedLogger("Main")
 
+	mainLog.KeepNextLineOpened()
 	mainLog.Info("Starting storage ...")
 	theStorage := initStorage(configs, logManager)
 	mainLog.Info("...Storage started.")
@@ -266,10 +268,22 @@ func initConfigurations() confs.IConfs {
 func initLogger(configs confs.IConfs) logger.ILogger {
 	fileLogLevel := configs.Config("fileLogLevel").Value()
 	consoleLogLevel := configs.Config("stdoutLogLevel").Value()
+
+	maxLogSize := configs.Config("maxLogFileSize").Value()
+	fileWriter, err := logwriters.NewFileWriter(
+		determineLogFile(),
+		fileLogLevel.GetInt(),
+		true,
+		maxLogSize.GetInt64(),
+	)
+	if err != nil {
+		panic("Failed to initialize file writer: " + err.Error())
+	}
+
 	logManager := logger.NewLogger([]logger.ILogWriter{
-		logger.NewConsoleWriter(consoleLogLevel.GetInt(), true, true, true, true),
-		logger.NewFileWriter(fileLogLevel.GetInt(), getApplicationDirectory(false)+"/log.log", 20*1024*1024),
-	}, logger.OpCustomDynamicLibPath(getApplicationDirectory(false)+"/logger.so"))
+		logwriters.NewConsoleWriter(consoleLogLevel.GetInt(), true, true, true, true),
+		fileWriter,
+	}, false, 0)
 
 	return logManager
 }
@@ -369,7 +383,7 @@ func findConfigurationFile() string {
 
 func determineLogFile() string {
 	if runningInPortableMode() {
-		return filepath.Join(getApplicationDirectory(false), "log", "vss.log")
+		return filepath.Join(getApplicationDirectory(false), "vss.log")
 	} else {
 		return "/var/log/vss.log"
 	}

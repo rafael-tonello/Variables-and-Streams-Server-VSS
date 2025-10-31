@@ -39,9 +39,6 @@ main(){
     # copy assets, excluding .so files
     find ./sources/assets -type f ! -name '*.so' -exec cp --parents {} ./build/ \;
 
-
-    provideLoggerSo
-
     go build -o ./build/vss ./main.go
     retCode=$?
     if [ $retCode -ne 0 ]; then
@@ -51,66 +48,6 @@ main(){
 
     echo "Project built in $buildType mode."
     return $retCode
-
-}
-
-provideLoggerSo(){
-    if [ -f ./build/logger.so ]; then return 0; fi
-
-    local needsBuild=false
-
-    #check if current architecture is x86_64
-    arch=$(uname -m)
-    echo "Current architecture: $arch"
-    if [ "$arch" == "x86_64" ]; then
-        #check if file ./sources/assets/logger.x86_64.so exists
-        pwd
-        echo "looking for ./sources/assets/logger.x86_64.so"
-        if [ -f ./sources/assets/logger.x86_64.so ]; then
-            cp ./sources/assets/logger.x86_64.so ./build/logger.so
-            return 0
-        fi
-        needsBuild=true
-    elif [ "$arch" == "arm64" ] || [ "$arch" == "aarch64" ]; then
-        #check if file ./sources/assets/logger.arm64.so exists
-        if [ -f ./sources/assets/logger.arm64.so ]; then
-            cp ./sources/assets/logger.arm64.so ./build/logger.so
-            return 0
-        fi
-        needsBuild=true
-    else
-        needsBuild=true
-    fi
-
-    if [ "$needsBuild" = true ]; then
-        local currDir=$(pwd)
-
-        cd /tmp
-        rm -rf logger
-        git clone https://github.com/rafael-tonello/Logger.git --recursive logger
-        cd ./logger/projects/library
-
-        echo "Building logger.so for architecture $arch..."
-        #use tee to print but capture only stderr to a file
-        nice -n 19 make all -j 4 | tee build.log
-        retCode=$?
-        if [ $retCode -ne 0 ]; then
-            #get error lines from build.log
-            for line in $(cat build.log); do
-                if [[ "$line" == *"error:"* ]]; then
-                    echo "$line" >> builderr.log
-                fi
-            done
-
-            _error="Building Logger library failed: $(cat builderr.log )"
-            cd "$currDir"
-            return $retCode
-        fi
-
-        cp ./build/logger.so "$currDir/build/logger.so"
-        cd "$currDir"
-    fi
-    return 0
 
 }
 
