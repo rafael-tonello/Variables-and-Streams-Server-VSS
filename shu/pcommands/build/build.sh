@@ -11,13 +11,6 @@ fi
 main(){
     lastBuildType=$(shu pvars get "lastBuildMode")
 
-    #checks if the last build type is different from the current build type and 'buildType' is not --tests or --clean
-    if [[ "$lastBuildType" != "$buildType" && "$buildType" != "--tests" && "$buildType" != "--clean" ]]; then
-        echo "Last build type '$lastBuildType' is different from current build type '$buildType'. Cleaning previous build..."
-        rm -rf ./build
-        shu pvars set "lastBuildMode" "$buildType"
-    fi
-
 
     if [ "$buildType" == "--tests" ] ||  [ "$buildType" == "tests" ]; then
         source ./shu/pcommands/build/buildTestsProject.sh
@@ -31,6 +24,8 @@ main(){
         echo "Unknown argument '$buildType'. Please use '--debug', '--release', '--tests' or '--clean'." 1>&2
         return 1
     fi
+
+    rm -rf ./build/vss
 
 
 

@@ -143,7 +143,7 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 		exporter = "json"
 	}
 	pretty := strings.ToLower(q.Get("pretty")) == "true"
-	full := strings.ToLower(q.Get("full")) == "true"
+	full := strings.ToLower(q.Get("fullnames")) == "true"
 
 	res := <-h.ctrl.GetVars(name, misc.NewDynamicVar(""))
 	if res.Err != nil {
@@ -178,7 +178,9 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 		fullName := (&nameDV).GetString()
 		if !full {
 			base := trimWildcardBase(name)
-			if base != "" && strings.HasPrefix(fullName, base+".") {
+			if base == fullName {
+				fullName = ""
+			} else if base != "" && strings.HasPrefix(fullName, base+".") {
 				fullName = strings.TrimPrefix(fullName, base+".")
 			}
 		}
