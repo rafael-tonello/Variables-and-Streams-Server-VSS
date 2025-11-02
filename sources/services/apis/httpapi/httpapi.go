@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -182,8 +183,39 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 				if len(vals) == 1 {
 					//find last dot
 					if idx := strings.LastIndex(fullName, "."); idx >= 0 {
-						//get only last name part
-						fullName = fullName[idx+1:]
+						//serialize single json value (not object) for root-level var
+						ttype := valDV.InferType()
+						switch ttype {
+						case reflect.Int:
+							bytesOutput := []byte(strconv.FormatInt(valDV.GetInt64(), 10))
+							w.Header().Set("Content-Type", "application/json")
+							w.WriteHeader(http.StatusOK)
+							_, _ = w.Write(bytesOutput)
+							return
+						case reflect.Float64:
+							bytesOutput := []byte(strconv.FormatFloat(valDV.GetFloat64(), 'f', -1, 64))
+							w.Header().Set("Content-Type", "application/json")
+							w.WriteHeader(http.StatusOK)
+							_, _ = w.Write(bytesOutput)
+							return
+						case reflect.Bool:
+							bytesOutput := []byte("trye")
+							if !valDV.GetBool() {
+								bytesOutput = []byte("false")
+							} else {
+							}
+							w.Header().Set("Content-Type", "application/json")
+							w.WriteHeader(http.StatusOK)
+							_, _ = w.Write(bytesOutput)
+							return
+						default:
+							//string
+							bytesOutput := []byte("\"" + valDV.GetString() + "\"")
+							w.Header().Set("Content-Type", "application/json")
+							w.WriteHeader(http.StatusOK)
+							_, _ = w.Write(bytesOutput)
+							return
+						}
 					}
 					//else, let fullName intact (get root values - with no parent, for example)
 				} else {

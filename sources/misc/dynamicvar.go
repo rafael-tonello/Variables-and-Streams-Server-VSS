@@ -182,3 +182,26 @@ func (dVar *DynamicVar) GetBool() bool {
 func (dVar *DynamicVar) Set(value any) {
 	dVar.data = anyToString(value, false)
 }
+
+// infer type
+// possible return values: reflect.Int, reflect.Float64, reflect.Bool, reflect.String
+func (dVar *DynamicVar) InferType() reflect.Kind {
+	//try int
+	if _, err := strconv.Atoi(dVar.data); err == nil {
+		return reflect.Int
+	}
+
+	//try float
+	if _, err := strconv.ParseFloat(dVar.data, 64); err == nil {
+		return reflect.Float64
+	}
+
+	//try bool
+	lowerData := strings.ToLower(dVar.data)
+	if lowerData == "1" || lowerData == "0" || lowerData == "true" || lowerData == "false" || lowerData == "yes" || lowerData == "no" {
+		return reflect.Bool
+	}
+
+	//default: string
+	return reflect.String
+}
