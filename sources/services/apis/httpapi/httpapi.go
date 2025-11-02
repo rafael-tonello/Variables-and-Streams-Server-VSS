@@ -179,12 +179,22 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 		if !full {
 			base := trimWildcardBase(name)
 			if base == fullName {
-				fullName = ""
+				if len(vals) == 1 {
+					//find last dot
+					if idx := strings.LastIndex(fullName, "."); idx >= 0 {
+						//get only last name part
+						fullName = fullName[idx+1:]
+					}
+					//else, let fullName intact (get root values - with no parent, for example)
+				} else {
+					fullName = "_value"
+				}
 			} else if base != "" && strings.HasPrefix(fullName, base+".") {
 				fullName = strings.TrimPrefix(fullName, base+".")
 			}
 		}
 		parsed := parseDynamicVar(valDV)
+
 		insertNested(root, strings.Split(fullName, "."), parsed)
 	}
 	// normalize numeric-keyed maps into arrays where appropriate
@@ -319,7 +329,7 @@ func trimWildcardBase(name string) string {
 		base = strings.TrimSuffix(base, ".")
 		return base
 	}
-	return ""
+	return name
 }
 
 func separateKeyAndValue(s string) (string, string) {
