@@ -251,6 +251,7 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 func (h *HttpAPI) handlePostByName(w http.ResponseWriter, r *http.Request, name string) {
 	// If Content-Type is application/json and body is an object, set multiple vars
 	ct := r.Header.Get("Content-Type")
+	ct = strings.ToLower(ct)
 	if strings.Contains(ct, "application/json") {
 		var obj map[string]interface{}
 		dec := json.NewDecoder(r.Body)
@@ -268,6 +269,12 @@ func (h *HttpAPI) handlePostByName(w http.ResponseWriter, r *http.Request, name 
 				vs = string(b)
 			}
 			if h.ctrl != nil {
+				//if k contains '_value', remove it from the var name
+				if strings.HasSuffix(k, "_value") {
+					k = strings.TrimSuffix(k, "_value")
+					k = strings.TrimSuffix(k, ".")
+				}
+
 				if err := <-h.ctrl.SetVar(k, misc.NewDynamicVar(vs)); err != nil {
 					http.Error(w, err.Error(), http.StatusForbidden)
 					return

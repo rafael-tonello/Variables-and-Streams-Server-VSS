@@ -262,6 +262,21 @@ func initConfigurations() confs.IConfs {
 		confs.WithDefaultValue(misc.NewDynamicVar("60000")), //60 seconds
 	)
 
+	theConfs.CreateConfig("maxKeyLength",
+		confs.WithPossibleNames([]string{"max-key-length", "--max-key-length", "VSS_MAX_KEY_LENGTH"}),
+		confs.WithDefaultValue(misc.NewDynamicVar("255")),
+	)
+
+	//not obrigatory, 0 means no limit (but the whole key will be validated by 'maxKeyLength')
+	theConfs.CreateConfig("maxKeyWordLength",
+		confs.WithPossibleNames([]string{"max-key-word-length", "--max-key-word-length", "VSS_MAX_KEY_WORD_LENGTH"}),
+		confs.WithDefaultValue(misc.NewDynamicVar("64")),
+	)
+
+	theConfs.CreateConfig("maxValueSize",
+		confs.WithPossibleNames([]string{"max-value-size", "--max-value-size", "VSS_MAX_VALUE_SIZE"}),
+		confs.WithDefaultValue(misc.NewDynamicVar("1048576")), //1 MiB
+	)
 	return theConfs
 }
 

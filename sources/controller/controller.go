@@ -71,6 +71,9 @@ type TheController struct {
 	apis                       map[string]apis.IApi
 	maxTimeWaitingClientSecond int64
 	systemVersion              string
+	maxKeyLength               int
+	maxKeyWordLength           int
+	maxValueSize               int
 }
 
 // ControllerClientHelperApi is the minimal API used by controller client helper.
@@ -85,16 +88,22 @@ func NewController(log logger.ILogger, confs confs.IConfs, db storage.IStorage, 
 		db:                         db,
 		apis:                       make(map[string]apis.IApi),
 		systemVersion:              systemVersion,
-		maxTimeWaitingClientSecond: 12 * 60 * 60, // default like C++
+		maxTimeWaitingClientSecond: 12 * 60 * 60, // default like C++	}
 	}
 
-	// Try to read configuration if present
-	if confs != nil {
-		if item := confs.Config("maxTimeWaitingClient_seconds"); item != nil {
-			v := item.Value()
-			c.maxTimeWaitingClientSecond = v.GetInt64()
-		}
+	confMaxTimeWaitingClient := confs.Config("maxTimeWaitingClient_seconds").Value()
+	if confMaxTimeWaitingClient.GetInt64() > 0 {
+		c.maxTimeWaitingClientSecond = confMaxTimeWaitingClient.GetInt64()
 	}
+
+	confMaxKeyLength := confs.Config("maxKeyLength").Value()
+	c.maxKeyLength = int(confMaxKeyLength.GetInt64())
+
+	confMaxKeyWordLength := confs.Config("maxKeyWordLength").Value()
+	c.maxKeyWordLength = int(confMaxKeyWordLength.GetInt64())
+
+	confMaxValueSize := confs.Config("maxValueSize").Value()
+	c.maxValueSize = int(confMaxValueSize.GetInt64())
 
 	return c
 }
@@ -113,16 +122,40 @@ func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 			return
 		}
 
+		if len(name) > c.maxKeyLength {
+			ch <- errors.New("variable name exceeds maximum length of " + strconv.Itoa(c.maxKeyLength))
+			return
+		}
+
+		if len(value.GetString()) > c.maxValueSize {
+			ch <- errors.New("variable value exceeds maximum size of " + strconv.Itoa(c.maxValueSize))
+			return
+		}
+
+		if c.maxKeyWordLength > 0 {
+			parts := []string{name}
+			if strings.Contains(name, ".") {
+				parts = strings.Split(name, ".")
+			}
+
+			for _, p := range parts {
+				if len(p) > c.maxKeyWordLength {
+					ch <- errors.New("a part of the variable name exceeds maximum length of " + strconv.Itoa(c.maxKeyWordLength))
+					return
+				}
+			}
+		}
+
 		vh := NewControllerVarHelper(c.db)
 		vh.SetControlledVarName(name)
+		//accept only text valid chars (remove all special chars)
+		name = misc.GetOnly(name, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-*")
 		if vh.IsLocked() {
 			ch <- errors.New("variable is locked")
 			return
 		}
 
 		strValue := value.GetString()
-		//accept only text valid chars (remove all special chars)
-		strValue = misc.GetOnly(strValue, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-*")
 		value.SetString(strValue)
 
 		vh.SetValue(value)
