@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -251,7 +252,6 @@ func (h *HttpAPI) handleGetByName(w http.ResponseWriter, r *http.Request, name s
 func (h *HttpAPI) handlePostByName(w http.ResponseWriter, r *http.Request, name string) {
 	// If Content-Type is application/json and body is an object, set multiple vars
 	ct := r.Header.Get("Content-Type")
-	ct = strings.ToLower(ct)
 	if strings.Contains(ct, "application/json") {
 		var obj map[string]interface{}
 		dec := json.NewDecoder(r.Body)
@@ -259,28 +259,9 @@ func (h *HttpAPI) handlePostByName(w http.ResponseWriter, r *http.Request, name 
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
-		for k, v := range obj {
-			var vs string
-			switch t := v.(type) {
-			case string:
-				vs = t
-			default:
-				b, _ := json.Marshal(v)
-				vs = string(b)
-			}
-			if h.ctrl != nil {
-				//if k contains '_value', remove it from the var name
-				if strings.HasSuffix(k, "_value") {
-					k = strings.TrimSuffix(k, "_value")
-					k = strings.TrimSuffix(k, ".")
-				}
 
-				if err := <-h.ctrl.SetVar(k, misc.NewDynamicVar(vs)); err != nil {
-					http.Error(w, err.Error(), http.StatusForbidden)
-					return
-				}
-			}
-		}
+		h.setJson("", obj)
+
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -295,6 +276,33 @@ func (h *HttpAPI) handlePostByName(w http.ResponseWriter, r *http.Request, name 
 		}
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *HttpAPI) setJson(parent string, obj map[string]interface{}) error {
+	if parent != "" {
+		parent = parent + "."
+	}
+	for key, value := range obj {
+		//check if value is another map
+		switch t := value.(type) {
+		case map[string]interface{}:
+
+			ret := h.setJson(parent+key, t)
+			if ret != nil {
+				//add context to error
+				ret = fmt.Errorf("error setting var (with json content) %s: %w", parent+key, ret)
+				return ret
+			}
+		default:
+			//set value
+			err := <-h.ctrl.SetVar(parent+key, misc.NewDynamicVar(value))
+			if err != nil {
+				return fmt.Errorf("error setting var %s: %w", parent+key, err)
+			}
+		}
+
+	}
+	return nil
 }
 
 func (h *HttpAPI) handleDeleteByName(w http.ResponseWriter, r *http.Request, name string) {
