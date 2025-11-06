@@ -113,6 +113,7 @@ func NewController(log logger.ILogger, confs confs.IConfs, db storage.IStorage, 
 func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 	ch := make(chan error, 1)
 	go func() {
+		name = misc.GetOnly(name, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-*")
 		if name == "" {
 			ch <- errors.New("variable name cannot be empty")
 			return
@@ -149,7 +150,7 @@ func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 		vh := NewControllerVarHelper(c.db)
 		vh.SetControlledVarName(name)
 		//accept only text valid chars (remove all special chars)
-		name = misc.GetOnly(name, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._/\\,.-*")
+
 		if vh.IsLocked() {
 			ch <- errors.New("variable is locked")
 			return
