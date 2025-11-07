@@ -51,9 +51,10 @@ type IControllerClientHelper interface {
 
 // ControllerClientHelper is a Go port of the C++ Controller_ClientHelper.
 type ControllerClientHelper struct {
-	db       storage.IStorage
-	clientId string
-	api      apis.IApi
+	db               storage.IStorage
+	clientId         string
+	api              apis.IApi
+	allowRawDbAccess bool
 }
 
 // NewControllerClientHelper constructs a helper with a concrete apis.IApi and initializes persistent state.

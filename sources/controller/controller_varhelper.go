@@ -54,17 +54,23 @@ type IControllerVarHelper interface {
 // It operates on a storage.IStorage instance and stores observation/flags using
 // the same key naming conventions: name + "._observers...", name + "._lock", etc.
 type ControllerVarHelper struct {
-	db   storage.IStorage
-	name string // full variable name, e.g. "vars.<varName>"
+	db               storage.IStorage
+	name             string // full variable name, e.g. "vars.<varName>"
+	allowRawDbAccess bool   // if true, allows access to vars starting with '_' (internal use only)
 }
 
 // NewControllerVarHelper creates a new helper bound to the provided storage.
 // The actual controlled variable name must be set using SetControlledVarName.
-func NewControllerVarHelper(db storage.IStorage) *ControllerVarHelper {
-	return &ControllerVarHelper{db: db}
+func NewControllerVarHelper(db storage.IStorage, allowRawDbAccess bool) *ControllerVarHelper {
+	return &ControllerVarHelper{db: db, allowRawDbAccess: allowRawDbAccess}
 }
 
 func (c *ControllerVarHelper) SetControlledVarName(vname string) {
+	if c.allowRawDbAccess {
+		c.name = vname
+		return
+	}
+
 	if strings.HasPrefix(vname, "vars.") {
 		c.name = vname
 	} else {
@@ -229,7 +235,7 @@ func (c *ControllerVarHelper) GetChildNames() []string {
 		if ch == "" {
 			continue
 		}
-		if ch[0] == '_' {
+		if !c.allowRawDbAccess && ch[0] == '_' {
 			continue
 		}
 		res = append(res, ch)

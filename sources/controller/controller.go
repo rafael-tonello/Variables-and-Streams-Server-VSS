@@ -74,6 +74,7 @@ type TheController struct {
 	maxKeyLength               int
 	maxKeyWordLength           int
 	maxValueSize               int
+	allowRawDbAccess           bool
 }
 
 // ControllerClientHelperApi is the minimal API used by controller client helper.
@@ -105,6 +106,9 @@ func NewController(log logger.ILogger, confs confs.IConfs, db storage.IStorage, 
 	confMaxValueSize := confs.Config("maxValueSize").Value()
 	c.maxValueSize = int(confMaxValueSize.GetInt64())
 
+	confRAwDbAccess := confs.Config("allowRawDbAccess").Value()
+	c.allowRawDbAccess = confRAwDbAccess.GetBool()
+
 	return c
 }
 
@@ -118,7 +122,7 @@ func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 			ch <- errors.New("variable name cannot be empty")
 			return
 		}
-		if name[0] == '_' || containsUnderscoreDot(name) {
+		if !c.allowRawDbAccess && name[0] == '_' || containsUnderscoreDot(name) {
 			ch <- errors.New("variables started with underscore are for internal use only")
 			return
 		}
@@ -147,7 +151,7 @@ func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 			}
 		}
 
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(name)
 		//accept only text valid chars (remove all special chars)
 
@@ -166,124 +170,6 @@ func (c *TheController) SetVar(name string, value misc.DynamicVar) chan error {
 	}()
 	return ch
 }
-
-//  future<GetVarResult> TheController::getVars(string name, DynamicVar defaultValue){
-//     return tasker->enqueue([&](string namep, DynamicVar defaultValuep){
-
-//         if (namep == "")
-//         {
-//             log->warning("TheController", Errors::Error_TheVariableNameCannotBeEmpty);
-//             return GetVarResult({}, Errors::Error_TheVariableNameCannotBeEmpty);
-//         }
-
-//         function <vector<tuple<string, DynamicVar>>(string namep, bool childsToo)> readFromDb;
-//         readFromDb = [&](string nname, bool childsToo)
-//         {
-//             vector<tuple<string, DynamicVar>> result;
-//             Controller_VarHelper varHelper(log, db, nname);
-
-//             if (varHelper.valueIsSetInTheDB())
-//                 result.push_back(make_tuple( nname,  varHelper.getValue()));
-
-//             if (childsToo)
-//             {
-//                 nname = nname == "" ? nname : nname + ".";
-//                 auto childs = varHelper.getChildsNames();
-//                 for (auto curr: childs)
-//                 {
-//                     auto tmp = readFromDb(nname + curr, childsToo);
-//                     result.insert(result.begin(), tmp.begin(), tmp.end());
-//                 }
-//             }
-
-//             return result;
-//         };
-
-//         //if variable ends with *, determine just their name
-//         bool childsToo = false;
-//         if (namep.find("*") != string::npos)
-//         {
-//             if (namep.find("*") == namep.size()-1)
-//             {
-//                 childsToo = true;
-//                 auto p = namep.find(".");
-//                 if (p != string::npos && p == namep.size()-2)
-//                     namep = namep.substr(0, namep.size()-2);
-//                 else
-//                     namep = namep.substr(0, namep.size()-1);
-
-//                 //if namep ends with '.', remove it (ex: "a.b.c.*" results in a variable called "a.b.c." - with a ending '.', that is not a valid var name)
-//                 if (namep.size() > 0 && namep[namep.size()-1] == '.')
-//                     namep = namep.substr(0, namep.size()-1);
-//             }
-//             else
-//             {
-//                 log->error("TheController", Errors::Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting);
-//                 return GetVarResult(Errors::Error_WildCardCabBeUsedOnlyAtEndOfVarNameForVarGetting, {});
-//             }
-//         }
-
-//         //load the valures
-//         auto values = readFromDb(namep, childsToo);
-
-//         //if nothing was found, add the default value to the result
-//         if (values.size() == 0)
-//             values.push_back(make_tuple(namep, defaultValuep));
-
-//         //return the values
-//         return GetVarResult(Errors::NoError, values);
-//     }, name, defaultValue);
-
-// }
-
-// future<Errors::Error> TheController::delVar(string varname)
-// {
-//     return tasker->enqueue([&](string varnamep)
-//     {
-//         auto vars = this->getVar(varnamep, "").get().result;
-//         if (vars.size() == 0) {
-//             return Errors::Error("Error deleting variable '"+varnamep+"'. Maybe the variable doesn't exist");
-//         }
-
-//         vector<Errors::Error> errors;
-//         for (auto &currVar: vars)
-//         {
-//             Controller_VarHelper varHelper(log, db, std::get<0>(currVar));
-//             if (!varHelper.deleteValueFromDB())
-//                 errors.push_back(Errors::Error("Error deleting variable '"+std::get<0>(currVar)+"'. Maybe the variable doesn't exist"));
-//             else
-//                 notifyVarModification(std::get<0>(currVar), "");
-//         }
-
-//         Errors::Error returnErrors = Errors::NoError;
-
-//         if (errors.size() > 0)
-//         {
-//             returnErrors = "";
-//             for (auto &currError: errors)
-//                 returnErrors += (returnErrors == "" ? "" : " + ") + currError;
-//         }
-
-//         return returnErrors;
-//     }, varname);
-// }
-
-// future<Errors::ResultWithStatus<vector<string>>> TheController::getChildsOfVar(string parentName)
-// {
-//     return tasker->enqueue([&](string parentNamep)
-//     {
-//         if (parentNamep.find('*') != string::npos)
-//         {
-//             log->error("TheController", Errors::Error_WildcardCanotBeUsesForGetVarChilds);
-//             return Errors::ResultWithStatus<vector<string>>(Errors::Error_WildcardCanotBeUsesForGetVarChilds, {});
-//         }
-
-//         Controller_VarHelper varHelper(log, db, parentNamep);
-//         auto result = varHelper.getChildsNames();
-//         return Errors::ResultWithStatus<vector<string>>(Errors::NoError, result);
-//     }, parentName);
-
-// }
 
 func containsUnderscoreDot(name string) bool {
 	// returns true when name contains the internal pattern '._'
@@ -305,7 +191,7 @@ func (c *TheController) GetVars(name string, defaultValue misc.DynamicVar) chan 
 		var readFromDb func(string, bool) []misc.Tuple[misc.DynamicVar]
 		readFromDb = func(nname string, childsToo bool) []misc.Tuple[misc.DynamicVar] {
 			res := []misc.Tuple[misc.DynamicVar]{}
-			vh := NewControllerVarHelper(c.db)
+			vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 			vh.SetControlledVarName(nname)
 
 			dv := vh.GetValue()
@@ -387,6 +273,7 @@ func (c *TheController) DelVar(varname string) chan error {
 			dv := nameDV
 			nameStr := (&dv).GetString()
 			// delete from storage under "vars." prefix
+			//TODO: use ControllerVarHelper delete method
 			c.db.DeleteValue("vars."+nameStr, false)
 			go c.notifyVarModification(nameStr, misc.NewDynamicVar(""))
 		}
@@ -403,7 +290,7 @@ func (c *TheController) GetChildsOfVar(parentName string) chan []string {
 			out <- []string{}
 			return
 		}
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(parentName)
 		out <- vh.GetChildNames()
 	}()
@@ -415,7 +302,7 @@ func (c *TheController) GetChildsOfVar(parentName string) chan []string {
 func (c *TheController) LockVar(varName string, timeoutMs uint) chan error {
 	ch := make(chan error, 1)
 	go func() {
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(varName)
 		ch <- vh.Lock(timeoutMs)
 	}()
@@ -426,7 +313,7 @@ func (c *TheController) LockVar(varName string, timeoutMs uint) chan error {
 func (c *TheController) UnlockVar(varName string) chan error {
 	ch := make(chan error, 1)
 	go func() {
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(varName)
 		ch <- vh.Unlock()
 	}()
@@ -437,7 +324,7 @@ func (c *TheController) UnlockVar(varName string) chan error {
 func (c *TheController) IsVarLocked(varName string) chan bool {
 	ch := make(chan bool, 1)
 	go func() {
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(varName)
 		ch <- vh.IsLocked()
 	}()
@@ -448,7 +335,7 @@ func (c *TheController) IsVarLocked(varName string) chan bool {
 // current value to the client via the API. If the client is disconnected,
 // the controller will schedule a liveness check.
 func (c *TheController) ObserveVar(varName, clientId, customIdsAndMetainfo string, api apis.IApi) {
-	vh := NewControllerVarHelper(c.db)
+	vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 	vh.SetControlledVarName(varName)
 	if !vh.IsClientObserving(clientId, customIdsAndMetainfo) {
 		client := NewControllerClientHelper(c.db, clientId, api)
@@ -471,7 +358,7 @@ func (c *TheController) ObserveVar(varName, clientId, customIdsAndMetainfo strin
 
 // StopObservingVar removes a client's observation for a variable.
 func (c *TheController) StopObservingVar(varName, clientId, customIdsAndMetainfo string, api apis.IApi) {
-	vh := NewControllerVarHelper(c.db)
+	vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 	vh.SetControlledVarName(varName)
 	vh.RemoveObservationByClientAndMetadata(clientId, customIdsAndMetainfo)
 	ch := NewControllerClientHelper(c.db, clientId, api)
@@ -503,7 +390,7 @@ func (c *TheController) updateClientAboutObservatingVars(ch ControllerClientHelp
 		for _, dv := range vals {
 			vName := dv.At(0)
 			vValue := dv.At(1)
-			varHelper := NewControllerVarHelper(c.db)
+			varHelper := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 			varHelper.SetControlledVarName(vName)
 
 			metadatas := varHelper.GetMetadatasOfAClient(ch.GetClientId())
@@ -538,7 +425,7 @@ func (c *TheController) deleteClient(ch ControllerClientHelper) {
 	vars := ch.GetObservingVars()
 	ch.RemoveClientFromObservationSystem()
 	for _, currVar := range vars {
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(currVar)
 		vh.RemoveAllClientObservations(ch.GetClientId())
 	}
@@ -547,14 +434,14 @@ func (c *TheController) deleteClient(ch ControllerClientHelper) {
 // notifyVarModification informs clients about a variable change.
 func (c *TheController) notifyVarModification(varName string, value misc.DynamicVar) {
 	go func() {
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(varName)
 		obs := vh.GetAllObservations()
 		c.notifyClientsAboutVarChange(obs, varName, value)
 		c.notifyParentGenericObservers(varName, varName, value)
 
 		// also notify wildcard children
-		childWildcard := NewControllerVarHelper(c.db)
+		childWildcard := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		childWildcard.SetControlledVarName(varName + ".*")
 		c.notifyClientsAboutVarChange(childWildcard.GetAllObservations(), varName, value)
 	}()
@@ -564,7 +451,7 @@ func (c *TheController) notifyVarModification(varName string, value misc.Dynamic
 func (c *TheController) notifyParentGenericObservers(varName, changedVarName string, value misc.DynamicVar) {
 	if idx := lastDotIndex(varName); idx != -1 {
 		parent := varName[:idx]
-		vh := NewControllerVarHelper(c.db)
+		vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vh.SetControlledVarName(parent + ".*")
 		c.notifyClientsAboutVarChange(vh.GetAllObservations(), changedVarName, value)
 		c.notifyParentGenericObservers(parent, changedVarName, value)
@@ -625,7 +512,7 @@ func (c *TheController) notifyClientsAboutVarChange(observations map[Observation
 // getVarInternal reads a variable and its children and returns a slice of tuples (name, valueString)
 func (c *TheController) getVarInternal(name string) []misc.Tuple[string] {
 	res := []misc.Tuple[string]{}
-	vh := NewControllerVarHelper(c.db)
+	vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 	vh.SetControlledVarName(name)
 	dv := vh.GetValue()
 	if (&dv).GetString() != "" {
@@ -639,7 +526,7 @@ func (c *TheController) getVarInternal(name string) []misc.Tuple[string] {
 		} else {
 			full = ch
 		}
-		vvh := NewControllerVarHelper(c.db)
+		vvh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
 		vvh.SetControlledVarName(full)
 		dv2 := vvh.GetValue()
 		res = append(res, misc.NewTuple[string](full, (&dv2).GetString()))

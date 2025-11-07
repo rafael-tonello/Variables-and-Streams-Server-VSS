@@ -177,13 +177,24 @@ func (r *RamCacheDB) Get(name string, defaultValue misc.DynamicVar) misc.Dynamic
 
 // GetChilds returns immediate child names (not full names) for parentName.
 func (r *RamCacheDB) GetChilds(parentName string) []string {
+	ret := []string{}
+	if parentName == "" {
+		//get root childs
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		for k := range r.root.childs {
+			ret = append(ret, k)
+		}
+		return ret
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	item := r.scrollTree(parentName, &r.root, true)
+	ret = make([]string, 0, len(item.childs))
 	if item == nil || item.childs == nil {
 		return []string{}
 	}
-	ret := make([]string, 0, len(item.childs))
 	for k := range item.childs {
 		ret = append(ret, k)
 	}

@@ -277,6 +277,11 @@ func initConfigurations() confs.IConfs {
 		confs.WithPossibleNames([]string{"max-value-size", "--max-value-size", "VSS_MAX_VALUE_SIZE"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("1048576")), //1 MiB
 	)
+
+	theConfs.CreateConfig("allowRawDbAccess",
+		confs.WithPossibleNames([]string{"allow-raw-db-access", "--allow-raw-db-access", "VSS_ALLOW_RAW_DB_ACCESS"}),
+		confs.WithDefaultValue(misc.NewDynamicVar("false")),
+	)
 	return theConfs
 }
 
