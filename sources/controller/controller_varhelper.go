@@ -327,3 +327,7 @@ func (c *ControllerVarHelper) ForeachObservation(f func(obsID ObservationID, cli
 		f(id, client, metadata)
 	}
 }
+
+func (c *ControllerVarHelper) DeleteValue() {
+	c.db.DeleteValue(c.name, false)
+}

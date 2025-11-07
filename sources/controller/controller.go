@@ -273,8 +273,10 @@ func (c *TheController) DelVar(varname string) chan error {
 			dv := nameDV
 			nameStr := (&dv).GetString()
 			// delete from storage under "vars." prefix
-			//TODO: use ControllerVarHelper delete method
-			c.db.DeleteValue("vars."+nameStr, false)
+			vh := NewControllerVarHelper(c.db, c.allowRawDbAccess)
+			vh.SetControlledVarName(nameStr)
+			vh.DeleteValue()
+
 			go c.notifyVarModification(nameStr, misc.NewDynamicVar(""))
 		}
 		out <- nil
