@@ -38,15 +38,19 @@ func NewFileSource(path string) *FileSource {
 }
 
 // Find looks for a key in the loaded map and a dots->underscore variant.
-func (f *FileSource) Find(possibleNames []string) (misc.DynamicVar, bool) {
+func (f *FileSource) Find(possibleNames []string) (misc.DynamicVar, string, bool) {
 	for _, n := range possibleNames {
 		if v, ok := f.kv[n]; ok {
-			return misc.NewDynamicVar(v), true
+			return misc.NewDynamicVar(v), n, true
 		}
 		alt := strings.ReplaceAll(n, ".", "_")
 		if v, ok := f.kv[alt]; ok {
-			return misc.NewDynamicVar(v), true
+			return misc.NewDynamicVar(v), alt, true
 		}
 	}
-	return misc.NewDynamicVar(""), false
+	return misc.NewDynamicVar(""), "", false
+}
+
+func (f *FileSource) GetSourceInfo() string {
+	return "Configuration File (" + f.kv["file"] + ")"
 }

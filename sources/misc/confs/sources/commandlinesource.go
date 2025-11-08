@@ -47,16 +47,20 @@ func NewCommandLineSource(args []string) *CommandLineSource {
 
 // Find implements ConfsSource. It checks each possible name in order and
 // returns the first matching value.
-func (c *CommandLineSource) Find(possibleNames []string) (misc.DynamicVar, bool) {
+func (c *CommandLineSource) Find(possibleNames []string) (misc.DynamicVar, string, bool) {
 	for _, n := range possibleNames {
 		if v, ok := c.kv[n]; ok {
-			return misc.NewDynamicVar(v), true
+			return misc.NewDynamicVar(v), n, true
 		}
 		// also try common variant replacing dots with underscores
 		alt := strings.ReplaceAll(n, ".", "_")
 		if v, ok := c.kv[alt]; ok {
-			return misc.NewDynamicVar(v), true
+			return misc.NewDynamicVar(v), alt, true
 		}
 	}
-	return misc.NewDynamicVar(""), false
+	return misc.NewDynamicVar(""), "", false
+}
+
+func (c *CommandLineSource) GetSourceInfo() string {
+	return "Command Line Arguments"
 }

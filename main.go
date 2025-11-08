@@ -27,6 +27,10 @@ const INFO_VERSION = "2.0.0+Capella"
 
 func main() {
 
+	if displayHelpOrVersion() {
+		return
+	}
+
 	//#region configs and logger {
 	fmt.Print("Loading configurations...")
 	configs := initConfigurations()
@@ -36,6 +40,10 @@ func main() {
 	logManager := initLogger(configs)
 	fmt.Println("done.")
 	//#endregion }
+
+	if detectInvalidArguments(configs, logManager) {
+		return
+	}
 
 	//setupStdoutAndStderrInterception(logManager)
 
@@ -56,8 +64,7 @@ func main() {
 	mainLog.Info("...Controller started.")
 
 	mainLog.Info("Starting VSTP API ...")
-	tmpDv := configs.Config("vstpApiPort").Value()
-	vstpPort := (&tmpDv).GetInt()
+	vstpPort := configs.GetConfig("vstpApiPort").Value().GetInt()
 	vstpApi, err := vstp.NewVSTP(vstpPort, theController, logManager)
 	if err != nil {
 		mainLog.Error("Main", "Failed to start VSTP API: "+err.Error())
@@ -68,7 +75,7 @@ func main() {
 	mainLog.Info("...VSTP API started.")
 
 	mainLog.Info("Starting HTTP API ...")
-	httpApiPort := configs.Config("httpApiPort").Value()
+	httpApiPort := configs.GetConfig("httpApiPort").Value()
 	httpApi, err := httpapi.New(httpApiPort.GetInt(), theController)
 	if err != nil {
 		mainLog.Error("Main", "Failed to start HTTP API: "+err.Error())
@@ -98,6 +105,100 @@ func main() {
 
 }
 
+func displayHelpOrVersion() bool {
+	for _, arg := range os.Args {
+		if arg == "--help" || arg == "-h" || arg == "/?" {
+
+			fmt.Println("VarServerSHU - The variable server for SHU-based systems")
+			fmt.Println("Version: " + INFO_VERSION)
+			fmt.Println("Usage: vss [options]")
+			fmt.Println("Options:")
+			fmt.Println("  -h, --help, /?, -?, help          Show this help message and exit")
+			//options from settings
+			fmt.Println("  --version                         Show version information and exit")
+			fmt.Println("  --http-api-port <port>            Set the HTTP API port (default: 5024 or value in conf file)")
+			fmt.Println("  --http-api-https-port <port>      Set the HTTPS API port (default: 5025 or value in conf file)")
+			fmt.Println("  --http-data-folder                Set the HTTP data directory (default: /var/vss/data/http_data or value in conf file)")
+			fmt.Println("  --http-api-cert-file              Set the HTTPS certificate file (default: ./ssl/cert/vssCert.pem or value in conf file)")
+			fmt.Println("  --http-api-key-file               Set the HTTPS key file (default: ./ssl/cert/vssKey.pem or value in conf file)")
+			fmt.Println("  --http-api-returns-full-paths     If true, HTTP API will return entire variables paths in the JSON results (default: false or value in conf file)")
+			fmt.Println("  --ram-cache-db-dump-interval-ms   Set the interval, in milliseconds, to RamCacheDB service check for changes in the memory and dump data to disk (default: 60000 or value in conf file)")
+			fmt.Println("  --vstp-api-port <port>            Set the VSTP API port (default: 5032 or value in conf file)")
+			fmt.Println("  --db-directory <path>             Set the database directory (default: /var/vss/data/database or value in conf file)")
+			fmt.Println("  --http-data-directory <path>      Set the HTTP data directory (default: /var/vss/data/http_data or value in conf file)")
+			fmt.Println("  --max-log-file-size <size_in_bytes>")
+			fmt.Println("  									 Set the maximum log file size in bytes before rotation (default: 52428800 or value in conf file)")
+			fmt.Println("  --max-time-waiting-for-clients <seconds>")
+			fmt.Println("  									 Set the maximum time in seconds to consider a client disconnected (default: 43200 or value in conf file)")
+			fmt.Println("  --stdout-log-level <level>        Set the log level for console output (default: info or value in conf file)")
+			fmt.Println("    levels:")
+			fmt.Println("      trace						     Very detailed logs, used for debugging")
+			fmt.Println("      debug						     Detailed logs, used for debugging")
+			fmt.Println("      info							     General information logs")
+			fmt.Println("      warning						     Warnings about potential issues")
+			fmt.Println("      error						     Errors that occurred")
+			fmt.Println("      critical						     Critical errors that may cause shutdown")
+			fmt.Println("  --file-log-level <level>          Set the log level for file output (default: info or value in conf file)")
+			fmt.Println("  --max-key-length <length>         Set the maximum key length in characters (default: 255 or value in conf file)")
+			fmt.Println("  --max-key-word-length <length>    Set the maximum key word length in characters (default: 64 or value in conf file)")
+			fmt.Println("  --max-value-size <size_in_bytes>  Set the maximum value size in bytes (default: 1048576 or value in conf file)")
+			fmt.Println("  --allow-raw-db-access <true|false>")
+			fmt.Println("                                    If true, allows raw database access without 'vars.' prefix (default: false or value in conf file)")
+			fmt.Println("")
+			fmt.Println("Environment Variables:")
+			fmt.Println("  VSS_HTTP_API_PORT                 Same as --http-api-port")
+			fmt.Println("  VSS_HTTP_API_HTTPS_PORT           Same as --http-api-https-port")
+			fmt.Println("  VSS_VSTP_API_PORT                 Same as --vstp-api-port")
+			fmt.Println("  VSS_HTTP_DATA_FOLDER              Same as --http-data-folder")
+			fmt.Println("  VSS_HTTP_API_CERT_FILE            Same as --http-api-cert-file")
+			fmt.Println("  VSS_HTTP_API_KEY_FILE             Same as --http-api-key-file")
+			fmt.Println("  VSS_HTTP_API_RETURN_FULL_PATHS    Same as --http-api-return-full-paths")
+			fmt.Println("  VSS_RAM_CACHE_DB_DUMP_INTERVAL_MS Same as --ram-cache-db-dump-interval-ms")
+			fmt.Println("  VSS_VSTP_API_PORT                 Same as --vstp-api-port")
+			fmt.Println("  VSS_DB_DIRECTORY                  Same as --db-directory")
+			fmt.Println("  VSS_HTTP_DATA_DIRECTORY           Same as --http-data-directory")
+			fmt.Println("  VSS_MAX_LOG_FILE_SIZE             Same as --max-log-file-size")
+			fmt.Println("  VSS_MAX_TIME_WAITING_CLIENTS      Same as --max-time-waiting-clients")
+			fmt.Println("  VSS_STDOUT_LOG_LEVEL              Same as --stdout-log-level")
+			fmt.Println("  VSS_FILE_LOG_LEVEL                Same as --file-log-level")
+			fmt.Println("  VSS_MAX_KEY_LENGTH                Same as --max-key-length")
+			fmt.Println("  VSS_MAX_KEY_WORD_LENGTH           Same as --max-key-word-length")
+			fmt.Println("  VSS_MAX_VALUE_SIZE                Same as --max-value-size")
+			fmt.Println("  VSS_ALLOW_RAW_DB_ACCESS           Same as --allow-raw-db-access")
+			fmt.Println("")
+			fmt.Println("Command line arguments are more important than environment variables, which are more important than configuration file values.")
+			fmt.Println("For more information, visit the documentation.")
+		} else if arg == "--version" || arg == "-v" {
+			fmt.Println("VSS Version: " + INFO_VERSION)
+		}
+	}
+	return false
+}
+
+func detectInvalidArguments(confs confs.IConfs, logManager logger.ILogger) bool {
+	ret := false
+	for i, arg := range os.Args {
+		if i == 0 {
+			continue
+		}
+
+		if strings.Contains(arg, "=") {
+			parts := strings.SplitN(arg, "=", 2)
+			arg = parts[0]
+		} else if strings.Contains(arg, ":") {
+			parts := strings.SplitN(arg, ":", 2)
+			arg = parts[0]
+		}
+
+		if _, found := confs.FindConfByParamName(arg); !found {
+			logManager.Error("", "Unknown argument: "+arg)
+			ret = true
+		}
+	}
+	// Add more validation logic as needed
+	return ret
+}
+
 func setupSignalHandler(sigs chan os.Signal) {
 	// Register for common termination signals. The main goroutine is waiting
 	// on the provided channel, so just forward OS signals into it.
@@ -123,18 +224,18 @@ func printBanner(logger logger.ILogger, configs confs.IConfs) {
 
 	text += "" + "|   +-- log file: " + determineLogFile() + "\n"
 
-	tmp := configs.Config("DbDirectory").Value()
+	tmp := configs.GetConfig("DbDirectory").Value()
 	text += "" + "|   +-- database folder: " + tmp.GetString() + "\n"
 	text += "" + "+-- Services" + "\n"
 
-	tmp = configs.Config("vstpApiPort").Value()
+	tmp = configs.GetConfig("vstpApiPort").Value()
 	text += "" + "|   +-- VSTP port: TCP/" + tmp.GetString() + "\n"
 
-	tmp = configs.Config("httpApiPort").Value()
-	tmp2 := configs.Config("httpApiHttpsPort").Value()
+	tmp = configs.GetConfig("httpApiPort").Value()
+	tmp2 := configs.GetConfig("httpApiHttpsPort").Value()
 	text += "" + "|   +-- HTTP port: TCP/" + tmp.GetString() + "(http) + TCP/" + tmp2.GetString() + "(https)" + "\n"
 
-	tmp = configs.Config("serverDiscoveryPort").Value()
+	tmp = configs.GetConfig("serverDiscoveryPort").Value()
 	text += "" + "|   +-- Server discovery port: UDP/" + tmp.GetString() + "\n"
 	text += "" + "+-- All configurations" + "\n"
 
@@ -161,135 +262,305 @@ func initConfigurations() confs.IConfs {
 		},
 	)
 
-	//conf->createPlaceHolders()
-	//         .add("%PROJECT_DIR%",  getApplicationDirectory(false))
-	//         .add("%APP_DIR%",  getApplicationDirectory(false))
-	//         .add("%FILE_SYSTEM_CONTEXT%", isRunningInPortableMode() ?  getApplicationDirectory(false) : "")
-	//         .add("%SUGGESTED_DATA_DIRECTORY%", isRunningInPortableMode() ?  getApplicationDirectory(false) + "/data" : "/var/vss/data")
-	//     ;
-
 	theConfs.AddPlaceHolders(map[string]string{
 		"%PROJECT_DIR%":              getApplicationDirectory(false),
 		"%APP_DIR%":                  getApplicationDirectory(false),
 		"%SUGGESTED_DATA_DIRECTORY%": suggestDataDirectory(),
 	})
 
-	theConfs.CreateConfig("maxLogFileSize",
+	//#region maxLogFileSize {
+	if conf, err := theConfs.CreateConfig("maxLogFileSize",
 		confs.WithPossibleNames([]string{"max-log-file-size", "--max-log-file-size", "VSS_MAX_LOG_FILE_SIZE"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("52428800")), //50 MiB
-	)
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			//should be a positive integer
+			value := conf.Value()
+			_, err := value.GetInt64e()
+			if err != nil {
+				return fmt.Errorf("received '%s', must be a positive integer: %w", value.GetString(), err)
+			}
+			return nil
+		}),
+	); err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (52428800).")
+	}
 
-	theConfs.CreateConfig("fileLogLevel",
+	//#endregion }
+
+	//#region fileLogLevel {
+	if conf, err := theConfs.CreateConfig("fileLogLevel",
 		confs.WithPossibleNames([]string{"file-log-level", "--file-log-level", "VSS_FILE_LOG_LEVEL"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("info2")),
 		confs.WithValueMap(map[misc.DynamicVar]misc.DynamicVar{
 			misc.NewDynamicVar("trace"):    misc.NewDynamicVar(logger.LEVEL_TRACE),
-			misc.NewDynamicVar("debug"):    misc.NewDynamicVar(logger.LEVEL_DEBUG2),
-			misc.NewDynamicVar("info"):     misc.NewDynamicVar(logger.LEVEL_INFO),
+			misc.NewDynamicVar("debug2"):   misc.NewDynamicVar(logger.LEVEL_DEBUG2),
+			misc.NewDynamicVar("debug"):    misc.NewDynamicVar(logger.LEVEL_DEBUG),
 			misc.NewDynamicVar("info2"):    misc.NewDynamicVar(logger.LEVEL_INFO2),
+			misc.NewDynamicVar("info"):     misc.NewDynamicVar(logger.LEVEL_INFO),
 			misc.NewDynamicVar("warning"):  misc.NewDynamicVar(logger.LEVEL_WARNING),
 			misc.NewDynamicVar("error"):    misc.NewDynamicVar(logger.LEVEL_ERROR),
 			misc.NewDynamicVar("critical"): misc.NewDynamicVar(logger.LEVEL_CRITICAL),
 		}),
-	)
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			valueStr := strings.ToLower(value.GetString())
+			if !(strings.Contains("tracedebuginfoinfo2warningerrorcritical", valueStr)) {
+				return fmt.Errorf("received '%s', must be a valid log level (trace, debug, info, info, warning, error or critical)", valueStr)
+			}
+			return nil
+		}),
+	); err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), " System will continue with default value (info).")
+	}
+	//#endregion }
 
-	theConfs.CreateConfig("stdoutLogLevel",
+	//#region stdoutLogLevel {
+	if conf, err := theConfs.CreateConfig("stdoutLogLevel",
 		confs.WithPossibleNames([]string{"stdout-log-level", "--stdout-log-level", "VSS_STDOUT_LOG_LEVEL"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("info")),
 		confs.WithValueMap(map[misc.DynamicVar]misc.DynamicVar{
 			misc.NewDynamicVar("trace"):    misc.NewDynamicVar(logger.LEVEL_TRACE),
-			misc.NewDynamicVar("debug"):    misc.NewDynamicVar(logger.LEVEL_DEBUG2),
-			misc.NewDynamicVar("info"):     misc.NewDynamicVar(logger.LEVEL_INFO),
+			misc.NewDynamicVar("debug2"):   misc.NewDynamicVar(logger.LEVEL_DEBUG2),
+			misc.NewDynamicVar("debug"):    misc.NewDynamicVar(logger.LEVEL_DEBUG),
 			misc.NewDynamicVar("info2"):    misc.NewDynamicVar(logger.LEVEL_INFO2),
+			misc.NewDynamicVar("info"):     misc.NewDynamicVar(logger.LEVEL_INFO),
 			misc.NewDynamicVar("warning"):  misc.NewDynamicVar(logger.LEVEL_WARNING),
 			misc.NewDynamicVar("error"):    misc.NewDynamicVar(logger.LEVEL_ERROR),
 			misc.NewDynamicVar("critical"): misc.NewDynamicVar(logger.LEVEL_CRITICAL),
 		}),
-	)
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			valueStr := strings.ToLower(value.GetString())
+			if !(strings.Contains("tracedebuginfoinfo2warningerrorcritical", valueStr)) {
+				return fmt.Errorf("received '%s', must be a valid log level (trace, debug, info, info, warning, error or critical)", valueStr)
+			}
+			return nil
+		}),
+	); err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), " System will continue with default value (info).")
+	}
 
+	//#endregion }
+
+	//#region serverDiscoveryPort {
 	theConfs.CreateConfig("serverDiscoveryPort",
 		confs.WithPossibleNames([]string{"server-discovery-port", "--server-discovery-port", "VSS_SERVER_DISCOVERY_PORT"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("5022")),
 	)
+	//#endregion }
 
+	//#region maxTimeWaitingClient_seconds {
 	theConfs.CreateConfig("maxTimeWaitingClient_seconds",
 		confs.WithPossibleNames([]string{"max-time-waiting-client-seconds", "--max-time-waiting-for-clients", "VSS_MAX_TIME_WAITING_CLIENTS"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("43200")), //12 hours
 	)
+	//#endregion }
 
+	//#region DbDirectory {
 	theConfs.CreateConfig("DbDirectory",
 		confs.WithPossibleNames([]string{"db-directory", "--db-directory", "VSS_DB_DIRECTORY"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("%SUGGESTED_DATA_DIRECTORY%/database")),
 	)
+	//#endregion }
 
+	//#region httpDataDir {
 	theConfs.CreateConfig("httpDataDir",
 		confs.WithPossibleNames([]string{"http-data-directory", "--http-data-directory", "--http-data-dir", "VSS_HTTP_DATA_DIRECTORY"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("%SUGGESTED_DATA_DIRECTORY%/http_data")),
 	)
+	//#endregion }
 
-	theConfs.CreateConfig("httpApiPort",
+	//#region httpApiPort {
+	conf, err := theConfs.CreateConfig("httpApiPort",
 		confs.WithPossibleNames([]string{"http-api-port", "--http-api-port", "VSS_HTTP_API_PORT"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("5024")),
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			port, err := value.GetInte()
+			if err != nil || port < 1 || port > 65535 {
+				return fmt.Errorf("received '%s', must be a valid TCP port number (1-65535)", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (5024).")
+	}
+	//#endregion }
 
+	//#region httpApiHttpsPort {
 	theConfs.CreateConfig("httpApiHttpsPort",
 		confs.WithPossibleNames([]string{"http-api-https-port", "--http-api-https-port", "VSS_HTTP_API_HTTPS_PORT"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("5025")),
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			port, err := value.GetInte()
+			if err != nil || port < 1 || port > 65535 {
+				return fmt.Errorf("received '%s', must be a valid TCP port number (1-65535)", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (5025).")
+	}
+	//#endregion }
 
+	//#region httpApiCertFile {
 	theConfs.CreateConfig("httpApiCertFile",
 		confs.WithPossibleNames([]string{"http-api-cert-file", "--http-api-cert-file", "VSS_HTTP_API_CERT_FILE"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("%APP_DIR%/ssl/cert/vssCert.pem")),
 	)
+	//#endregion }
 
+	//#region httpApiKeyFile {
 	theConfs.CreateConfig("httpApiKeyFile",
 		confs.WithPossibleNames([]string{"http-api-key-file", "--http-api-key-file", "VSS_HTTP_API_KEY_FILE"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("%APP_DIR%/ssl/cert/vssKey.pem")),
 	)
+	//#endregion }
 
+	//#region httpApiReturnsFullPaths {
 	theConfs.CreateConfig("httpApiReturnsFullPaths",
 		confs.WithPossibleNames([]string{"http-api-returns-full-paths", "--http-api-returns-full-paths", "VSS_HTTP_API_RETURN_FULL_PATHS"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("false")),
 	)
+	//#endregion }
 
+	//#region vstpApiPort {
 	theConfs.CreateConfig("vstpApiPort",
 		confs.WithPossibleNames([]string{"vstp-api-port", "--vstp-api-port", "VSS_VSTP_API_PORT"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("5032")),
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			port, err := value.GetInte()
+			if err != nil || port < 1 || port > 65535 {
+				return fmt.Errorf("received '%s', must be a valid TCP port number (1-65535)", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (5032).")
+	}
+	//#endregion }
 
-	theConfs.CreateConfig("RamCacheDbDumpIntervalMs",
+	//#region RamCacheDbDumpIntervalMs {
+	conf, err = theConfs.CreateConfig("RamCacheDbDumpIntervalMs",
 		confs.WithPossibleNames([]string{"ram-cache-db-dump-interval-ms", "--ram-cache-db-dump-interval-ms", "VSS_RAMCACHEDB_DUMP_INTERVAL_MS"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("60000")), //60 seconds
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			interval, err := value.GetInte()
+			if err != nil || interval < 0 {
+				return fmt.Errorf("received '%s', must be a valid positive integer", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (60000).")
+	}
 
-	theConfs.CreateConfig("maxKeyLength",
+	//#endregion }
+
+	//#region maxKeyLength {
+	conf, err = theConfs.CreateConfig("maxKeyLength",
 		confs.WithPossibleNames([]string{"max-key-length", "--max-key-length", "VSS_MAX_KEY_LENGTH"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("255")),
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			length, err := value.GetInte()
+			if err != nil || length < 1 {
+				return fmt.Errorf("received '%s', must be a valid positive integer", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (255).")
+	}
+	//#endregion }
 
+	//#region maxKeyWordLength {
 	//not obrigatory, 0 means no limit (but the whole key will be validated by 'maxKeyLength')
-	theConfs.CreateConfig("maxKeyWordLength",
+	conf, err = theConfs.CreateConfig("maxKeyWordLength",
 		confs.WithPossibleNames([]string{"max-key-word-length", "--max-key-word-length", "VSS_MAX_KEY_WORD_LENGTH"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("64")),
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			length, err := value.GetInte()
+			if err != nil || length < 1 {
+				return fmt.Errorf("received '%s', must be a valid positive integer", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (64).")
+	}
+	//#endregion }
 
-	theConfs.CreateConfig("maxValueSize",
+	//#region maxValueSize {
+	//not obrigatory, 0 means no limit
+	conf, err = theConfs.CreateConfig("maxValueSize",
 		confs.WithPossibleNames([]string{"max-value-size", "--max-value-size", "VSS_MAX_VALUE_SIZE"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("1048576")), //1 MiB
+		confs.WithValidationFunc(func(conf confs.IConfItem) error {
+			value := conf.NotMappedValue()
+			length, err := value.GetInte()
+			if err != nil || length < 1 {
+				return fmt.Errorf("received '%s', must be a valid positive integer", value.GetString())
+			}
+			return nil
+		}),
 	)
+	if err != nil {
+		//print to stderr
+		usedName, sourceInfo := conf.GetUsedNameAnsSourceInfo()
+		fmt.Fprintf(os.Stderr, "Invalid '%s' (%s): %s. %s", usedName, sourceInfo, err.Error(), "System will continue with default value (1048576).")
+	}
+	//#endregion }
 
+	//#region allowRawDbAccess {
 	theConfs.CreateConfig("allowRawDbAccess",
 		confs.WithPossibleNames([]string{"allow-raw-db-access", "--allow-raw-db-access", "VSS_ALLOW_RAW_DB_ACCESS"}),
 		confs.WithDefaultValue(misc.NewDynamicVar("false")),
 	)
+
+	if theConfs.GetConfig("allowRawDbAccess").Value().GetBool() {
+		//print a yellow message to the terminal
+		yellow := "\033[33m"
+		reset := "\033[0m"
+		fmt.Printf("%sWarning: Raw database access is enabled. This may pose security risks if not properly managed.%s\n", yellow, reset)
+	}
+	//#endregion }
 	return theConfs
 }
 
 func initLogger(configs confs.IConfs) logger.ILogger {
-	fileLogLevel := configs.Config("fileLogLevel").Value()
-	consoleLogLevel := configs.Config("stdoutLogLevel").Value()
+	fileLogLevel := configs.GetConfig("fileLogLevel").Value()
+	consoleLogLevel := configs.GetConfig("stdoutLogLevel").Value()
 
-	maxLogSize := configs.Config("maxLogFileSize").Value()
+	maxLogSize := configs.GetConfig("maxLogFileSize").Value()
 	fileWriter, err := logwriters.NewFileWriter(
 		determineLogFile(),
 		fileLogLevel.GetInt(),
@@ -358,8 +629,8 @@ func setupStdoutAndStderrInterception(logManager logger.ILogger) {
 
 func initStorage(configs confs.IConfs, logger logger.ILogger) storage.IStorage {
 
-	dbDirectoryConfig := configs.Config("DbDirectory").Value()
-	dbDumpIntervalConfig := configs.Config("RamCacheDbDumpIntervalMs").Value()
+	dbDirectoryConfig := configs.GetConfig("DbDirectory").Value()
+	dbDumpIntervalConfig := configs.GetConfig("RamCacheDbDumpIntervalMs").Value()
 	_ = os.MkdirAll(dbDirectoryConfig.GetString(), 0755)
 	theStorage := storage.NewRamCacheDB(logger, dbDirectoryConfig.GetString(), dbDumpIntervalConfig.GetInt())
 

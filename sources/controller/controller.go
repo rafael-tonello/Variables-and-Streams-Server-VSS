@@ -92,21 +92,21 @@ func NewController(log logger.ILogger, confs confs.IConfs, db storage.IStorage, 
 		maxTimeWaitingClientSecond: 12 * 60 * 60, // default like C++	}
 	}
 
-	confMaxTimeWaitingClient := confs.Config("maxTimeWaitingClient_seconds").Value()
+	confMaxTimeWaitingClient := confs.GetConfig("maxTimeWaitingClient_seconds").Value()
 	if confMaxTimeWaitingClient.GetInt64() > 0 {
 		c.maxTimeWaitingClientSecond = confMaxTimeWaitingClient.GetInt64()
 	}
 
-	confMaxKeyLength := confs.Config("maxKeyLength").Value()
+	confMaxKeyLength := confs.GetConfig("maxKeyLength").Value()
 	c.maxKeyLength = int(confMaxKeyLength.GetInt64())
 
-	confMaxKeyWordLength := confs.Config("maxKeyWordLength").Value()
+	confMaxKeyWordLength := confs.GetConfig("maxKeyWordLength").Value()
 	c.maxKeyWordLength = int(confMaxKeyWordLength.GetInt64())
 
-	confMaxValueSize := confs.Config("maxValueSize").Value()
+	confMaxValueSize := confs.GetConfig("maxValueSize").Value()
 	c.maxValueSize = int(confMaxValueSize.GetInt64())
 
-	confRAwDbAccess := confs.Config("allowRawDbAccess").Value()
+	confRAwDbAccess := confs.GetConfig("allowRawDbAccess").Value()
 	c.allowRawDbAccess = confRAwDbAccess.GetBool()
 
 	return c
