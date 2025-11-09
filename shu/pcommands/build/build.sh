@@ -34,7 +34,13 @@ main(){
     # copy assets, excluding .so files
     find ./sources/assets -type f ! -name '*.so' -exec cp --parents {} ./build/ \;
 
-    go build -o ./build/vss ./main.go
+    if [ "$buildType" == "--debug" ] || [ "$buildType" == "debug" ]; then
+        go build -gcflags "all=-N -l" -o ./build/vss ./main.go
+        retCode=$?
+    else
+        go build -o ./build/vss ./main.go
+        retCode=$?
+    fi
     retCode=$?
     if [ $retCode -ne 0 ]; then
         echo "Build failed."

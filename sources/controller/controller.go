@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -267,6 +268,9 @@ func (c *TheController) DelVar(varname string) chan error {
 			return
 		}
 
+		if len(vals) > 1 {
+			fmt.Println("Warning: Deleting multiple variables matching pattern '" + varname + "'")
+		}
 		// delete each found var
 		for _, t := range vals {
 			nameDV := t.At(0)

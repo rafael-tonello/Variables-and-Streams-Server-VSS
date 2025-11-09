@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"rtonello/vss/sources/misc"
@@ -14,7 +15,6 @@ import (
 // ramNode represents a node in the in-memory tree storage.
 type ramNode struct {
 	imediateName string
-	fullName     string
 	parent       *ramNode
 	childs       map[string]*ramNode
 	value        misc.DynamicVar
@@ -26,7 +26,7 @@ type ramNode struct {
 type RamCacheDB struct {
 	mu             sync.RWMutex
 	root           ramNode
-	pendingChanges bool
+	pendingChanges atomic.Bool
 
 	// dump configuration
 	dataDir        string
@@ -41,7 +41,6 @@ func NewRamCacheDB(logger logger.ILogger, dataDir string, dumpIntervalMs int) IS
 	r := &RamCacheDB{}
 	r.root.childs = make(map[string]*ramNode)
 	r.root.imediateName = ""
-	r.root.fullName = ""
 	r.log = logger.GetNamedLogger("Storage::RamCacheDB")
 
 	if dataDir == "" {
@@ -97,18 +96,18 @@ func (r *RamCacheDB) backgroundDumper() {
 		select {
 		case <-r.stopCh:
 			r.mu.Lock()
-			if r.pendingChanges {
-				r.dumpLocked()
-				r.pendingChanges = false
+			if r.pendingChanges.Load() {
+				r.dump()
+				r.pendingChanges.Store(false)
 			}
 			r.mu.Unlock()
 
 			return
 		case <-ticker.C:
 			r.mu.Lock()
-			if r.pendingChanges {
-				r.dumpLocked()
-				r.pendingChanges = false
+			if r.pendingChanges.Load() {
+				r.dump()
+				r.pendingChanges.Store(false)
 			}
 			r.mu.Unlock()
 		}
@@ -133,15 +132,16 @@ func (r *RamCacheDB) scrollTree(name string, curr *ramNode, readOnly bool) *ramN
 
 			curr.childs[currName] = &ramNode{
 				imediateName: currName,
-				fullName:     "",
 				parent:       curr,
 				childs:       make(map[string]*ramNode),
 				value:        misc.NewEmptyDynamicVar(),
 			}
 
-			if curr.fullName != "" {
-				curr.childs[currName].fullName = curr.fullName + "." + currName
-			}
+			//if curr.fullName != "" {
+			//	curr.childs[currName].fullName = curr.fullName + "." + currName
+			//} else {
+			//	curr.childs[currName].fullName = currName
+			//}
 
 		}
 	}
@@ -160,7 +160,7 @@ func (r *RamCacheDB) Set(name string, v misc.DynamicVar) {
 	item := r.scrollTree(name, &r.root, false)
 	if item != nil {
 		item.value = v
-		r.pendingChanges = true
+		r.pendingChanges.Store(true)
 	}
 }
 
@@ -191,6 +191,10 @@ func (r *RamCacheDB) GetChilds(parentName string) []string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	item := r.scrollTree(parentName, &r.root, true)
+	if item == nil {
+		return []string{}
+	}
+
 	ret = make([]string, 0, len(item.childs))
 	if item == nil || item.childs == nil {
 		return []string{}
@@ -225,7 +229,7 @@ func (r *RamCacheDB) DeleteValue(name string, deleteChildsInACascade bool) {
 	if len(item.childs) == 0 && item.parent != nil {
 		delete(item.parent.childs, item.imediateName)
 	}
-	r.pendingChanges = true
+	r.pendingChanges.Store(true)
 }
 
 // ForEachChilds iterates immediate childs and calls f(fullChildName, value).
@@ -308,8 +312,8 @@ func (r *RamCacheDB) ForEachChildsParallel(parentName string, f func(string, mis
 	return done
 }
 
-// dumpLocked expects r.mu to be locked. It writes the dump file to disk and returns any error.
-func (r *RamCacheDB) dumpLocked() {
+// dump expects r.mu to be locked. It writes the dump file to disk and returns any error.
+func (r *RamCacheDB) dump() {
 	r.log.Trace("Dumping RamCacheDB to disk...")
 	text := r.dumpToStringLocked(&r.root, "")
 	// ensure directory
@@ -370,6 +374,6 @@ func (r *RamCacheDB) load() error {
 			item.value = misc.NewDynamicVar(val)
 		}
 	}
-	r.pendingChanges = false
+	r.pendingChanges.Store(false)
 	return nil
 }

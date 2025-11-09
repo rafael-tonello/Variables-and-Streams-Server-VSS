@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"rtonello/vss/sources/misc/logger"
 	logwriters "rtonello/vss/sources/misc/logger/writers"
@@ -88,6 +89,24 @@ func main() {
 	//#endregion }
 
 	//#endregion }
+
+	if configs.GetConfig("allowRawDbAccess").Value().GetBool() {
+		//print a yellow message to the terminal
+
+		//give some time to previous log messages to be printed
+		time.Sleep(500 * time.Millisecond)
+
+		fmt.Print("\n\n\033[33m")
+		misc.PrintTerminalSeparator("-", " [ RAW DATABASE ACCESS NOTICE ] ")
+		os.Stdout.WriteString("\033[0m")
+		os.Stdout.WriteString("\033[33m Warning: Raw database access is enabled.\033[0m\n")
+		os.Stdout.WriteString("\033[33m Warning:This may pose security risks if not properly managed.\033[0m\n")
+		os.Stdout.WriteString("\033[33m Warning: You should only use it for database maintenance and if you know the internal structures of VSS.\033[0m\n")
+		os.Stdout.WriteString("\033[33m Warning:Clients should not connect to the database when this option is enabled.\033[0m\n")
+		fmt.Print("\033[33m")
+		misc.PrintTerminalSeparator("-", " [ RAW DATABASE ACCESS NOTICE ] ")
+		os.Stdout.WriteString("\033[0m\n\n")
+	}
 
 	//handle system signals to allow graceful shutdown
 	sigs := make(chan os.Signal, 1)
@@ -546,12 +565,7 @@ func initConfigurations() confs.IConfs {
 		confs.WithDefaultValue(misc.NewDynamicVar("false")),
 	)
 
-	if theConfs.GetConfig("allowRawDbAccess").Value().GetBool() {
-		//print a yellow message to the terminal
-		yellow := "\033[33m"
-		reset := "\033[0m"
-		fmt.Printf("%sWarning: Raw database access is enabled. This may pose security risks if not properly managed.%s\n", yellow, reset)
-	}
+	// warning message is printed in 'main'
 	//#endregion }
 	return theConfs
 }

@@ -467,6 +467,7 @@ func insertNested(root map[string]any, parts []string, value any) {
 // keys are all non-negative integers into slices. Missing indices produce nil
 // entries so array positions stay aligned with keys.
 func normalizeArrays(v any) any {
+	previusNum := -1
 	switch t := v.(type) {
 	case map[string]any:
 		// first normalize children
@@ -482,7 +483,7 @@ func normalizeArrays(v any) any {
 		maxIdx := -1
 		for k := range t {
 			idx, err := strconv.Atoi(k)
-			if err != nil || idx < 0 {
+			if err != nil || idx < 0 || idx != previusNum+1 {
 				numericKeys = false
 				break
 			}
@@ -490,6 +491,7 @@ func normalizeArrays(v any) any {
 			if idx > maxIdx {
 				maxIdx = idx
 			}
+			previusNum = idx
 		}
 		if !numericKeys {
 			return t

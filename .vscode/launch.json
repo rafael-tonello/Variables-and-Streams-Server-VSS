@@ -13,7 +13,8 @@
             "cwd": "${workspaceFolder}/build",
             "preLaunchTask": "buildDebug",
             "args": [
-                "--stdout-log-level=trace"
+                "--stdout-log-level=info",
+                "--allow-raw-db-access=false"
             ]
         },
         {

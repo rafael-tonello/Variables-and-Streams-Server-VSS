@@ -262,7 +262,7 @@ func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) 
 			v.protocolWrite(cli, RESPONSE_END, SET_VAR+":"+payload)
 		}
 	case DELETE_VAR:
-		name := payload
+		name, _ := separateKeyAndValue(payload)
 		if v.ctrl != nil {
 			err := <-v.ctrl.DelVar(name)
 			v.protocolWrite(cli, RESPONSE_BEGIN, DELETE_VAR+":"+payload)
@@ -274,7 +274,8 @@ func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) 
 			v.protocolWrite(cli, RESPONSE_END, DELETE_VAR+":"+payload)
 		}
 	case GET_VAR:
-		name := payload
+		name, _ := separateKeyAndValue(payload)
+
 		// read value(s) and reply
 		if v.ctrl != nil {
 			res := <-v.ctrl.GetVars(name, misc.NewDynamicVar(""))

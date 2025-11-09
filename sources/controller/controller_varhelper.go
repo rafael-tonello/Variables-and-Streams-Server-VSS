@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"rtonello/vss/sources/misc"
 	"rtonello/vss/sources/services/storage"
@@ -244,7 +245,11 @@ func (c *ControllerVarHelper) GetChildNames() []string {
 }
 
 func (c *ControllerVarHelper) GetParentName() string {
-	return c.name
+	indx := strings.LastIndex(c.name, ".")
+	if indx >= 0 {
+		return c.name[:indx]
+	}
+	return ""
 }
 
 func (c *ControllerVarHelper) SetFlag(flagName string, value misc.DynamicVar) {
@@ -329,5 +334,6 @@ func (c *ControllerVarHelper) ForeachObservation(f func(obsID ObservationID, cli
 }
 
 func (c *ControllerVarHelper) DeleteValue() {
+	fmt.Println("Deleting var:", c.name)
 	c.db.DeleteValue(c.name, false)
 }
