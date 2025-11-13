@@ -14,7 +14,6 @@ Modify the HTTP DELETE response to include a count of the number of items that w
 }
 ```
 
-if user request text/plain, return just the number:
 
 ```
 deleted.count=3
