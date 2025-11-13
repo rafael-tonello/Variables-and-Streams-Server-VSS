@@ -94,10 +94,7 @@ func NewVSTP(port int, ctrl controller.IController, logger logger.ILogger) (*VST
 		v.incomingDataBuffer[cli] = ""
 		v.clientsLock.Unlock()
 		// send welcome info and id
-		v.sendBeginHeaderToClient(cli)
-		v.sendInfoAndConfToClient(cli)
-		v.sendIdToClient(cli, uid)
-		v.sendEndHeaderToClient(cli)
+		v.sentInitialHeaders(cli, uid)
 
 		v.log.Info("New VSTP client connected, assigned id: " + uid)
 	})
@@ -162,6 +159,20 @@ func NewVSTP(port int, ctrl controller.IController, logger logger.ILogger) (*VST
 	return v, nil
 }
 
+func (v *VSTP) sentInitialHeaders(cli tcpserver.ITCPClient, uid string) {
+	v.protocolWrite(cli, SERVER_BEGIN_HEADERS, "")
+
+	// minimal info: protocol and system version if controller available
+	v.protocolWrite(cli, SEND_SERVER_INFO_AND_CONFS, "PROTOCOL VERSION=1.2.0")
+	if v.ctrl != nil {
+		v.protocolWrite(cli, SEND_SERVER_INFO_AND_CONFS, "VSS VERSION="+v.ctrl.GetSystemVersion())
+	}
+
+	v.protocolWrite(cli, SUGGEST_NEW_CLI_ID, uid)
+
+	v.protocolWrite(cli, SERVER_END_HEADERS, "")
+}
+
 // ApiInterface implementation -------------------------------------------------
 func (v *VSTP) GetApiId() string {
 	return v.apiId
@@ -215,26 +226,6 @@ func (v *VSTP) protocolWrite(cli tcpserver.ITCPClient, cmd, data string) error {
 	return cli.SendString(buf)
 }
 
-func (v *VSTP) sendBeginHeaderToClient(cli tcpserver.ITCPClient) {
-	v.protocolWrite(cli, SERVER_BEGIN_HEADERS, "")
-}
-
-func (v *VSTP) sendEndHeaderToClient(cli tcpserver.ITCPClient) {
-	v.protocolWrite(cli, SERVER_END_HEADERS, "")
-}
-
-func (v *VSTP) sendInfoAndConfToClient(cli tcpserver.ITCPClient) {
-	// minimal info: protocol and system version if controller available
-	v.protocolWrite(cli, SEND_SERVER_INFO_AND_CONFS, "PROTOCOL VERSION=1.2.0")
-	if v.ctrl != nil {
-		v.protocolWrite(cli, SEND_SERVER_INFO_AND_CONFS, "VSS VERSION="+v.ctrl.GetSystemVersion())
-	}
-}
-
-func (v *VSTP) sendIdToClient(cli tcpserver.ITCPClient, id string) {
-	v.protocolWrite(cli, SUGGEST_NEW_CLI_ID, id)
-}
-
 // processReceivedMessage parses and executes the protocol command
 func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) {
 	// message form: command:payload
@@ -262,7 +253,7 @@ func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) 
 			v.protocolWrite(cli, RESPONSE_END, SET_VAR+":"+payload)
 		}
 	case DELETE_VAR:
-		name, _ := separateKeyAndValue(payload)
+		name := payload
 		if v.ctrl != nil {
 			err := <-v.ctrl.DelVar(name)
 			v.protocolWrite(cli, RESPONSE_BEGIN, DELETE_VAR+":"+payload)
@@ -274,8 +265,7 @@ func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) 
 			v.protocolWrite(cli, RESPONSE_END, DELETE_VAR+":"+payload)
 		}
 	case GET_VAR:
-		name, _ := separateKeyAndValue(payload)
-
+		name := payload
 		// read value(s) and reply
 		if v.ctrl != nil {
 			res := <-v.ctrl.GetVars(name, misc.NewDynamicVar(""))
@@ -310,7 +300,7 @@ func (v *VSTP) processReceivedMessage(cli tcpserver.ITCPClient, message string) 
 			v.protocolWrite(cli, RESPONSE_BEGIN, SUBSCRIBE_VAR+":"+payload)
 			v.ctrl.ObserveVar(name, cid, meta, v)
 			v.protocolWrite(cli, RESPONSE_END, SUBSCRIBE_VAR+":"+payload)
-			v.log.Info("Client subscribed to variable: " + name + " (meta: " + meta + ")")
+			v.log.Info("Client subscribed to variable: " + name + " (metadata: " + meta + ")")
 		}
 	case UNSUBSCRIBE_VAR:
 		name, meta := separateNameAndMetadata(payload)
