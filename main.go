@@ -12,7 +12,6 @@ import (
 	"rtonello/vss/sources/services/apis/vstp"
 	"rtonello/vss/sources/services/storage"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -113,15 +112,18 @@ func main() {
 	setupSignalHandler(sigs)
 
 	sig := <-sigs
-	mainLog.Info("Received signal: " + sig.String() + ", shutting down...")
+	mainLog.Info("Received the signal '" + sig.String() + "', shutting down...")
 
 	//finalize services in reverse order
+	//vstp.Finalize()
+	//httpapi.Finalize()
+	theStorage.Finalize()
 
-	//kepp app running
-	mx := sync.Mutex{}
-	mx.Lock()
-	mx.Lock()
+	mainLog.Info("Vss gracefully shut down. Bye!")
 
+	//wait one second to logger flush all messages
+	time.Sleep(1 * time.Second)
+	os.Exit(0)
 }
 
 func displayHelpOrVersion() bool {
